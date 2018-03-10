@@ -9,7 +9,8 @@ def checkCopyright(root):
     checkList = ['** This is a COPYRIGHTED Project Gutenberg eBook, Details Below **'.lower(),
                  '**This is a COPYRIGHTED Project Gutenberg Etext, Details Below**'.lower(),
                  '**This is a COPYRIGHTED Project Gutenberg Etext Details Below**'.lower(),
-                 '**This is a COPYRIGHTED Project Gutenberg Electronic Book**'.lower()]
+                 '**This is a COPYRIGHTED Project Gutenberg Electronic Book**'.lower(),
+                 'This is a COPYRIGHTED Project Gutenberg etext.'.lower()]
     checkCount = 0
     checkExtraCount = 0
     checkExtra = 'COPYRIGHTED Project Gutenberg'
@@ -42,3 +43,5 @@ def checkCopyright(root):
                     print(os.path.join(path, name))
                     print("Count: ", fileCount, ", CheckBasic: ", checkCount, " CheckExtra: ", checkExtraCount)
                 file.close()
+
+    print("Done! ", "Count: ", fileCount, ", CheckBasic: ", checkCount, " CheckExtra: ", checkExtraCount)
