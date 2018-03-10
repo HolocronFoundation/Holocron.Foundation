@@ -86,8 +86,19 @@ def prepWork(bookID, defaultRDFDirectory = 'C:/Users/Sam Troper/Desktop/Holocron
             fields['author(s)'].append(author)
         return fields
 
-def test(skip=[1691], books=56690, start=0):
+def test(skip=[1691, 36169, 56683], books=56710, start=0):
     for x in range(start, books):
         if x not in skip:
             print(x)
             print(prepWork(x))
+
+def checkCopyright(skip=[1691, 36169, 56683], books=56710, start=0, listWorks=True):
+        #standard copyright notice: Copyrighted. Read the copyright notice inside this book for details.
+        for x in range(start, books):
+                if x not in skip:
+                        prep = prepWork(x)
+                        if prep['copyright'].lower() != "Public domain in the USA.".lower():
+                                if listWorks or prep['copyright'].lower() != "Copyrighted. Read the copyright notice inside this book for details.".lower():
+                                        print(x)
+                                        print(prep)
+                                        print()
