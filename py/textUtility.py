@@ -42,5 +42,80 @@ def moveTexts(directory='C:/gutenberg/', newDirectory='C:/gutenbergNoSubs/'):
     for file in selectTexts(directory):
         copy2(file, newDirectory)
 
+def stripper(directory='C:/gutenbergNoSubs/', rename=True):
+    for path, subdirs, files in os.walk(directory):
+        for name in files:
+            # Read in the file
+            try:
+                with open(os.path.join(path, name), 'r') as file:
+                    fileData = file.read()
+            except UnicodeDecodeError:
+                try:
+                    with open(os.path.join(path, name), 'r', encoding="utf8") as file:
+                        fileData = file.read()
+                except UnicodeDecodeError:
+                    with open(os.path.join(path, name), 'r', encoding="latin1") as file:
+                        fileData = file.read()
+
+            #Finding Start of Actual File
+            headerType = ''
+            endOfStart = fileData.find('*** START OF THIS PROJECT GUTENBERG')
+            if endOfStart != -1:
+                endOfStart += len('*** START OF THIS PROJECT GUTENBERG')
+                headerType='noh1'
+                endOfStart = fileData.index('***', endOfStart) + 3
+            elif fileData.find('*** START OF THE PROJECT GUTENBERG') != -1:
+                endOfStart = fileData.find('*** START OF THE PROJECT GUTENBERG') + len('*** START OF THE PROJECT GUTENBERG')
+                headerType = 'noh2'
+            else:
+                endOfStart = 0
+                print(os.path.join(path, name))
+
+            #Finding End of Actual File
+            footerType=''
+            startOfEnd = fileData.find('End of Project Gutenberg\'s')
+            if startOfEnd != -1:
+                footerType='nof1'
+            elif fileData.find('End of the Project Gutenberg') != -1:
+                startOfEnd = fileData.find('End of the Project Gutenberg')
+                footerType='nof2'
+            elif fileData.find('*** END OF THIS PROJECT GUTENBERG') != -1:
+                startOfEnd = fileData.find('*** END OF THIS PROJECT GUTENBERG')
+                footerType='nof3'
+            else:
+                startOfEnd = len(fileData)
+                print(os.path.join(path, name))
+
+            # Replace the target string
+            fileData = fileData[endOfStart:startOfEnd].strip()
+
+            # Write the file out again
+            if(rename):
+                try:
+                    with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w') as file:
+                        file.write(fileData)
+                except UnicodeEncodeError:
+                    try:
+                        with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w', encoding="utf8") as file:
+                            file.write(fileData)
+                    except UnicodeEncodeError:
+                        with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w', encoding="latin1") as file:
+                            file.write(fileData)
+            else:
+                with open(os.path.join(path, name), 'w') as file:
+                    file.write(fileData)
+            os.remove(os.path.join(path, name))
+
+
+def moveAndStrip():
+    moveTexts()
+    print('Now stripping')
+    stripper()
+
+#def stripFooter(directory='C:/gutenbergNoSubs/', rename=True):
+
 #Future to do:
-        #Add Big-5 support. Should be simple, similar to UTF and Latin... No books are in that format anyway yet...
+#Add Big-5 support. Should be simple, similar to UTF and Latin... No books are in that format anyway yet...
+
+#Misc note:
+#Yes, this could be more optimized... Whatever, trynna get this done and speed doesn't matter for this utility.
