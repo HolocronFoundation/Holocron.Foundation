@@ -24,12 +24,15 @@ def selectTexts(directory='C:/gutenberg/'):
         if '-' not in name:
             finalList.append(name)
         #Checks if ASCII will be added
-        elif (name.replace('-8', '') not in nameList) or (name.replace('-0', '') not in nameList):
+        elif (name.replace('-8', '') not in nameList) or (name.replace('-0', '') not in nameList) or (name.replace('-5', '') not in nameList):
             #If UTF-8, then add
             if '-0' in name:
                 finalList.append(name)
             #If Latin-1, and UTF-8 will NOT be added, add Latin-1
             elif name.replace('-8', '-0') not in nameList:
+                finalList.append(name)
+            #If Big 5, and UTF-8 and Latin-1 will NOT be added, add Big-5
+            elif (name.replace('-5', '-0') not in nameList) and (name.replace('-5', '-8') not in nameList):
                 finalList.append(name)
     fileList = []
     for name in finalList:
@@ -113,9 +116,6 @@ def moveAndStrip():
     stripper()
 
 #def stripFooter(directory='C:/gutenbergNoSubs/', rename=True):
-
-#Future to do:
-#Add Big-5 support. Should be simple, similar to UTF and Latin... No books are in that format anyway yet...
 
 #Misc note:
 #Yes, this could be more optimized... Whatever, trynna get this done and speed doesn't matter for this utility.
