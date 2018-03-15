@@ -128,6 +128,9 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
             elif fileData.find('End of Project Gutenberg') != -1:
                 startOfEnd = fileData.find('End of Project Gutenberg')
                 footerType = 'nof7'
+            elif fileData.find('End of this Project Gutenberg') != -1:
+                startOfEnd = fileData.find('End of this Project Gutenberg')
+                footerType = 'nof8'
             else:
                 startOfEnd = len(fileData)
                 print(os.path.join(path, name))
@@ -152,6 +155,20 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
                                 file.write(fileData)
                                 file.close()
                     os.remove(os.path.join(path, name))
+                else:
+                    try:
+                        with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w') as file:
+                            file.write(fileData)
+                            file.close()
+                    except UnicodeEncodeError:
+                        try:
+                            with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w', encoding="utf8") as file:
+                                file.write(fileData)
+                                file.close()
+                        except UnicodeEncodeError:
+                            with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w', encoding="latin1") as file:
+                                file.write(fileData)
+                                file.close()
             else:
                 with open(os.path.join(path, name), 'w') as file:
                     file.write(fileData)
