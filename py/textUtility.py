@@ -92,7 +92,7 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
                 endOfStart = fileData.index('*END*', endOfStart) + len('*END*')
                 if fileData.find(longRemoval, endOfStart) != -1:
                     endOfStart = fileData.index(longRemoval, endOfStart) + len(longRemoval)
-                    headerType = 'noh3e
+                    headerType = 'noh3e'
             elif fileData.find('***START OF THE PROJECT GUTENBERG') != -1:
                 endOfStart = fileData.find('***START OF THE PROJECT GUTENBERG') + len('***START OF THE PROJECT GUTENBERG')
                 headerType = 'noh4'
@@ -122,6 +122,12 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
             elif fileData.find('***END OF THE PROJECT GUTENBERG') != -1:
                 startOfEnd = fileData.find('***END OF THE PROJECT GUTENBERG')
                 footerType='nof5'
+            elif fileData.find('End of The Project Gutenberg') != -1:
+                startOfEnd = fileData.find('End of The Project Gutenberg')
+                footerType = 'nof6'
+            elif fileData.find('End of Project Gutenberg') != -1:
+                startOfEnd = fileData.find('End of Project Gutenberg')
+                footerType = 'nof7'
             else:
                 startOfEnd = len(fileData)
                 print(os.path.join(path, name))
