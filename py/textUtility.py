@@ -52,13 +52,16 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
             try:
                 with open(os.path.join(path, name), 'r') as file:
                     fileData = file.read()
+                    file.close()
             except UnicodeDecodeError:
                 try:
                     with open(os.path.join(path, name), 'r', encoding="utf8") as file:
                         fileData = file.read()
+                        file.close()
                 except UnicodeDecodeError:
                     with open(os.path.join(path, name), 'r', encoding="latin1") as file:
                         fileData = file.read()
+                        file.close()
 
             #Finding Start of Actual File
             headerType = ''
@@ -70,6 +73,14 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
             elif fileData.find('*** START OF THE PROJECT GUTENBERG') != -1:
                 endOfStart = fileData.find('*** START OF THE PROJECT GUTENBERG') + len('*** START OF THE PROJECT GUTENBERG')
                 headerType = 'noh2'
+                endOfStart = fileData.index('***', endOfStart) + 3
+            elif fileData.find('*END*THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS') != -1:
+                endOfStart = fileData.find('*END*THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS') + len('*END*THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS')
+                headerType= 'noh3'
+                endOfStart = fileData.index('*END*', endOfStart) + len('*END*')
+            elif fileData.find('***START OF THE PROJECT GUTENBERG') != -1:
+                endOfStart = fileData.find('***START OF THE PROJECT GUTENBERG') + len('***START OF THE PROJECT GUTENBERG')
+                headerType = 'noh4'
                 endOfStart = fileData.index('***', endOfStart) + 3
             else:
                 endOfStart = 0
@@ -89,6 +100,9 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
             elif fileData.find('*** END OF THE PROJECT GUTENBERG') != -1:
                 startOfEnd = fileData.find('*** END OF THE PROJECT GUTENBERG')
                 footerType='nof4'
+            elif fileData.find('***END OF THE PROJECT GUTENBERG') != -1:
+                startOfEnd = fileData.find('***END OF THE PROJECT GUTENBERG')
+                footerType='nof5'
             else:
                 startOfEnd = len(fileData)
                 print(os.path.join(path, name))
@@ -97,21 +111,35 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
             fileData = fileData[endOfStart:startOfEnd].strip()
 
             # Write the file out again
-            if(rename):
-                try:
-                    with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w') as file:
-                        file.write(fileData)
-                except UnicodeEncodeError:
+            if rename:
+                if headerType != '' or footerType != '':
                     try:
-                        with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w', encoding="utf8") as file:
+                        with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w') as file:
                             file.write(fileData)
+                            file.close()
                     except UnicodeEncodeError:
-                        with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w', encoding="latin1") as file:
-                            file.write(fileData)
+                        try:
+                            with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w', encoding="utf8") as file:
+                                file.write(fileData)
+                                file.close()
+                        except UnicodeEncodeError:
+                            with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w', encoding="latin1") as file:
+                                file.write(fileData)
+                                file.close()
+                    os.remove(os.path.join(path, name))
             else:
                 with open(os.path.join(path, name), 'w') as file:
                     file.write(fileData)
-            os.remove(os.path.join(path, name))
+                try:
+                    with open(os.path.join(path, name), 'w') as file:
+                        file.write(fileData)
+                except UnicodeEncodeError:
+                    try:
+                        with open(os.path.join(path, name), 'w', encoding="utf8") as file:
+                            file.write(fileData)
+                    except UnicodeEncodeError:
+                        with open(os.path.join(path), 'w', encoding="latin1") as file:
+                            file.write(fileData)
 
 
 def moveAndStrip():
