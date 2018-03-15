@@ -14,6 +14,32 @@ to header material.
 
 ***'''
 
+longRemoval2 = '''All of the original Project Gutenberg Etexts from the
+1970's were produced in ALL CAPS, no lower case.  The
+computers we used then didn't have lower case at all.
+
+***
+
+These original Project Gutenberg Etexts will be compiled into a
+file
+containing them all, in order to improve the content ratios of
+Etext
+to header material.
+
+***'''
+
+longRemoval3 = '''Project Gutenberg eBooks are often created from several printed
+editions, all of which are confirmed as Public Domain in the US
+unless a copyright notice is included.  Thus, we usually do not
+keep eBooks in compliance with any particular paper edition.
+
+The "legal small print" and other information about this book
+may now be found at the end of this file.  Please read this
+important information, as it gives you specific rights and
+tells you about restrictions in how the file may be used.
+
+***'''
+
 def selectTexts(directory='C:/gutenberg/'):
     fileDict = {}
     nameList = []
@@ -93,6 +119,9 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
                 if fileData.find(longRemoval, endOfStart) != -1:
                     endOfStart = fileData.index(longRemoval, endOfStart) + len(longRemoval)
                     headerType = 'noh3e'
+                elif fileData.find(longRemoval2, endOfStart) != -1:
+                    endOfStart = fileData.index(longRemoval2, endOfStart) + len(longRemoval2)
+                    headerType = 'noh3e2'
             elif fileData.find('***START OF THE PROJECT GUTENBERG') != -1:
                 endOfStart = fileData.find('***START OF THE PROJECT GUTENBERG') + len('***START OF THE PROJECT GUTENBERG')
                 headerType = 'noh4'
@@ -101,6 +130,9 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
                 endOfStart = fileData.find('*END THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS') + len('*END*THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS')
                 headerType= 'noh5'
                 endOfStart = fileData.index('*END*', endOfStart) + len('*END*')
+            elif fileData.find(longRemoval3):
+                endOfStart = fileData.find(longRemoval3) + len(longRemoval3)
+                headerType = 'noh6'
             else:
                 endOfStart = 0
                 print(os.path.join(path, name))
@@ -131,6 +163,15 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
             elif fileData.find('End of this Project Gutenberg') != -1:
                 startOfEnd = fileData.find('End of this Project Gutenberg')
                 footerType = 'nof8'
+            elif fileData.find('Here ends the Project Gutenberg') != -1:
+                startOfEnd = fileData.find('Here ends the Project Gutenberg')
+                footerType = 'nof9'
+            elif fileData.find('End Project Gutenberg\'s') != -1:
+                startOfEnd = fileData.find('End Project Gutenberg\'s')
+                footerType = 'nof10'
+            elif fileData.find('End of this Etext') != -1:
+                startOfEnd = fileData.find('End of this Etext')
+                footerType = 'nof11'
             else:
                 startOfEnd = len(fileData)
                 print(os.path.join(path, name))
@@ -188,8 +229,6 @@ def moveAndStrip():
     moveTexts()
     print('Now stripping')
     stripper()
-
-#def stripFooter(directory='C:/gutenbergNoSubs/', rename=True):
 
 #Misc note:
 #Yes, this could be more optimized... Whatever, trynna get this done and speed doesn't matter for this utility.
