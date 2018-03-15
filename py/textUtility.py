@@ -2,6 +2,18 @@ import os
 from shutil import copy2
 from fnmatch import fnmatch
 
+longRemoval = '''All of the original Project Gutenberg Etexts from the
+1970's were produced in ALL CAPS, no lower case.  The
+computers we used then didn't have lower case at all.
+
+***
+
+These original Project Gutenberg Etexts will be compiled into a file
+containing them all, in order to improve the content ratios of Etext
+to header material.
+
+***'''
+
 def selectTexts(directory='C:/gutenberg/'):
     fileDict = {}
     nameList = []
@@ -78,10 +90,17 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
                 endOfStart = fileData.find('*END*THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS') + len('*END*THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS')
                 headerType= 'noh3'
                 endOfStart = fileData.index('*END*', endOfStart) + len('*END*')
+                if fileData.find(longRemoval, endOfStart) != -1:
+                    endOfStart = fileData.index(longRemoval, endOfStart) + len(longRemoval)
+                    headerType = 'noh3e
             elif fileData.find('***START OF THE PROJECT GUTENBERG') != -1:
                 endOfStart = fileData.find('***START OF THE PROJECT GUTENBERG') + len('***START OF THE PROJECT GUTENBERG')
                 headerType = 'noh4'
                 endOfStart = fileData.index('***', endOfStart) + 3
+            elif fileData.find('*END THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS') != -1:
+                endOfStart = fileData.find('*END THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS') + len('*END*THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS')
+                headerType= 'noh5'
+                endOfStart = fileData.index('*END*', endOfStart) + len('*END*')
             else:
                 endOfStart = 0
                 print(os.path.join(path, name))
