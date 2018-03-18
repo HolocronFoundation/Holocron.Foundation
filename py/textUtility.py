@@ -271,8 +271,6 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
                                 file.write(fileData)
                                 file.close()
                     os.remove(os.path.join(path, name))
-                    if (headerType != '' and footerType != ''):
-                        os.remove(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'))
                 else:
                     try:
                         with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w') as file:
@@ -288,24 +286,25 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
                                 file.write(fileData)
                                 file.close()
             else:
-                with open(os.path.join(path, name), 'w') as file:
-                    file.write(fileData)
                 try:
                     with open(os.path.join(path, name), 'w') as file:
                         file.write(fileData)
+                        file.close()
                 except UnicodeEncodeError:
                     try:
                         with open(os.path.join(path, name), 'w', encoding="utf8") as file:
                             file.write(fileData)
+                            file.close()
                     except UnicodeEncodeError:
                         with open(os.path.join(path), 'w', encoding="latin1") as file:
                             file.write(fileData)
+                            file.close()
 
 
-def moveAndStrip():
-    moveTexts()
+def moveAndStrip(d='C:/gutenberg/', newD='C:/gutenbergNoSubs/', re=False):
+    moveTexts(directory=d, newDirectory=newD)
     print('Now stripping')
-    stripper()
+    stripper(directory=newD, rename=re)
 
 #Misc note:
 #Yes, this could be more optimized... Whatever, trynna get this done and speed doesn't matter for this utility.
