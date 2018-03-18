@@ -40,6 +40,19 @@ tells you about restrictions in how the file may be used.
 
 ***'''
 
+longRemoval4 ='''End of
+Project Gutenberg's'''
+
+longRemoval5 = '''[Portions of this header are copyright (C) 2001 by Michael S. Hart
+and may be reprinted only when these Etexts are free of all fees.]
+[Project Gutenberg is a TradeMark and may not be used in any sales
+of Project Gutenberg Etexts or other materials be they hardware or
+software or any other related product without express permission.]'''
+
+longRemoval6 = '''Michael S. Hart
+Project Gutenberg
+Executive Director'''
+
 def selectTexts(directory='C:/gutenberg/'):
     fileDict = {}
     nameList = []
@@ -118,10 +131,13 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
                 endOfStart = fileData.index('*END*', endOfStart) + len('*END*')
                 if fileData.find(longRemoval, endOfStart) != -1:
                     endOfStart = fileData.index(longRemoval, endOfStart) + len(longRemoval)
-                    headerType = 'noh3e'
+                    headerType = 'noh3m'
                 elif fileData.find(longRemoval2, endOfStart) != -1:
                     endOfStart = fileData.index(longRemoval2, endOfStart) + len(longRemoval2)
-                    headerType = 'noh3e2'
+                    headerType = 'noh3m2'
+                elif fileData.find(longRemoval6, endOfStart) != -1:
+                    endOfStart = fileData.index(longRemoval6, endOfStart) + len(longRemoval6)
+                    headerType = 'noh3m3'
             elif fileData.find('***START OF THE PROJECT GUTENBERG') != -1:
                 endOfStart = fileData.find('***START OF THE PROJECT GUTENBERG') + len('***START OF THE PROJECT GUTENBERG')
                 headerType = 'noh4'
@@ -130,9 +146,17 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
                 endOfStart = fileData.find('*END THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS') + len('*END*THE SMALL PRINT! FOR PUBLIC DOMAIN ETEXTS')
                 headerType= 'noh5'
                 endOfStart = fileData.index('*END*', endOfStart) + len('*END*')
-            elif fileData.find(longRemoval3):
+            elif fileData.find(longRemoval3) != -1:
                 endOfStart = fileData.find(longRemoval3) + len(longRemoval3)
                 headerType = 'noh6'
+            elif fileData.find('*END*THE SMALL PRINT!  FOR PUBLIC DOMAIN ETEXTS') != -1:
+                endOfStart = fileData.find('*END*THE SMALL PRINT!  FOR PUBLIC DOMAIN ETEXTS') + len('*END*THE SMALL PRINT!  FOR PUBLIC DOMAIN ETEXTS')
+                headerType= 'noh7'
+                endOfStart = fileData.index('*END*', endOfStart) + len('*END*')
+            elif fileData.find('*** START OF PROJECT GUTENBERG EBOOK') != -1:
+                endOfStart = fileData.find('*** START OF PROJECT GUTENBERG EBOOK') + len('*** START OF PROJECT GUTENBERG EBOOK')
+                headerType = 'noh8'
+                endOfStart = fileData.index('***', endOfStart) + 3
             else:
                 endOfStart = 0
                 print(os.path.join(path, name))
@@ -141,19 +165,19 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
             footerType=''
             startOfEnd = fileData.find('End of Project Gutenberg\'s')
             if startOfEnd != -1:
-                footerType='nof1'
+                footerType= 'nof1'
             elif fileData.find('End of the Project Gutenberg') != -1:
                 startOfEnd = fileData.find('End of the Project Gutenberg')
-                footerType='nof2'
+                footerType= 'nof2'
             elif fileData.find('*** END OF THIS PROJECT GUTENBERG') != -1:
                 startOfEnd = fileData.find('*** END OF THIS PROJECT GUTENBERG')
-                footerType='nof3'
+                footerType= 'nof3'
             elif fileData.find('*** END OF THE PROJECT GUTENBERG') != -1:
                 startOfEnd = fileData.find('*** END OF THE PROJECT GUTENBERG')
-                footerType='nof4'
+                footerType= 'nof4'
             elif fileData.find('***END OF THE PROJECT GUTENBERG') != -1:
                 startOfEnd = fileData.find('***END OF THE PROJECT GUTENBERG')
-                footerType='nof5'
+                footerType= 'nof5'
             elif fileData.find('End of The Project Gutenberg') != -1:
                 startOfEnd = fileData.find('End of The Project Gutenberg')
                 footerType = 'nof6'
@@ -172,12 +196,63 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
             elif fileData.find('End of this Etext') != -1:
                 startOfEnd = fileData.find('End of this Etext')
                 footerType = 'nof11'
+            elif fileData.find('End Project Gutenberg etext') != -1:
+                startOfEnd = fileData.find('End Project Gutenberg etext')
+                footerType = 'nof12'
+            elif fileData.find('End Project Gutenberg Etext') != -1:
+                startOfEnd = fileData.find('End Project Gutenberg Etext')
+                footerType = 'nof13'
+            elif fileData.find('End of this etext of') != -1:
+                startOfEnd = fileData.find('End of this etext of')
+                footerType = 'nof14'
+            elif fileData.find('Ende dieses Project Gutenberg Etextes') != -1:
+                startOfEnd = fileData.find('Ende dieses Project Gutenberg Etextes')
+                footerType = 'nof15'
+            elif fileData.find('Fin de Project Gutenberg Etext') != -1:
+                startOfEnd = fileData.find('Fin de Project Gutenberg Etext')
+                footerType = 'nof16'
+            elif fileData.find(longRemoval4) != -1:
+                startOfEnd = fileData.find('Fin de Project Gutenberg Etext')
+                footerType = 'nof17'
+            elif fileData.find('Use of the Project Gutenberg Trademark requires separate permission.') != -1:
+                startOfEnd = fileData.find('Use of the Project Gutenberg Trademark requires separate permission.')
+                footerType = 'nof18'
+            elif fileData.find('Ende dieses Projekt Gutenberg Etextes') != -1:
+                startOfEnd = fileData.find('Ende dieses Projekt Gutenberg Etextes')
+                footerType = 'nof19'
+            elif fileData.find('END OF PROJECT GUTENBERG ETEXT OF') != -1:
+                startOfEnd = fileData.find('END OF PROJECT GUTENBERG ETEXT OF')
+                footerType = 'nof20'
+            elif fileData.find('The end of Project Gutenberg Etext of') != -1:
+                startOfEnd = fileData.find('The end of Project Gutenberg Etext of')
+                footerType = 'nof21'
+            elif fileData.find('END OF THIS PROJECT GUTENBERG ETEXT OF') != -1:
+                startOfEnd = fileData.find('END OF THIS PROJECT GUTENBERG ETEXT OF')
+                footerType = 'nof22'
+            elif fileData.find('Ende dieses Etextes von Projekt Gutenberg') != -1:
+                startOfEnd = fileData.find('Ende dieses Etextes von Projekt Gutenberg')
+                footerType = 'nof23'
+            elif fileData.find('End of The Project Gutenburg Etext of') != -1:
+                startOfEnd = fileData.find('End of The Project Gutenburg Etext of')
+                footerType = 'nof24'
+            elif fileData.find('Ende dieses Projekt Gutenberg Etexes') != -1:
+                startOfEnd = fileData.find('Ende dieses Projekt Gutenberg Etexes')
+                footerType = 'nof25'
+            elif fileData.find('The end of the Project Gutenberg e-text of') != -1:
+                startOfEnd = fileData.find('The end of the Project Gutenberg e-text of')
+                footerType = 'nof26'
             else:
                 startOfEnd = len(fileData)
                 print(os.path.join(path, name))
 
             # Replace the target string
             fileData = fileData[endOfStart:startOfEnd].strip()
+
+            #Checks for additional remanent:
+            if fileData.find(longRemoval5) != -1:
+                start = fileData.find(longRemoval5) + len(longRemoval5)
+                fileData = fileData[start:].strip()
+                headerType = headerType + 'e'
 
             # Write the file out again
             if rename:
@@ -196,6 +271,8 @@ def stripper(directory='C:/gutenbergNoSubs/', rename=True):
                                 file.write(fileData)
                                 file.close()
                     os.remove(os.path.join(path, name))
+                    if (headerType != '' and footerType != ''):
+                        os.remove(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'))
                 else:
                     try:
                         with open(os.path.join(path, name.strip('.txt') + headerType + footerType + '.txt'), 'w') as file:
