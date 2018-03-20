@@ -87,10 +87,50 @@ def prepWork(bookID, defaultRDFDirectory = 'C:/Users/Sam Troper/Desktop/Holocron
         return fields
 
 def test(skip=[1691, 36169, 56683], books=56710, start=0):
-    for x in range(start, books):
-        if x not in skip:
-            print(x)
-            print(prepWork(x))
+        largestTitleLength = 0
+        longestTitle = ''
+        largestSubjectsLength = 0
+        largestLoC = 0
+        longestSubjects = []
+        largestLoCs = []
+        authors = []
+        for x in range(start, books):
+                if x not in skip:
+                        current = prepWork(x)
+                        print(x)
+                        print(current)
+                        if current['title'] != None and len(current['title']) > largestTitleLength:
+                                largestTitleLength = len(current['title'])
+                                longestTitle = current['title']
+                        if current['subject(s)'] != None:
+                                subjectLength = 0
+                                currentSub = []
+                                for subject in current['subject(s)']:
+                                        subjectLength += len(subject)
+                                        currentSub.append(subject)
+                                if subjectLength > largestSubjectsLength:
+                                        largestSubjectsLength = subjectLength
+                                        longestSubjects = currentSub
+                        if current['LoC'] != None:
+                                LoCLength = 0
+                                currentLoC = []
+                                for LoC in current['LoC']:
+                                        LoCLength += len(LoC)
+                                        currentLoC.append(LoC)
+                                if LoCLength > largestLoC:
+                                        largestLoC = LoCLength
+                                        largestLoCs = currentLoC
+                        for author in current['author(s)']:
+                                authors.append(author)
+        print('Title: ', largestTitleLength, ' Subjects: ', largestSubjectsLength, ' LoC: ', largestLoC)
+        print('Title: ', longestTitle)
+        print('Subjects: ', longestSubjects)
+        print('LoC: ', largestLoCs)
+        print('Authors: ', len(authors))
+        print('Authors, no duplicates: ', len(set(authors)))
+        #Longest title: 620
+        #Subs: 779
+        #LoC: 15
 
 def checkCopyright(skip=[1691, 36169, 56683], books=56710, start=0, listWorks=True):
         #standard copyright notice: Copyrighted. Read the copyright notice inside this book for details.
