@@ -65,7 +65,7 @@ h2 {
 	font-family: 'Raleway';
 }
 
-#logosmall {
+.logosmall {
     margin-left: auto;
     margin-right: auto;
     height: 3em;
@@ -164,4 +164,8 @@ li.navbar a {
 
 li.navbar a:hover {
     background-color: rgb(57, 157, 255);
+}
+
+#donations {
+	text-align: center;
 }
