@@ -7,6 +7,7 @@
 #A list of tags follows, as well as the format used by Project Gutenberg:
 
 import rdflib
+import csv
 from operator import itemgetter
 
 keepFields=["http://www.gutenberg.org/2009/pgterms/alias", #Alias
@@ -83,8 +84,66 @@ def prepWork(bookID, defaultRDFDirectory = 'C:/Users/Sam Troper/Desktop/Holocron
                         author['deathdate'] = int(entry[2])
                     else:
                         author['alias(es)'].append(str(entry[2]))
+                        author['alias(es)'].sort()
             fields['author(s)'].append(author)
         return fields
+
+def genCSV(skip=[1691, 36169, 56683], books=56710, start=0):
+        #list of authors
+        authors = []
+        #list of authors with IDs
+        authorsWithID = []
+        #start iterating authorID
+        authorID = 0
+
+        first = True
+        writer = None
+        
+        #looping through books
+        with open('bookCSV.csv', 'w', encoding='utf-8') as file:
+                for x in range(start, books):
+                        #skipping missing entries
+                        if x not in skip:
+                                #gets current entry info
+                                current = prepWork(x)
+                                #generates an output dictionary
+                                output = {}
+                                output['id'] = x
+                                output['title'] = current['title']
+                                output['authors'] = {}
+                                for author in current['author(s)']:
+                                        currentRole = author.pop('role')
+                                        if author not in authors:
+                                                authors.append(author.copy())
+                                                author['id'] = authorID
+                                                output['authors'][authorID] = currentRole
+                                                authorID += 1
+                                                authorsWithID.append(author)
+                                        else:
+                                                for person in authorsWithID:
+                                                        if person['name'] == author['name'] and person['birthdate'] == author['birthdate'] and person['deathdate'] == author['deathdate'] and person['alias(es)'] == author['alias(es)']:
+                                                                output['authors'][person['id']] = currentRole
+                                output['copyright'] = current['copyright']
+                                output['language'] = current['language']
+                                output['subjects'] = current['subject(s)']
+                                output['libraryOfCongress'] = current['LoC']
+                                if first:
+                                        first = False
+                                        writer = csv.DictWriter(file, output.keys())
+                                        writer.writeheader()
+                                writer.writerow(output)
+                                print(output)
+        first = True
+        writer = None
+        
+        with open('authorCSV.csv', 'w', encoding='utf-8') as file:
+                writer = csv.DictWriter(file, authorsWithID[0].keys()) 
+                writer.writeheader()
+                writer.writerows(authorsWithID)
+                        
+        print(len(authorsWithID))
+        print(len(authors))
+        
 
 def test(skip=[1691, 36169, 56683], books=56710, start=0):
         largestTitleLength = 0
@@ -121,16 +180,18 @@ def test(skip=[1691, 36169, 56683], books=56710, start=0):
                                         largestLoC = LoCLength
                                         largestLoCs = currentLoC
                         for author in current['author(s)']:
-                                authors.append(author)
+                                if author not in authors:
+                                        authors.append(author)
         print('Title: ', largestTitleLength, ' Subjects: ', largestSubjectsLength, ' LoC: ', largestLoC)
         print('Title: ', longestTitle)
         print('Subjects: ', longestSubjects)
         print('LoC: ', largestLoCs)
         print('Authors: ', len(authors))
-        print('Authors, no duplicates: ', len(set(authors)))
         #Longest title: 620
         #Subs: 779
         #LoC: 15
+        #Authors:  75702
+        #No Duplicates:  27401
 
 def checkCopyright(skip=[1691, 36169, 56683], books=56710, start=0, listWorks=True):
         #standard copyright notice: Copyrighted. Read the copyright notice inside this book for details.
