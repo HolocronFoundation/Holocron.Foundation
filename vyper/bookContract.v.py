@@ -9,6 +9,10 @@
 
 #The real deal
 
+#Logging
+Donation: event({_from: indexed(address), _value: wei_value})
+BookUploaded: event(_bookID: int128)
+
 #Initiation
 @public
 def __init__(_foundationAddresses: address[3], _foundationMultiplier: int128, _foundationDivisor: int128):
@@ -22,16 +26,17 @@ def __init__(_foundationAddresses: address[3], _foundationMultiplier: int128, _f
 foundationAddresses: public(address[3])
 @public
 def changeFoundationAddresses(index int128, newAddress address):
-    assert msg.sender in foundationAddresses
-    assert index >= 0
-    assert index < 3
+    assert msg.sender in foundationAddresses and index >= 0 and index <= 3
     self.foundationAddresses[index] = newAddress
 
 #donate - splits funds recieved between the foundation and an individual text
 @payable
 @public
-def donate():
-    send(self.foundationAddresses[0], msg.value * self.foundationMultiplier / self.foundationDivisor)
+def donate(id int128):
+    split: wei_value = msg.value * self.foundationMultiplier / self.foundationDivisor
+    send(self.foundationAddresses[0], split)
+    self.book[id].donations += msg.value - split
+    log.Donation(msg.sender, msg.value)
 #foundationMultiplier and foundationDivisor are used to fractionalize donations without decimals
 foundationMultiplier = public(int128)
 foundationDivisor = public(int128)
@@ -53,23 +58,31 @@ book: public({
     authorIDs: public(int128[int128])
     authorRoles: public(int128[int128])
     size: public(int128)
+    donations: public(wei_value)
+    textAddress: address
+    uploaded: bool
 }[int128])
 
 @public
-defAddBook(id: int128, _title , _USPublicDomain bool, _language bytes<=2, _libraryOfCongress , _subjects , _authorIDs , ):
+defAddBook(id: int128, _title , _USPublicDomain bool, _language bytes<=2, _libraryOfCongress , _subjects , _authorIDs int128[int128], _authorRoles int128[int128], _size int128):
+    assert msg.sender == self.foundationAddresses[0]
     self.book[id] = {
         title = _title
         USPublicDomain = _USPublicDomain
-        
+        language = _language
+        libraryOfCongress = _libraryOfCongress
+        subjects = _subjects
+        authorIDs = _authorIDs
+        authorRoles = _authorsRoles
+        size = _size
+        donations = 0
+        textAddress = 0
+    }
+    log.BookUploaded(id)
     
-
-#Address - Full book text (When uploaded)
-textAddress: public(address)
-#Uploaded - True once a text is uploaded
-uploaded: public(bool)
 #Adds address for full book text. Also sets uploaded to True.
 @public
-def setTextAddress(uploadAddress address):
+def setTextAddress(id int128, uploadAddress address):
     assert msg.sender == self.foundationAddresses[0]
-    self.textAddress = uploadAddress
-    self.uploaded = True
+    self.book[id].textAddress = uploadAddress
+    self.book[id].uploaded = True
