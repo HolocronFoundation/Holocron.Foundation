@@ -11,7 +11,31 @@
 
 #Logging
 Donation: event({_from: indexed(address), _value: wei_value})
-BookUploaded: event(_bookID: int128)
+BookUploaded: event({_bookID: int128})
+
+foundationAddresses: public(address[3])
+
+#foundationMultiplier and foundationDivisor are used to fractionalize donations without decimals
+foundationMultiplier: public(int128)
+foundationDivisor: public(int128)
+
+#Update address - Address for an updated contract, to allow for patches.
+updateAddress: public(address)
+
+#book struct: This struct will contain all the info for a given book
+book: public({
+    title: public(bytes<=10), #NEEDS GENERATED
+    USPublicDomain: public(bool),
+    language: public(bytes <= 2),
+    libraryOfCongress: public(bytes),
+    subjects: public(bytes),
+    authorIDs: public(int128[int128]),
+    authorRoles: public(int128[int128]),
+    size: public(int128),
+    donations: public(wei_value),
+    textAddress: address,
+    uploaded: bool
+}[int128])
 
 #Initiation
 @public
@@ -23,66 +47,45 @@ def __init__(_foundationAddresses: address[3], _foundationMultiplier: int128, _f
 #Address Array - Authorized Contract Editors
     #3 addresses to allow for editing and backups
     #First address recieves ETH immeadiately
-foundationAddresses: public(address[3])
 @public
-def changeFoundationAddresses(index int128, newAddress address):
+def changeFoundationAddresses(index: int128, newAddress: address):
     assert msg.sender in foundationAddresses and index >= 0 and index <= 3
     self.foundationAddresses[index] = newAddress
 
 #donate - splits funds recieved between the foundation and an individual text
 @payable
 @public
-def donate(id int128):
+def donate(id: int128):
     split: wei_value = msg.value * self.foundationMultiplier / self.foundationDivisor
     send(self.foundationAddresses[0], split)
     self.book[id].donations += msg.value - split
     log.Donation(msg.sender, msg.value)
-#foundationMultiplier and foundationDivisor are used to fractionalize donations without decimals
-foundationMultiplier = public(int128)
-foundationDivisor = public(int128)
 
-#Update address - Address for an updated contract, to allow for patches.
-updateAddress: public(address)
 @public
-def setUpdateAddress(newUpdateAddress address):
+def setUpdateAddress(newUpdateAddress: address):
     assert msg.sender == self.foundationAddresses[0]
     self.updateAddress = newUpdateAddress
 
-#book struct: This struct will contain all the info for a given book
-book: public({
-    title: public(bytes <= *titleLengthBytes)
-    USPublicDomain: public(bool)
-    language: public(bytes <= 2)
-    libraryOfCongress: public(bytes <= *libraryOfCongressBytes)
-    subjects: public(bytes <= *subjectsBytes)
-    authorIDs: public(int128[int128])
-    authorRoles: public(int128[int128])
-    size: public(int128)
-    donations: public(wei_value)
-    textAddress: address
-    uploaded: bool
-}[int128])
-
 @public
-defAddBook(id: int128, _title , _USPublicDomain bool, _language bytes<=2, _libraryOfCongress , _subjects , _authorIDs int128[int128], _authorRoles int128[int128], _size int128):
+def AddBook(id: int128, _title: bytes, _USPublicDomain: bool, _language: bytes <= 2, _libraryOfCongress: bytes, _subjects: bytes, _authorIDs: int128[int128], _authorRoles: int128[int128], _size: int128):
     assert msg.sender == self.foundationAddresses[0]
     self.book[id] = {
-        title = _title
-        USPublicDomain = _USPublicDomain
-        language = _language
-        libraryOfCongress = _libraryOfCongress
-        subjects = _subjects
-        authorIDs = _authorIDs
-        authorRoles = _authorsRoles
-        size = _size
-        donations = 0
-        textAddress = 0
+        title: _title,
+        USPublicDomain: _USPublicDomain,
+        language: _language,
+        libraryOfCongress: _libraryOfCongress,
+        subjects: _subjects,
+        authorIDs: _authorIDs,
+        authorRoles: _authorsRoles,
+        size: _size,
+        donations: 0,
+        textAddress: 0
     }
     log.BookUploaded(id)
     
 #Adds address for full book text. Also sets uploaded to True.
 @public
-def setTextAddress(id int128, uploadAddress address):
+def setTextAddress(id: int128, uploadAddress: address):
     assert msg.sender == self.foundationAddresses[0]
     self.book[id].textAddress = uploadAddress
     self.book[id].uploaded = True
