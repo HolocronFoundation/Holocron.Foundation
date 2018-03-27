@@ -6,3 +6,4 @@ _notes/
 /node_modules/
 py/authorCSV.csv
 py/bookCSV.csv
+py/zipSize.csv
