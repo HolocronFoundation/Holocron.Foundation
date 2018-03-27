@@ -16,7 +16,8 @@ BookUploaded: event({_bookID: int128})
 foundationAddresses: public(address[3])
 
 #foundationMultiplier and foundationDivisor are used to fractionalize donations without decimals
-foundationSplit: public(decimal)
+foundationSplitNumerator: public(int128)
+foundationSplitDenominator: public(int128)
 
 #Update address - Address for an updated contract, to allow for patches.
 updateAddress: public(address)
@@ -39,9 +40,10 @@ book: public({
 
 #Initiation
 @public
-def __init__(_foundationAddresses: address[3], _foundationSplit: decimal):
+def __init__(_foundationAddresses: address[3], _foundationSplitNumerator: int128, _foundationSplitDenominator: int128):
     self.foundationAddresses = _foundationAddresses
-    self.foundationSplit = _foundationSplit
+    self.foundationSplitNumerator = _foundationSplitNumerator
+    self.foundationSplitDenominator = _foundationSplitDenominator
 
 #Address Array - Authorized Contract Editors
     #3 addresses to allow for editing and backups
@@ -56,7 +58,7 @@ def changeFoundationAddresses(index: int128, newAddress: address):
 @payable
 @public
 def donate(id: int128):
-    split: wei_value = as_wei_value(msg.value * self.foundationSplit, "wei")
+    split: wei_value = as_wei_value(msg.value * self.foundationSplitNumerator / self.foundationSplitDenominator, "wei")
     send(self.foundationAddresses[0], split)
     self.book[id].donations += as_wei_value(msg.value, "wei") - split
     log.Donation(msg.sender, msg.value)
