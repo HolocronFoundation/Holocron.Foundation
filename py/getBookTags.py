@@ -243,7 +243,10 @@ def genCSV(skip=skipFull, books=56709, start=1):
                 for row in reader:
                         sizeDict[int(row[0])] = int(row[1])
                         
-
+        arrs = test()
+        LoCIDs = arrs[0]
+        subIDs = arrs[1]
+        
         first = True
         writer = None
         #looping through books
@@ -272,8 +275,12 @@ def genCSV(skip=skipFull, books=56709, start=1):
                                                                 output['authors'][person['id']] = currentRole
                                 output['copyright'] = current['copyright']
                                 output['language'] = current['language']
-                                output['subjects'] = current['subject(s)']
-                                output['libraryOfCongress'] = current['LoC']
+                                output['subjects'] = []
+                                for subject in current['subject(s)']:
+                                        output['subjects'].append(subIDs.index(subject))
+                                output['libraryOfCongress'] = []
+                                for LoC in current['LoC']:
+                                        output['libraryOfCongress'].append(LoCIDs.index(LoC))
                                 output['zipFileSize'] = sizeDict[x]
                                 if first:
                                         first = False
@@ -286,9 +293,24 @@ def genCSV(skip=skipFull, books=56709, start=1):
                 writer = csv.DictWriter(file, authorsWithID[0].keys()) 
                 writer.writeheader()
                 writer.writerows(authorsWithID)
+
+def genMoreCSV():
+        arrs = test()
+        num = 0
+        with open('subjectsCSV.csv', 'w', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                for row in arrs[1]:
+                        writer.writerow([num, row])
+                        num += 1
+        num = 0
+        with open('LoCCSV.csv', 'w', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                for row in arrs[0]:
+                        writer.writerow([num, row])
+                        num += 1
         
 
-def test(skip=skipFull, books=56710, start=0):
+def test(skip=skipFull, books=56709, start=1):
         largestTitleLength = 0
         longestTitle = ''
         largestSubjectsLength = 0
@@ -297,48 +319,100 @@ def test(skip=skipFull, books=56710, start=0):
         largestLoCs = []
         authors = []
         maxAuthors = 0
+        subjects = []
+        subjectsPerBook = []
+        LoCPerBook = []
+        unLoc = []
+        authorsPerBook = []
+        titleLen = []
         for x in range(start, books):
                 if x not in skip:
                         current = prepWork(x)
                         print(x)
                         print(current)
+                        if current['title'] != None:
+                                titleLen.append(len(current['title']))
+                        else:
+                                titleLen.append(0)
                         if current['title'] != None and len(current['title']) > largestTitleLength:
                                 largestTitleLength = len(current['title'])
                                 longestTitle = current['title']
                         if current['subject(s)'] != None:
                                 subjectLength = 0
                                 currentSub = []
+                                subjectCount = 0
                                 for subject in current['subject(s)']:
+                                        subjectCount += 1
+                                        if subject not in subjects:
+                                                subjects.append(subject)
                                         subjectLength += len(subject)
                                         currentSub.append(subject)
                                 if subjectLength > largestSubjectsLength:
                                         largestSubjectsLength = subjectLength
                                         longestSubjects = currentSub
+                                subjectsPerBook.append(subjectCount)
+                        else:
+                                subjectsPerBook.append(0)
                         if current['LoC'] != None:
+                                LoCCount = 0
                                 LoCLength = 0
                                 currentLoC = []
                                 for LoC in current['LoC']:
+                                        LoCCount += 1
+                                        if LoC not in unLoc:
+                                                unLoc.append(LoC)
                                         LoCLength += len(LoC)
                                         currentLoC.append(LoC)
                                 if LoCLength > largestLoC:
                                         largestLoC = LoCLength
                                         largestLoCs = currentLoC
+                                LoCPerBook.append(LoCCount)
+                        else:
+                                LoCPerBook.append(0)
                         if len(current['author(s)']) > maxAuthors:
                                 maxAuthors = len(current['author(s)'])
+                        authorCount = 0
                         for author in current['author(s)']:
+                                authorCount += 1
                                 if author not in authors:
                                         authors.append(author)
+                        authorsPerBook.append(authorCount)
+        subjectsPerBook.sort()
+        LoCPerBook.sort()
+        authorsPerBook.sort()
+        titleLen.sort()
         print('Title: ', largestTitleLength, ' Subjects: ', largestSubjectsLength, ' LoC: ', largestLoC)
         print('Title: ', longestTitle)
         print('Subjects: ', longestSubjects)
         print('LoC: ', largestLoCs)
         print('Authors: ', len(authors))
         print('Max Authors: ', maxAuthors)
-        #Longest title: 620
-        #Subs: 779
-        #LoC: 15
         #Authors:  75702
-        #No Duplicates:  27401
+        #No Duplicates:  27085
+        print('Avg authors: ', sum(authorsPerBook)/len(authorsPerBook))
+        #Avg authors: 1.315
+        print('Median authors: ', authorsPerBook[int(len(authorsPerBook)/2)])
+        #Median authors:
+        #Longest title: 620
+        print('Avg title: ', sum(titleLen)/len(titleLen))
+        #Avg title: 48.16
+        print('Median title: ', titleLen[int(len(titleLen)/2)])
+        #Median title: 37
+        #Longest Subs: 779
+        print('Unique subs: ', len(subjects))
+        #Unique Subs: 28986
+        print('Avg subs: ', sum(subjectsPerBook)/len(subjectsPerBook))
+        #Avg Subs: 2.0393
+        print('Median subs: ', subjectsPerBook[int(len(subjectsPerBook)/2)])
+        #Median Subs: 2
+        #Most LoC: 15
+        print('Unique LoC: ', len(unLoc))
+        #Unique LoC: 262
+        print('Avg LoC: ', sum(LoCPerBook)/len(LoCPerBook))
+        #Avg LoC: .9587
+        print('Median LoC: ', LoCPerBook[int(len(LoCPerBook)/2)])
+        #Median LoC: 1
+        return [unLoc, subjects]
 
 def checkCopyright(skip=skipFull, books=56710, start=0, listWorks=True):
         #standard copyright notice: Copyrighted. Read the copyright notice inside this book for details.

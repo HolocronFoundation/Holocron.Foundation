@@ -7,3 +7,4 @@ _notes/
 py/authorCSV.csv
 py/bookCSV.csv
 py/zipSize.csv
+*.csv
