@@ -41,7 +41,7 @@ book: public({
     language: bytes <= 2, #Language is indicated by two letters
     libraryOfCongress: bytes <= 2, #There are currently 262 unique LoC ids present, meaning two bytes are needed (with plentyyyy of room for more)
     libraryOfCongressExpansion: bool, #Used to indicate if multiple LoC designations are used. See the expansion address then.
-    subjects: bytes <= 2, #There are currently 28986 unique subjects, meaning that a two byte unsigned integer can effectively index these.
+    subjects: bytes <= 2[2], #There are currently 28986 unique subjects, meaning that a two byte unsigned integer can effectively index these.
     subjectsExpansion: bool, #Used to indicate if multiple subjects are used.
     authorID: bytes <= 2, #Used to indicate an authors ID
     authorRole: bytes <= 1, #Used to indicate an authors role
@@ -94,7 +94,7 @@ def setUpdateAddress(newUpdateAddress: address):
 
 @public
 def AddBook(id: int128, _title: bytes32[2], _USPublicDomain: bool, _language: bytes <= 2, _libraryOfCongress: bytes <= 2,
-            _subjects: bytes <= 2, _authorID: bytes<=2, _authorRole: bytes<=1, _size: int128):
+            _subjects: bytes <= 2[2], _authorID: bytes<=2, _authorRole: bytes<=1, _size: int128):
     assert msg.sender == self.foundationAddresses[0]
     _authorRoles: int128[3]
     _authorIDs: int128[3]
