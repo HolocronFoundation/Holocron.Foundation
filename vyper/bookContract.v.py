@@ -16,9 +16,14 @@ class UpdatedDonate():
     @public
     def donate(id: int128): pass
 
+    @payable
+    @public
+    def donateWithDifferentDonor(id: int128, donorAddress: address): pass
+
 #Logging
-Donation: event({_from: indexed(address), _value: wei_value})
+Donation: event({_from: indexed(address), _value: wei_value, _bookID: int128})
 BookUploaded: event({_bookID: int128})
+TextUploaded: event({_bookID: int128})
 
 #Address Array - Authorized Contract Editors
     #3 addresses to allow for editing and backups
@@ -41,7 +46,7 @@ book: public({
     language: bytes <= 2, #Language is indicated by two letters
     libraryOfCongress: bytes <= 2, #There are currently 262 unique LoC ids present, meaning two bytes are needed (with plentyyyy of room for more)
     libraryOfCongressExpansion: bool, #Used to indicate if multiple LoC designations are used. See the expansion address then.
-    subjects: bytes <= 2[2], #There are currently 28986 unique subjects, meaning that a two byte unsigned integer can effectively index these.
+    subjects: bytes <= 4, #There are currently 28986 unique subjects, meaning that a two byte unsigned integer can effectively index these. Four bytes are used to hold two subjects
     subjectsExpansion: bool, #Used to indicate if multiple subjects are used.
     authorID: bytes <= 2, #Used to indicate an authors ID
     authorRole: bytes <= 1, #Used to indicate an authors role
@@ -62,6 +67,8 @@ def __init__(_foundationAddresses: address[3], _foundationSplitNumerator: int128
     self.foundationSplitDenominator = _foundationSplitDenominator
     self.updatedContract = False
 
+#To do: require 2/3 addresses to change an address, or a waiting period for a single
+    #one to change it...
 @public
 def changeFoundationAddresses(index: int128, newAddress: address):
     assert msg.sender in self.foundationAddresses
@@ -70,7 +77,7 @@ def changeFoundationAddresses(index: int128, newAddress: address):
 
 @public
 def changeFoundationSplit(_foundationSplitNumerator: int128, _foundationSplitDenominator: int128):
-    assert msg.sender == self.foundationAddresses[0]
+    assert msg.sender in self.foundationAddresses
     self.foundationSplitNumerator = _foundationSplitNumerator
     self.foundationSplitDenominator = _foundationSplitDenominator
 
@@ -85,17 +92,29 @@ def donate(id: int128):
         split: wei_value = as_wei_value(msg.value * self.foundationSplitNumerator / self.foundationSplitDenominator, "wei")
         send(self.foundationAddresses[0], split)
         self.book[id].donations += as_wei_value(msg.value, "wei") - split
-        log.Donation(msg.sender, msg.value)
+        log.Donation(msg.sender, msg.value, id)
+
+@payable
+@public
+def donateWithDifferentDonor(id: int128, donorAddress: address):
+    if self.updatedContract:
+        UpdatedDonate(self.updateAddress).donateWithDifferentDonor(id, donorAddress)
+        #Call donate at updated contract
+    else:
+        split: wei_value = as_wei_value(msg.value * self.foundationSplitNumerator / self.foundationSplitDenominator, "wei")
+        send(self.foundationAddresses[0], split)
+        self.book[id].donations += as_wei_value(msg.value, "wei") - split
+        log.Donation(donorAddress, msg.value, id)
 
 @public
 def setUpdateAddress(newUpdateAddress: address):
-    assert msg.sender == self.foundationAddresses[0]
+    assert msg.sender in self.foundationAddresses
     self.updateAddress = newUpdateAddress
 
 @public
 def AddBook(id: int128, _title: bytes32[2], _USPublicDomain: bool, _language: bytes <= 2, _libraryOfCongress: bytes <= 2,
-            _subjects: bytes <= 2[2], _authorID: bytes<=2, _authorRole: bytes<=1, _size: int128):
-    assert msg.sender == self.foundationAddresses[0]
+            _subjects: bytes <= 4, _authorID: bytes<=2, _authorRole: bytes<=1, _size: int128):
+    assert msg.sender in self.foundationAddresses
     _authorRoles: int128[3]
     _authorIDs: int128[3]
     self.book[id] = {
@@ -121,7 +140,7 @@ def AddBook(id: int128, _title: bytes32[2], _USPublicDomain: bool, _language: by
 
 @public
 def AddBookWithExpansion(id: int128, _title: bytes32[2], _titleExpansion: bool, _USPublicDomain: bool, _language: bytes <= 2, _libraryOfCongress: bytes <= 2,
-            _libraryOfCongressExpansion: bool, _subjects: bytes <= 2, _subjectsExpansion: bool, _authorID: bytes<=2, _authorRole: bytes<=1, _authorExpansion: bool,
+            _libraryOfCongressExpansion: bool, _subjects: bytes <= 4, _subjectsExpansion: bool, _authorID: bytes<=2, _authorRole: bytes<=1, _authorExpansion: bool,
             _size: int128, _otherExpansion: bool, _expansionAddress: address):
     assert msg.sender == self.foundationAddresses[0]
     _authorRoles: int128[3]
@@ -150,13 +169,14 @@ def AddBookWithExpansion(id: int128, _title: bytes32[2], _titleExpansion: bool, 
 #Adds address for full book text. Also sets uploaded to True.
 @public
 def setTextAddress(id: int128, uploadAddress: address):
-    assert msg.sender == self.foundationAddresses[0]
+    assert msg.sender in self.foundationAddresses
     self.book[id].textAddress = uploadAddress
     self.book[id].uploaded = True
+    log.TextUploaded(id)
 
 #Adds expansion address for a given entry.
 @public
 def setExpansionAddress(id: int128, expansionAddress: address, otherExpansion: bool):
-    assert msg.sender == self.foundationAddresses[0]
+    assert msg.sender in self.foundationAddresses
     self.book[id].expansionAddress = expansionAddress
     self.book[id].otherExpansion = otherExpansion

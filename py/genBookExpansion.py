@@ -34,11 +34,84 @@ def outputExpansionVyper():
         if not first:
             generated = genFile(row)
             if generated[1] == True:
-                genvyper(row, generated)
+                genvyper(generated, row)
         else:
             first = False
 
 def genvyper(entry, inputArray):
+    overallFirst = True
+    vyperFile = '''
+@private
+class SendDonation():
+    @payable
+    @public
+    def donateWithDifferentDonor(id: int128, donorAddress: address): pass
+
+parentAddress: public(address)
+foundationAddresses: public(address)[3]
+expansionAddress: public(address)
+
+bookID: int128
+bookExpansion: public({'''
+    if entry[2]: #titleExpansion
+        overallFirst = False
+        titleBytes = len(inputArray[1].encode('utf-8'))
+        additionalBytes = titleBytes - 64
+        vyperFile.append('''
+titleExpansion: bytes <= ''' + str(additionalBytes) + ' = ' + str(inputArray[1].encode('utf-8')[64,]))
+    if entry[3]: #authorsExpansion
+        if not overallFirst:
+            vyperFile.append(',')
+        else:
+            overallFirst = False
+        authors = ast.literal_eval(inputArray[2])[1:]
+        first = True
+        vyperFile.append('''
+authorsExpansionID: bytes <= 2[''' + str(len(authors)) + '] = [')
+        for key in list(authors.keys()):
+            if not first:
+                vyperFile.append(', '+ str(key))
+            else:
+                vyperFile.append(str(key))
+                first = False
+        vyperFile.append('],')
+        vyperFile.append('''
+authorsExpansionRole: bytes <= 1[''' + str(len(authors)) + '] = ')
+        for key in list(authors.keys()):
+            vyperFile.append(str(authors[key]))
+    if entry[4]: #subjectsExpansion
+        if not overallFirst:
+            vyperFile.append(',')
+        else:
+            overallFirst = False
+        subjects = ast.literal_eval(inputArray[5])[2:]
+        vyperFile.append('''
+subjectExpansion: bytes <= 2[''' + str(len(subjects)) + '] = ')
+        for subject in subjects:
+            vyperFile.append(str(subject))
+    if entry[5]: #libraryOfCongressExpansion
+        if not overallFirst:
+            vyperFile.append(',')
+        else:
+            overallFirst = False
+        libraryOfCongressExpansion = ast.literal_eval(inputArray[6])[1:]
+        first = True
+        vyperFile.append('''
+libraryOfCongressExpansion: bytes <= 2[''' + str(len(libraryOfCongressExpansion)) + '] = [')
+        for LoC in libraryOfCongressExpansion:
+            if not first:
+                vyperFile.append(', ' + str(LoC))
+            else:
+                vyperFile.append(str(LoC))
+                first = False
+        vyperFile.append(']')
+    vyperFile.append('''
+})
+
+@payable
+@public
+def donate():
+    SendDonation(self.parentAddress).donateWithDifferentDonor(self.bookID, msg.sender)
     
 
 def genFile(inputArray):
