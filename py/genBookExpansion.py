@@ -112,7 +112,7 @@ libraryOfCongressExpansion: bytes <= 2[''' + str(len(libraryOfCongressExpansion)
 @public
 def donate():
     SendDonation(self.parentAddress).donateWithDifferentDonor(self.bookID, msg.sender)
-    
+'''    
 
 def genFile(inputArray):
     bookID = inputArray[0]

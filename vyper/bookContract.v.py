@@ -39,25 +39,7 @@ updateAddress: public(address)
 updatedContract: public(bool)
 
 #book struct: This struct will contain all the info for a given book
-book: public({
-    title: bytes32[2], #2x32 bytes by default. Can use the expansion address to expand the title length.
-    titleExpansion: bool, #Used to indicate if the title uses the expansion slot
-    USPublicDomain: bool, #True if in the US Public Domain
-    language: bytes <= 2, #Language is indicated by two letters
-    libraryOfCongress: bytes <= 2, #There are currently 262 unique LoC ids present, meaning two bytes are needed (with plentyyyy of room for more)
-    libraryOfCongressExpansion: bool, #Used to indicate if multiple LoC designations are used. See the expansion address then.
-    subjects: bytes <= 4, #There are currently 28986 unique subjects, meaning that a two byte unsigned integer can effectively index these. Four bytes are used to hold two subjects
-    subjectsExpansion: bool, #Used to indicate if multiple subjects are used.
-    authorID: bytes <= 2, #Used to indicate an authors ID
-    authorRole: bytes <= 1, #Used to indicate an authors role
-    authorExpansion: bool, #Used to indicate if the expansion slot is used for an author expansion
-    size: int128, #Size of the file, zipped
-    donations: wei_value, #Donations recieved by this book
-    textAddress: address, #Address for the full text
-    uploaded: bool, #True when the text is uploaded
-    otherExpansion: bool, #True if the expansion slot is used for something not listed above (allows forward compatability)
-    expansionAddress: address #Address for the expansion, if used.
-}[int128])
+books: public(address[int128])
 
 #Initiation
 @public
