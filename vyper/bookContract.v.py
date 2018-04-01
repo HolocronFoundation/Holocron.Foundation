@@ -31,6 +31,9 @@ class BookContract():
 
     @public
     def addText(_textAddress: address): pass
+
+    @public
+    def recieveDonation(value: wei_value): pass
     
 
 #Logging
@@ -87,7 +90,7 @@ def donate(id: int128):
     else:
         split: wei_value = as_wei_value(msg.value * self.foundationSplitNumerator / self.foundationSplitDenominator, "wei")
         send(self.foundationAddresses[0], split)
-        self.book[id].donations += as_wei_value(msg.value, "wei") - split
+        BookContract(self.books[id]).recieveDonation(as_wei_value(msg.value, "wei") - split)
         log.Donation(msg.sender, msg.value, id)
 
 @payable
@@ -99,7 +102,7 @@ def donateWithDifferentDonor(id: int128, donorAddress: address):
     else:
         split: wei_value = as_wei_value(msg.value * self.foundationSplitNumerator / self.foundationSplitDenominator, "wei")
         send(self.foundationAddresses[0], split)
-        self.book[id].donations += as_wei_value(msg.value, "wei") - split
+        BookContract(self.books[id]).recieveDonation(as_wei_value(msg.value, "wei") - split)
         log.Donation(donorAddress, msg.value, id)
 
 @public
@@ -110,19 +113,17 @@ def setUpdateAddress(newUpdateAddress: address):
 @public
 def AddBook(id: int128, bookAddress: address):
     assert msg.sender in self.foundationAddresses
-    self.books[id] = address
+    self.books[id] = bookAddress
     
 #Adds address for full book text. Also sets uploaded to True.
 @public
 def setTextAddress(id: int128, textAddress: address):
     assert msg.sender in self.foundationAddresses
-    self.book[id] = uploadAddress
-    self.book[id] = True
+    BookContract(self.books[id]).addText(textAddress)
     log.TextUploaded(id)
 
 #Adds expansion address for a given entry.
 @public
 def setExpansionAddress(id: int128, expansionAddress: address):
     assert msg.sender in self.foundationAddresses
-    self.book[id].expansionAddress = expansionAddress
-    self.book[id].otherExpansion = otherExpansion
+    BookContract(self.books[id]).addExpansionAddress(expansionAddress)

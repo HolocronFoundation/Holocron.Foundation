@@ -120,9 +120,14 @@ def addExpansionAddress(_expansionAddress: address):
 
 @public
 def addText(_textAddress: address):
-    asser msg.sender == self.parentAddress
-    self.book.textAddress = address
+    assert msg.sender == self.parentAddress
+    self.book.textAddress = _textAddress
     self.book.uploaded = True
+
+@public
+def recieveDonation(value: wei_value):
+    assert msg.sender == self.parentAddress
+    self.book.donations = self.book.donations + value
 '''
     
     with open(writeFile, 'w', encoding = 'utf-8') as writeFile:
@@ -141,7 +146,7 @@ def genLibraryOfCongressBytes(LoCData):
     LoCDataList = ast.literal_eval(LoCData)
     numberBytes = []
     for number in LoCDataList:
-        numberBytes.append(number.to_bytes(2, byteorder='little', signed=False))
+        numberBytes.append(number.to_bytes(2, byteorder='big', signed=False))
     output = b''.join(numberBytes)
     return str(output)
 
@@ -152,7 +157,7 @@ def genSubjectBytes(subjectData):
     subjectDataList = ast.literal_eval(subjectData)
     numberBytes = []
     for number in subjectDataList:
-        numberBytes.append(number.to_bytes(2, byteorder='little', signed=False))
+        numberBytes.append(number.to_bytes(2, byteorder='big', signed=False))
     output = b''.join(numberBytes)
     return str(output)
 
@@ -163,7 +168,7 @@ def genAuthorIDsBytes(authorIDsData):
     authorIDsDataList = ast.literal_eval(authorIDsData)
     numberBytes = []
     for number in authorIDsDataList.keys():
-        numberBytes.append(number.to_bytes(2, byteorder='little', signed=False))
+        numberBytes.append(number.to_bytes(2, byteorder='big', signed=False))
     output = b''.join(numberBytes)
     return str(output)
 
@@ -174,6 +179,6 @@ def genAuthorsRolesBytes(authorRolesData):
     authorRolesDataList = ast.literal_eval(authorRolesData)
     numberBytes = []
     for number in authorRolesDataList.values():
-        numberBytes.append(number.to_bytes(1, byteorder='little', signed=False))
+        numberBytes.append(number.to_bytes(1, byteorder='big', signed=False))
     output = b''.join(numberBytes)
     return str(output)
