@@ -20,6 +20,19 @@ class UpdatedDonate():
     @public
     def donateWithDifferentDonor(id: int128, donorAddress: address): pass
 
+#Book Contract Calling
+@private
+class BookContract():
+    @public
+    def changeParentAddress(newAddress: address): pass
+
+    @public
+    def addExpansionAddress(_expansionAddress: address): pass
+
+    @public
+    def addText(_textAddress: address): pass
+    
+
 #Logging
 Donation: event({_from: indexed(address), _value: wei_value, _bookID: int128})
 BookUploaded: event({_bookID: int128})
@@ -50,7 +63,8 @@ def __init__(_foundationAddresses: address[3], _foundationSplitNumerator: int128
     self.updatedContract = False
 
 #To do: require 2/3 addresses to change an address, or a waiting period for a single
-    #one to change it...
+    #one to change it... If the address being changes is the recipient of funds,
+    #then halt funds for a short period of time...
 @public
 def changeFoundationAddresses(index: int128, newAddress: address):
     assert msg.sender in self.foundationAddresses
@@ -94,71 +108,21 @@ def setUpdateAddress(newUpdateAddress: address):
     self.updateAddress = newUpdateAddress
 
 @public
-def AddBook(id: int128, _title: bytes32[2], _USPublicDomain: bool, _language: bytes <= 2, _libraryOfCongress: bytes <= 2,
-            _subjects: bytes <= 4, _authorID: bytes<=2, _authorRole: bytes<=1, _size: int128):
+def AddBook(id: int128, bookAddress: address):
     assert msg.sender in self.foundationAddresses
-    _authorRoles: int128[3]
-    _authorIDs: int128[3]
-    self.book[id] = {
-        title: _title,
-        titleExpansion: False,
-        USPublicDomain: _USPublicDomain,
-        language: _language,
-        libraryOfCongress: _libraryOfCongress,
-        libraryOfCongressExpansion: False,
-        subjects: _subjects,
-        subjectsExpansion: False,
-        authorID: _authorID,
-        authorRole: _authorRole,
-        authorExpansion: False,
-        size: _size,
-        donations: 0,
-        textAddress: None,
-        uploaded: False,
-        otherExpansion: False,
-        expansionAddress: None
-    }
-    log.BookUploaded(id)
-
-@public
-def AddBookWithExpansion(id: int128, _title: bytes32[2], _titleExpansion: bool, _USPublicDomain: bool, _language: bytes <= 2, _libraryOfCongress: bytes <= 2,
-            _libraryOfCongressExpansion: bool, _subjects: bytes <= 4, _subjectsExpansion: bool, _authorID: bytes<=2, _authorRole: bytes<=1, _authorExpansion: bool,
-            _size: int128, _otherExpansion: bool, _expansionAddress: address):
-    assert msg.sender == self.foundationAddresses[0]
-    _authorRoles: int128[3]
-    _authorIDs: int128[3]
-    self.book[id] = {
-        title: _title,
-        titleExpansion: _titleExpansion,
-        USPublicDomain: _USPublicDomain,
-        language: _language,
-        libraryOfCongress: _libraryOfCongress,
-        libraryOfCongressExpansion: _libraryOfCongressExpansion,
-        subjects: _subjects,
-        subjectsExpansion: _subjectsExpansion,
-        authorID: _authorID,
-        authorRole: _authorRole,
-        authorExpansion: _authorExpansion,
-        size: _size,
-        donations: 0,
-        textAddress: None,
-        uploaded: False,
-        otherExpansion: _otherExpansion,
-        expansionAddress: _expansionAddress
-    }
-    log.BookUploaded(id)
+    self.books[id] = address
     
 #Adds address for full book text. Also sets uploaded to True.
 @public
-def setTextAddress(id: int128, uploadAddress: address):
+def setTextAddress(id: int128, textAddress: address):
     assert msg.sender in self.foundationAddresses
-    self.book[id].textAddress = uploadAddress
-    self.book[id].uploaded = True
+    self.book[id] = uploadAddress
+    self.book[id] = True
     log.TextUploaded(id)
 
 #Adds expansion address for a given entry.
 @public
-def setExpansionAddress(id: int128, expansionAddress: address, otherExpansion: bool):
+def setExpansionAddress(id: int128, expansionAddress: address):
     assert msg.sender in self.foundationAddresses
     self.book[id].expansionAddress = expansionAddress
     self.book[id].otherExpansion = otherExpansion

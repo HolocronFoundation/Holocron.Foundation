@@ -117,6 +117,12 @@ def addExpansionAddress(_expansionAddress: address):
     assert msg.sender == self.parentAddress
     self.expansionAddress = _expansionAddress
     self.usesExpansion = True
+
+@public
+def addText(_textAddress: address):
+    asser msg.sender == self.parentAddress
+    self.book.textAddress = address
+    self.book.uploaded = True
 '''
     
     with open(writeFile, 'w', encoding = 'utf-8') as writeFile:
