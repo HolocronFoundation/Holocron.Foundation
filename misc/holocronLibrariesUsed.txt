@@ -1,0 +1,7 @@
+Python Libraries:
+
+- rdflib
+
+Programs:
+
+- Cygwin

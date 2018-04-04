@@ -1,0 +1,4 @@
+rsync: .txt files from Gutenberg
+
+CD C:\
+C:\cygwin64\bin\rsync -av --del --include="*/" --include="*.txt" --exclude="*" aleph.gutenberg.org::gutenberg \gutenberg\txt
