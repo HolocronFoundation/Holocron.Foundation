@@ -169,3 +169,29 @@ li.navbar a:hover {
 #donations {
 	text-align: center;
 }
+
+#search {
+	text-align: center
+}
+
+#search input[type=text] {
+    border: none;
+    font-size: 1.3em;
+	padding: .25em;
+}
+
+#search button {
+	border: none;
+	font-size: 1.3em;
+	padding: .25em;
+	background: rgb(104, 185, 255);
+	cursor: pointer;
+}
+
+#search button {
+	border: none;
+	font-size: 1.3em;
+	padding: .25em;
+	background: rgb(104, 185, 255);
+	cursor: pointer;
+}

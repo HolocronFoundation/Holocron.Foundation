@@ -6,3 +6,5 @@ _notes/
 /node_modules/
 py/vyperFilesGenerate/*
 *.csv
+
+/py/vyperFilesGenerated/*
