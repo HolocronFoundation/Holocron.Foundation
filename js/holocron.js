@@ -1,55 +1,58 @@
 //Javascript for the holocron.foundation
-Web3 = require('web3');
 
-libraryAddress = ;
+var bookABI;
 
-//Sets up web3
-if (typeof web3 !== 'undefined') {
-	web3 = new Web3(web3.currentProvider); //If you already have a web3 provider (e.g. metamask) uses that
-}
-else {
-	web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545")); //sets us as the provider
-	//To do: Disable donation without an external provider
-}
+var zipABI;
 
-var libraryContractABI = web3.eth.contract(PLACE ABI HERE); //This loads the library ABI, responsible for most functions on our site
+var libraryAddress = 0; //ADD THIS LATER!!!
+
+var web3 = setupWeb3();
+
+var libraryContractABI = web3.eth.contract(loadLibraryContractABI()); //This loads the library ABI, responsible for most functions on our site
+
 var libraryContract = web3.eth.contract(libraryContractABI).at(libraryAddress);
 
 var books = libraryContract.books();
 
-var bookABI = web3.eth.contract(PLACE ABI HERE); //This loads the individual book ABI, responsible primarily for getters	
-	
-var zipABI = web3.eth.contract(PLACE ABI HERE); //This loads the zip files ABI, responsible for downloading zip files
-
 function checkIfUploaded(bookID) {
+	"use strict";
 	var bookContract = web3.eth.contract(bookABI).at(books[bookID]);
 	return bookContract.book.uploaded();
 }
 
 function getBookName(bookID) {
+	"use strict";
 	var bookContract = web3.eth.contract(bookABI).at(books[bookID]);
 	return bookContract.book.title();
 }
 
 function getBookTextBlockchain(bookID) {
+	"use strict";
 	var bookContract = web3.eth.contract(bookABI).at(books[bookID]);
-	var textContract = web3.eth.contract(zipABI).at(bookContract.textAddress())
-	return textContract.zipBytes()
+	var textContract = web3.eth.contract(zipABI).at(bookContract.textAddress());
+	return textContract.zipBytes();
 }
 
 function getBookTextServer(bookID) {
-	JSZipUtils.getBinaryContent('path/to/content.zip', function(err, data) { //NEED TO UPDATE PATH TO CONTENT
+	"use strict";
+	JSZipUtils.getBinaryContent('path/to/content.zip' + bookID, function(err, data) { //NEED TO UPDATE PATH TO CONTENT
 		if(err) {
 			//NEED TO FIX ERROR MESSAGE
 		}
 
 		else {
-			return data
+			return data;
 		}
 	});
 }
 
 function loadTextPage(bookID) {
+	"use strict";
+	
+	bookABI = loadBookABI(bookID); //This loads the individual book ABI, responsible primarily for getters	
+	
+	zipABI = loadZipABI(bookID); //This loads the zip files ABI, responsible for downloading zip files
+	
 	var zip = new JSZip();
 	
 	var bookName = getBookName(bookID);
@@ -72,6 +75,8 @@ function loadTextPage(bookID) {
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '<p>';
 	document.getElementById('bookText').innerHTML = '<p>The text is loading...</p>';
 	
+	var fullTextZip;
+	
 	if (uploaded) {
 		fullTextZip = getBookTextBlockchain(bookID); //Loads the file from the blockchain
 	}
@@ -87,6 +92,29 @@ function loadTextPage(bookID) {
 	.then(function success(text) {
 		document.getElementById('bookText').innerHTML = '<p>' + text + '</p>';
 	},    function error(e) {
-   		document.getElementById('bookText').innerHTML = '<p> An error has occurred. Please refresh the page and check your connection. If this error persists please let us know about it at samuel.troper@holocron.founcation and note the following error: ' + e + '</p>';;
+   		document.getElementById('bookText').innerHTML = '<p> An error has occurred. Please refresh the page and check your connection. If this error persists please let us know about it at samuel.troper@holocron.founcation and note the following error: ' + e + '</p>';
 	});
+}
+
+function setupWeb3() {
+	"use strict";
+	if (typeof web3 !== 'undefined') {
+		return new Web3(web3.currentProvider); //If you already have a web3 provider (e.g. metamask) uses that
+	}
+	else {
+		return new Web3(new Web3.providers.HttpProvider("http://localhost:8545")); //sets us as the provider
+		//To do: Disable donation without an external provider
+	}
+}
+
+function loadBookABI(bookID) {
+	
+}
+
+function loadLibraryContractABI(bookID) {
+	
+}
+
+function loadZipABI(bookID) {
+	
 }
