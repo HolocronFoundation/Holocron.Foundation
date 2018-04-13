@@ -39,8 +39,8 @@ zipBytes''' + str(count) + ''': public(bytes[''' + (len(zipBits) % 255) + '''])'
 
     vyperFileString += '''
 @public
-def __init__():
-    self.listingAddress = None'''
+def __init__(_listingAddress: address):
+    self.listingAddress = _listingAddress'''
 
     for i in range(count-1):
         vyperFileString += '''

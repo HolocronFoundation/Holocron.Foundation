@@ -70,11 +70,11 @@ book: public({
 })
 
 @public
-def __init__():
+def __init__(_parentAddress: address):
 
     self.version = True
 
-    self.parentAddress = None
+    self.parentAddress = _parentAddress
 
     self.expansionAddress = None
 
