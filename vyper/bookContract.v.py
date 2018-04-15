@@ -14,11 +14,11 @@
 class UpdatedDonate():
     @payable
     @public
-    def donate(id: int128): pass
+    def donate(id: int128, foundationSplitNumerator: int128, foundationSplitDenominator: int128): pass
 
     @payable
     @public
-    def donateWithDifferentDonor(id: int128, donorAddress: address): pass
+    def donateWithDifferentDonor(id: int128, foundationSplitNumerator: int128, foundationSplitDenominator: int128, donorAddress: address): pass
 
 #Book Contract Calling
 @private
@@ -46,10 +46,6 @@ TextUploaded: event({_bookID: int128})
     #First address recieves ETH immeadiately
 foundationAddresses: public(address[3])
 
-#foundationMultiplier and foundationDivisor are used to fractionalize donations without decimals
-foundationSplitNumerator: public(int128)
-foundationSplitDenominator: public(int128)
-
 #Update address - Address for an updated contract, to allow for patches.
 updateAddress: public(address)
 updatedContract: public(bool)
@@ -59,10 +55,8 @@ books: public(address[int128])
 
 #Initiation
 @public
-def __init__(_foundationAddresses: address[3], _foundationSplitNumerator: int128, _foundationSplitDenominator: int128):
+def __init__(_foundationAddresses: address[3]):
     self.foundationAddresses = _foundationAddresses
-    self.foundationSplitNumerator = _foundationSplitNumerator
-    self.foundationSplitDenominator = _foundationSplitDenominator
     self.updatedContract = False
 
 #To do: require 2/3 addresses to change an address, or a waiting period for a single
@@ -83,24 +77,25 @@ def changeFoundationSplit(_foundationSplitNumerator: int128, _foundationSplitDen
 #donate - splits funds recieved between the foundation and an individual text
 @payable
 @public
-def donate(id: int128):
+def donate(id: int128, foundationSplitNumerator: int128, foundationSplitDenominator: int128):
+    assert foundationSplitNumerator <= foundationSplitDenominator
     if self.updatedContract:
-        UpdatedDonate(self.updateAddress).donate(id)
+        UpdatedDonate(self.updateAddress).donate(id, foundationSplitNumerator, foundationSplitDenominator)
         #Call donate at updated contract
     else:
-        split: wei_value = as_wei_value(msg.value * self.foundationSplitNumerator / self.foundationSplitDenominator, "wei")
+        split: wei_value = as_wei_value(msg.value * foundationSplitNumerator / foundationSplitDenominator, "wei")
         send(self.foundationAddresses[0], split)
         BookContract(self.books[id]).recieveDonation(as_wei_value(msg.value, "wei") - split)
         log.Donation(msg.sender, msg.value, id)
 
 @payable
 @public
-def donateWithDifferentDonor(id: int128, donorAddress: address):
+def donateWithDifferentDonor(id: int128, foundationSplitNumerator: int128, foundationSplitDenominator: int128, donorAddress: address):
     if self.updatedContract:
-        UpdatedDonate(self.updateAddress).donateWithDifferentDonor(id, donorAddress)
+        UpdatedDonate(self.updateAddress).donateWithDifferentDonor(id, foundationSplitNumerator, foundationSplitDenominator, donorAddress)
         #Call donate at updated contract
     else:
-        split: wei_value = as_wei_value(msg.value * self.foundationSplitNumerator / self.foundationSplitDenominator, "wei")
+        split: wei_value = as_wei_value(msg.value * foundationSplitNumerator / foundationSplitDenominator, "wei")
         send(self.foundationAddresses[0], split)
         BookContract(self.books[id]).recieveDonation(as_wei_value(msg.value, "wei") - split)
         log.Donation(donorAddress, msg.value, id)
@@ -111,7 +106,7 @@ def setUpdateAddress(newUpdateAddress: address):
     self.updateAddress = newUpdateAddress
 
 @public
-def AddBook(id: int128, bookAddress: address):
+def addBook(id: int128, bookAddress: address):
     assert msg.sender in self.foundationAddresses
     self.books[id] = bookAddress
     

@@ -34,7 +34,7 @@ def genVyperFile(dataRow, writeFile):
 class SendDonation():
     @payable
     @public
-    def donateWithDifferentDonor(id: int128, donorAddress: address): pass
+    def donateWithDifferentDonor(id: int128, foundationSplitNumerator: int128, foundationSplitDenominator: int128, donorAddress: address): pass
 
 version: public(bool)
 parentAddress: public(address)
@@ -104,8 +104,8 @@ def __init__(_parentAddress: address):
 
 @payable
 @public
-def donate():
-    SendDonation(self.parentAddress).donateWithDifferentDonor(self.book.id, msg.sender)
+def donate(foundationSplitNumerator: int128, foundationSplitDenominator: int128):
+    SendDonation(self.parentAddress).donateWithDifferentDonor(self.book.id, foundationSplitNumerator, foundationSplitDenominator, msg.sender)
 
 @public
 def changeParentAddress(newAddress: address):
