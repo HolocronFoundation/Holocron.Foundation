@@ -31,7 +31,7 @@ listingAddress: public(address)'''
 zipBytes0: public(bytes[''' + str(len(zipBytes)) + '''])
 
 @public
-def __init__(address: _listingAddress):
+def __init__(_listingAddress: address):
     self.listingAddress = _listingAddress
     self.zipBytes0 = ''' + str(zipBytes)[1:]
 
@@ -51,7 +51,7 @@ zipBytes''' + str(count) + ''': public(bytes[''' + str(len(zipBytes) % 8192) + '
 
         vyperFileString += '''
 @public
-def __init__(address: _listingAddress, address: modifierAddress):
+def __init__(_listingAddress: address, modifierAddress: address):
     self.listingAddress = _listingAddress
     self.modifierAddress = _modifierAddress
     self.zipBytes0 = ''' + str(zipBytes[0:8192])[1:]
@@ -60,14 +60,14 @@ def __init__(address: _listingAddress, address: modifierAddress):
             if i is not 0:
                 vyperFileString += '''
 @public
-def setText''' + str(i) + '''(bytes[8192]: newText):
+def setText''' + str(i) + '''(newText: bytes[8192]):
     assert msg.sender == self.modifierAddress
     self.zipBytes''' + str(i) + ''' = newText'''
 
         if len(zipBytes) % 8192 != 0:
             vyperFileString += '''
 @public
-def setText''' + str(count) + '''(bytes[''' + str(len(zipBytes) % 8192) + ''']: newText):
+def setText''' + str(count) + '''(newText: bytes[''' + str(len(zipBytes) % 8192) + ''']):
     assert msg.sender == self.modifierAddress
     self.zipBytes''' + str(count) + ''' = newText'''
     
