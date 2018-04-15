@@ -30,7 +30,21 @@ function getBookTextBlockchain(bookID) {
 	"use strict";
 	var bookContract = web3.eth.contract(bookABI).at(books[bookID]);
 	var textContract = web3.eth.contract(zipABI).at(bookContract.textAddress());
-	return textContract.zipBytes();
+	var size = bookContract.size();
+	var sizeByteArray = Math.floor(size/255);
+	
+	if (size%255 !== 0) {
+		sizeByteArray++;
+	}
+	
+	var outputBytes = textContract.zipBytes0();
+	
+	for (var i = 1; i < sizeByteArray; i++) {
+		var evalString = 'textContract.zipBytes' + i.toString() + '()';
+		outputBytes += eval(evalString);
+	}
+	
+	return outputBytes;
 }
 
 function getBookTextServer(bookID) {
@@ -46,8 +60,11 @@ function getBookTextServer(bookID) {
 	});
 }
 
+function loadBookInfoBox(bookID){
+	
+}
+
 function loadTextPage(bookID) {
-	"use strict";
 	
 	bookABI = loadBookABI(bookID); //This loads the individual book ABI, responsible primarily for getters	
 	
@@ -111,8 +128,8 @@ function loadBookABI(bookID) {
 	
 }
 
-function loadLibraryContractABI(bookID) {
-	
+function loadLibraryContractABI() {
+	return 
 }
 
 function loadZipABI(bookID) {
