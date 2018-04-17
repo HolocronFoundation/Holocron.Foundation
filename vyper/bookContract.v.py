@@ -50,8 +50,48 @@ foundationAddresses: public(address[3])
 updateAddress: public(address)
 updatedContract: public(bool)
 
-#book struct: This struct will contain all the info for a given book
+#Book mapping
 books: public(address[int128])
+
+#Authors mapping
+authors: public(address[int128])
+
+#Subjects mapping
+subjects: public(address[int128])
+
+#Library of Congress mapping
+LoC: public(address[int128])
+
+#Was running into issues, so I created a getter.
+@public
+@constant
+def getBookAddress(bookID: int128) -> address:
+    return self.books[bookID]
+
+@public
+def addBook(id: int128, bookAddress: address):
+    assert msg.sender in self.foundationAddresses
+    self.books[id] = bookAddress
+
+@public
+@constant
+def getAuthorAddress(authorID: int128) -> address:
+    return self.authors[authorID]
+
+@public
+def addAuthor(id: int128, authorAddress: address):
+    assert msg.sender in self.foundationAddresses
+    self.authors[id] = authorAddress
+
+@public
+@constant
+def getSubjectAddress(subjectID: int128) -> address:
+    return self.subjects[subjectID]
+
+@public
+@constant
+def getLoCAddress(LoCID: int128) -> address:
+    return self.LoC[LoCID]
 
 #Initiation
 @public
@@ -98,11 +138,6 @@ def donateWithDifferentDonor(id: int128, foundationSplitNumerator: int128, found
 def setUpdateAddress(newUpdateAddress: address):
     assert msg.sender in self.foundationAddresses
     self.updateAddress = newUpdateAddress
-
-@public
-def addBook(id: int128, bookAddress: address):
-    assert msg.sender in self.foundationAddresses
-    self.books[id] = bookAddress
     
 #Adds address for full book text. Also sets uploaded to True.
 @public
