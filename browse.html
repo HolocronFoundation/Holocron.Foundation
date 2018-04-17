@@ -6,7 +6,8 @@
 	<link rel="stylesheet" type="text/css" href="stylesheet.css">
 	<link href="https://fonts.googleapis.com/css?family=Raleway|Roboto" rel="stylesheet">
 	
-	<script src="./node_modules/web3/dist/web3.min.js"></script> <!-- Loading web3 scripts -->
+	<script src="./js/web3.min.js"></script> <!-- Loading web3 scripts -->
+	<script src="./js/holocron.js"></script>
 </head>
 <body>
 	<ul class="navbar">
@@ -26,24 +27,24 @@
 	</div>
 	<div id="samples">
 		<ul class="itemsList">
-			<li id='1'>
-				<h2 class="title">Title: Subtitle</h2>
+			<li class="bookInfo" name="1">
+				<h2 class="title"></h2>
 				
-				<h2 class="author">Author First Last</h2>
+				<h2 class="author"></h2>
 				
-				<h2 class="lang">Language</h2>
+				<h2 class="lang"></h2>
 				
-				<meter value="1.1" min="0" max="2.3">1.1 ETH Recieved, 2.3 ETH Needed</meter>
+				<meter value="1.1" min="0" max="2.3"></meter>
 				
-				<h2 class="size">xxxxKB</h2>
+				<h2 class="size"></h2>
 				
-				<h2 class="recieved">xx.xxxx</h2>
+				<h2 class="recieved"></h2>
 				
-				<h2 class="needed">xx.xxxx</h2>
+				<h2 class="needed"></h2>
 				
 				<p>Donate</p>
 			</li>
-			<li>
+			<li class="bookInfo" name="2">
 				<h2 class="title">Title: Subtitle</h2>
 				
 				<h2 class="author">Author First Last</h2>
@@ -58,7 +59,7 @@
 				
 				<h2 class="needed">xx.xxxx</h2>
 			</li>
-			<li>
+			<li class="bookInfo" name="3">
 				<h2 class="title">Title: Subtitle</h2>
 				
 				<h2 class="author">Author First Last</h2>
@@ -73,7 +74,7 @@
 				
 				<h2 class="needed">xx.xxxx</h2>
 			</li>
-			<li>
+			<li class="bookInfo" name="4">
 				<h2 class="title">Title: Subtitle</h2>
 				
 				<h2 class="author">Author First Last</h2>
@@ -91,4 +92,7 @@
 		</ul>
 	</div>
 </body>
+<script>
+	loadBookInfoBoxes();
+</script>
 </html>

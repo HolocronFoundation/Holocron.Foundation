@@ -68,12 +68,6 @@ def changeFoundationAddresses(index: int128, newAddress: address):
     assert index >= 0 and index <= 2
     self.foundationAddresses[index] = newAddress
 
-@public
-def changeFoundationSplit(_foundationSplitNumerator: int128, _foundationSplitDenominator: int128):
-    assert msg.sender in self.foundationAddresses
-    self.foundationSplitNumerator = _foundationSplitNumerator
-    self.foundationSplitDenominator = _foundationSplitDenominator
-
 #donate - splits funds recieved between the foundation and an individual text
 @payable
 @public

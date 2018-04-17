@@ -3,15 +3,18 @@
 
 var path = require('path');
 var fs = require('fs');
+const readline = require('readline');
+var Web3 = require('web3');
+var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 
-var _parentAddress = //ADD ADDRESS HERE
-var _senderAddress = //ADD ADDRESS HERE
-var _parentABI = //ADD ABI HERE
+var _parentAddress = '0xAc79B0f540241A1972d270bA03a8931CA9ab20ce';
+var _senderAddress = '0xfeda81f064cb27c68e3906375aeb402429c138ee';
+var _parentABI = [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22100}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41231}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41206}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 21859}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22066}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 5951}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4631}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 910}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 723}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 753}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 972}];
 
-var contractDeploymentArray = [];
+var parentContract = new web3.eth.Contract(_parentABI, _parentAddress);
 
 //need to create files var
-var files = fs.readdirSync('F:\Vyper Files\Small Working Files\info');
+var files = fs.readdirSync('F:/Vyper Files/Small Working Files/info');
 
 //gets byte files
 var byteExtension = '.byte';
@@ -25,45 +28,110 @@ var abiFiles = files.filter(function(file) {
 	return path.extname(file).toLowerCase() === abiExtension;
 });
 
-
 var deploymentArr = [];
 var searchStr = 'vyperOutput.v.py';
-var length = byteFiles.length;
 
-//creates a deployment array
-for (var i = 0; i < length; i++){
-	var entry = [];
-	entry.push(byteFiles[i].slice(item.search(searchStr)));
-	entry.push(byteFiles[i]);
-	entry.push(abiFiles[i]);
-	deploymentArr.push(entry);
-	console.log(entry);
+function prepFile(index){
+	if (index != byteFiles.length){
+		var entry = [];
+	
+		entry.push(byteFiles[index].slice(0, byteFiles[index].search(searchStr)))
+		fs.readFile('F:/Vyper Files/Small Working Files/info/' + byteFiles[index], 'utf-8', function(err, data){
+			entry.push(data.slice(0, data.length-1));
+			fs.readFile('F:/Vyper Files/Small Working Files/info/' + abiFiles[index], 'utf-8', function(err, data2){
+				entry.push(JSON.parse(data2));
+				deploymentArr.push(entry);
+				prepFile(index + 1);
+			});
+		});
+	}
+	else {
+		const rl = readline.createInterface({
+			input: process.stdin,
+			output: process.stdout
+		});
+
+		rl.question('Input password: ', (answer) => {
+			deployContracts(answer);
+			rl.close();
+		});
+	}
 }
 
-var parentContract = web3.eth.contract(_parentABI, _parentAddress)
+deployedArr = [];
 
-for (var j = 0; j < entry.length; j++) {
-	var currentContract = web3.eth.contract(deploymentArr[j][2]);
-	var deployment = currentContract.new(_parentAddress,{from:_senderAddress, gasPrice:'2', data:deploymentArr[j][1]}, function(e, contract){
-		if(!e) {
-			if(!contract.address) {
-				console.log("Contract transaction send: TransactionHash: " + contract.transactionHash + " waiting to be mined...");
-			}
-			else {
-				console.log("Contract mined! Address: " + contract.address);
-      				console.log(contract);
-				parentContract.addBook(deploymentArr[j][0], contract.address, {from:_senderAddress, gasPrice:'2'} function(e, result){
-					if(!e) {
-						if(!result.address){
-
-						}
-						else {
-							console.log('Book added to library in transaction ' + result.address)
-						}
-					}
-				);
-			}
-		}
-	})
+function deployContract(index){
+	if (index != deploymentArr.length){
+		var currentContract = new web3.eth.Contract(deploymentArr[index][2]);
+		var gasEstimate;
+		currentContract.deploy({
+			data: deploymentArr[index][1],
+			arguments: [_parentAddress]
+		})
+		.estimateGas(function(err, gas){
+			console.log('Gas Estimate: ' + gas);
+			gasEstimate = gas;
+		}).then(function(){
+			currentContract.deploy({
+				data: deploymentArr[index][1],
+				arguments: [_parentAddress]
+			})
+			.send({
+				from: _senderAddress,
+				gas: gasEstimate,
+				gasPrice: '30000000000000'
+			},
+			function(error, transactionHash){})
+			.on('error', function(error){ console.log('Error: ' + error); })
+			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
+			.on('receipt', function(receipt){
+				console.log('Id: ' + deploymentArr[index][0] + ', Address: ' + receipt.contractAddress); // contains the new contract address
+				var done = [];
+				done.push(deploymentArr[index][0]);
+				done.push(receipt.contractAddress);
+				deployedArr.push(done);
+			})
+			.on('confirmation', function(confirmationNumber, receipt){ })
+			.then(function(newContractInstance){
+				deployContract(index + 1);
+			});
+		})
+	}
+	else {
+		console.log(deployedArr);
+		updateLibrary(0);
+	}
 }
 
+function updateLibrary(index){
+	if (index != deployedArr.length) {
+		var currentCall = parentContract.methods.addBook(deployedArr[index][0], deployedArr[index][1]);
+		var gasEstimate;
+		currentCall.estimateGas({from: _senderAddress}, function(err, gas){
+			console.log('Gas Estimate: ' + gas);
+			gasEstimate = gas;
+		}).then(function(){
+			currentCall.send({from: _senderAddress, gas: gasEstimate})
+			.on('error', function(error){ console.log('Error: ' + error); })
+			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
+			.on('receipt', function(receipt){
+				console.log('Logged book with id: ' + deployedArr[index][0] + ', at address: ' + deployedArr[index][1]);
+			})
+			.on('confirmation', function(confirmationNumber, receipt){ })
+			.then(function(newContractInstance){
+				updateLibrary(index + 1, parentContract);
+			});
+		})
+	}
+	else {
+		console.log('Well we did it....')
+	}
+}
+
+function deployContracts(password) {
+	web3.eth.personal.unlockAccount(_senderAddress, password).then(function(){
+		deployContract(0);																		
+	});
+}
+
+prepFile(0);
