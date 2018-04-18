@@ -154,7 +154,7 @@ function loadBookInfoBox(bookID){
 			var ethRecieved = web3.utils.fromWei(values[4], "ether");
 			var size = values[3];
 			var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
-			var newHTML = '<h2 class="title">' + hex2a(values[0]) + '</h2> ';
+			var newHTML = '<p class="title">' + hex2a(values[0]) + '</p> ';
 			var authorPromises = [];
 			if(values[1] != null){
 				var authorIDArray =  values[1].slice(2).match(/.{1,4}/g);
@@ -167,7 +167,7 @@ function loadBookInfoBox(bookID){
 					authorNameArray.push(hex2a(name));
 					var currentRoleID = parseInt(authorRolesIDArray[j], 16);
 				};
-				newHTML += '<h2 class="author">';
+				newHTML += '<p class="author">';
 				var lastRole = -1;
 				for (var k = 0; k<authorIDArray.length; k++){
 					var currentRoleID = authorRolesIDArray[k];
@@ -176,16 +176,16 @@ function loadBookInfoBox(bookID){
 							newHTML += ', ';
 						}
 						if(currentRoleID == 0){
-							newHTML += 'Authored by ';
+							newHTML += 'Authored by: ';
 						}
 						else if (currentRoleID == 1){
-							newHTML += 'Translated by ';
+							newHTML += 'Translated by: ';
 						}
 						else if (currentRoleID == 2){
-							newHTML += 'Edited by ';
+							newHTML += 'Edited by: ';
 						}
 						else if (currentRoleID == 3){
-							newHTML += 'Illustrated by ';
+							newHTML += 'Illustrated by: ';
 						}
 						lastRole = currentRoleID;
 					}
@@ -194,7 +194,7 @@ function loadBookInfoBox(bookID){
 					}
 					newHTML += authorNameArray[k];
 				}
-				newHTML += '</h2>';
+				newHTML += '</p>';
 			}
 			newHTML += '<p class="lang">Language: ' + hex2a(values[2]) + '</p>';
 			newHTML += '<meter value="' + ethRecieved + '" min="0" max="2.3"></meter>';

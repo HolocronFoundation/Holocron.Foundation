@@ -1,0 +1,26 @@
+@charset "utf-8";
+/* CSS Document */
+
+section {
+  display: flex;
+  flex-flow: column;
+  height: 100vh;
+}
+
+header {
+  background: tomato;
+}
+
+#content {
+	background: gold;
+	overflow-y: auto;
+	overflow-x: hidden;
+	width: 80vw;
+	margin: auto;
+}
+
+/* Removes body margin */
+
+body {
+	margin: 0;
+}
