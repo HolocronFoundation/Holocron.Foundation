@@ -17,12 +17,20 @@ Darkest
 	display: flex;
 }
 
-.splitSlider .left {
+.blankFlex1 {
 	flex: 1;
 }
 
+.splitSlider .left {
+	flex: 2;
+}
+
+.splitSlider .slider {
+	flex: 3;
+}
+
 .splitSlider .right {
-	flex: 1;
+	flex: 2;
 }
 
 /* Centers items, adds a horizontal line below, and pads the bottom of each book */

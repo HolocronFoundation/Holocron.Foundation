@@ -143,6 +143,7 @@ function loadBookInfoBoxes(){
 function loadBookInfoBox(bookID){
 	libraryContract.methods.getBookAddress(bookID).call()
 	.then(function(res){
+		storeBookInfo(bookID, 'infoAddress', res);
 		var bookContract = new web3.eth.Contract(bookABI, res);
 		var titlePromise = bookContract.methods.book__title().call();
 		var authorPromise = bookContract.methods.book__authorIDs().call();
@@ -151,12 +152,22 @@ function loadBookInfoBox(bookID){
 		var sizePromise = bookContract.methods.book__size().call();
 		var weiPromise = bookContract.methods.book__donations().call();
 		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRole]).then(async function(values) {
-			var ethRecieved = web3.utils.fromWei(values[4], "ether");
+			var titleClean = hex2a(values[0]);
+			var languageClean = hex2a(values[2]);
 			var size = values[3];
+			var ethRecieved = web3.utils.fromWei(values[4], "ether");
+			storeBookInfo(bookID, 'title', titleClean);
+			storeBookInfo(bookID, 'language', languageClean);
+			storeBookInfo(bookID, 'size', size);
+			storeBookInfo(bookID, 'donationsETH', ethRecieved);
 			var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
-			var newHTML = '<p class="title"><b>' + hex2a(values[0]) + '</b></p> ';
+			var newHTML = '<p class="title"><a href="./book.html?bookID=' + bookID.toString() + '"><b>' + titleClean + '</b></a></p> ';
 			var authorPromises = [];
-			if(values[1] != null){
+			if(values[1] == null){
+				storeBookInfo(bookID, 'authors', 'None');
+				storeBookInfo(bookID, 'authorRoles', 'None');
+			}
+			else {
 				var authorIDArray =  values[1].slice(2).match(/.{1,4}/g);
 				var authorRolesIDArray = values[5].slice(2).match(/.{1,2}/g);
 				var authorNameArray = [];
@@ -165,8 +176,10 @@ function loadBookInfoBox(bookID){
 					var authorContract = new web3.eth.Contract(authorABI, addr);
 					var name = await authorContract.methods.author__name().call();
 					authorNameArray.push(hex2a(name));
-					var currentRoleID = parseInt(authorRolesIDArray[j], 16);
+					//var currentRoleID = parseInt(authorRolesIDArray[j], 16);
 				};
+				storeBookInfo(bookID, 'authors', authorNameArray);
+				storeBookInfo(bookID, 'authorRoles', authorRolesIDArray);
 				newHTML += '<p class="author">';
 				var lastRole = -1;
 				for (var k = 0; k<authorIDArray.length; k++){
@@ -192,23 +205,53 @@ function loadBookInfoBox(bookID){
 					else if(k!=0){
 						newHTML += ' & ';
 					}
-					newHTML += authorNameArray[k];
+					newHTML += '<a href="./author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + authorNameArray[k] + '</a>';
 				}
 				newHTML += '</p>';
 			}
-			newHTML += '<p class="lang">Language: ' + hex2a(values[2]) + '</p>';
+			newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
 			newHTML += '<meter value="' + ethRecieved + '" min="0" max="2.3"></meter>';
 			newHTML += '<p class="recieved">' + ethRecieved + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
-			newHTML += '<div class="splitSlider"><p class="left">Foundation</p><input type="range" min="0" max="100" value="30" class="slider"><p class="right">Book</p></div>';
+			newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left">Foundation</p><input type="range" min="0" max="100" value="30" class="slider"><p class="right">Book</p><p class="blankFlex1"></p></div>';
 			newHTML += '<p>Donate with Ξ</p>';
 			newHTML += '<p><a href="./donate.html?bookID=' + bookID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
 			infoItem = document.getElementsByName(bookID.toString())[0];
 			infoItem.innerHTML = newHTML;
+			storeBookInfo(bookID, 'basicInfo', true);
 		}).catch(function(error){
 			console.log(error);
 			removeBookEntry(bookID);
 		});
 	});
+}
+
+function storeBookInfo(bookID, infoName, info){
+	var storeName = '<' + bookID.toString() + '>' + infoName;
+	if(Array.isArray(info)){
+		if(info.length == 0){
+			localStorage.setItem(storeName, 'None');
+			console.log('Cached item with name: ' + storeName + ', Data: None');
+		}
+		else if(info.length == 1){
+			localStorage.setItem(storeName, info[0]);
+			console.log('Cached item with name: ' + storeName + ', Data: ' + info[0]);
+		}
+		else {
+			storeArrStr = '';
+			for(var i = 0; i < info.length; i++){
+				if(i != 0){
+					storeArrStr += '|';
+				}
+				storeArrStr += info[i];
+			}
+			localStorage.setItem(storeName, storeArrStr);
+			console.log('Cached item with name: ' + storeName + ', Data: ' + storeArrStr);
+		}
+	}
+	else{
+		localStorage.setItem(storeName, info);
+		console.log('Cached item with name: ' + storeName + ', Data: ' + info);
+	}
 }
 
 function removeBookEntry(bookID){
