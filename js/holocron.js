@@ -19,7 +19,7 @@ var authorABI = loadAuthorABI();
 
 var zipABI;
 
-var libraryAddress = '0x0f6742d31DE46Efba6B70c7a05Deb3149Bec39D7';
+var libraryAddress = '0xdA0835F4Ea95231B1CED731Ecd7B691139D6B4F5';
 
 var thirdPartyProvider;
 var web3 = setupWeb3();
@@ -154,7 +154,7 @@ function loadBookInfoBox(bookID){
 			var ethRecieved = web3.utils.fromWei(values[4], "ether");
 			var size = values[3];
 			var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
-			var newHTML = '<p class="title">' + hex2a(values[0]) + '</p> ';
+			var newHTML = '<p class="title"><b>' + hex2a(values[0]) + '</b></p> ';
 			var authorPromises = [];
 			if(values[1] != null){
 				var authorIDArray =  values[1].slice(2).match(/.{1,4}/g);
@@ -198,14 +198,21 @@ function loadBookInfoBox(bookID){
 			}
 			newHTML += '<p class="lang">Language: ' + hex2a(values[2]) + '</p>';
 			newHTML += '<meter value="' + ethRecieved + '" min="0" max="2.3"></meter>';
-			newHTML += '<p class="recieved">' + ethRecieved + ' Ξ Recieved / ~' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
+			newHTML += '<p class="recieved">' + ethRecieved + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
 			newHTML += '<div class="splitSlider"><p class="left">Foundation</p><input type="range" min="0" max="100" value="30" class="slider"><p class="right">Book</p></div>';
 			newHTML += '<p>Donate with Ξ</p>';
 			newHTML += '<p><a href="./donate.html?bookID=' + bookID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
-			var infoItem = document.getElementsByName(bookID.toString())[0];
+			infoItem = document.getElementsByName(bookID.toString())[0];
 			infoItem.innerHTML = newHTML;
+		}).catch(function(error){
+			console.log(error);
+			removeBookEntry(bookID);
 		});
 	});
+}
+
+function removeBookEntry(bookID){
+	document.getElementsByName(bookID.toString())[0].remove();
 }
 
 function donate(){
@@ -230,5 +237,24 @@ function hex2a(hex) {
 function calculateStorageCost(size, gasPrice) {
 	//size in bytes, gasPrice in wei
 	return 625*size*gasPrice;
-	
+}
+
+function populateRandomContent(loadItems, maxIndex) {
+	populateList = document.getElementById("booksList");
+	var randomArray = genUniqueRandomNumberArray(loadItems, maxIndex);
+	for (var i = 0; i < randomArray.length; i++){
+		populateList.innerHTML += '<li class="bookInfo" name="' + randomArray[i] + '"></li>';
+	}
+	loadBookInfoBoxes();
+}
+
+function genUniqueRandomNumberArray(arrayLength, max){
+	var arr = [];
+	while(arr.length < arrayLength){
+		var randomnumber = Math.floor(Math.random()*max) + 1;
+		if(arr.indexOf(randomnumber) == -1){
+			arr[arr.length] = randomnumber;
+		}
+	}
+	return arr;
 }

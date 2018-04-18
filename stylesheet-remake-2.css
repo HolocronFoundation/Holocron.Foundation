@@ -1,26 +1,125 @@
 @charset "utf-8";
 /* CSS Document */
 
+/*Blue Color Codes!
+
+Lightest
+	rgb(156, 217, 255) = 1
+	rgb(104, 185, 255)
+	rgb(71, 166, 255)
+	rgb(57, 157, 255) = 4
+Darkest
+
+*/
+
+.splitSlider {
+	justify-content:  center;
+	display: flex;
+}
+
+.splitSlider .left {
+	flex: 1;
+}
+
+.splitSlider .right {
+	flex: 1;
+}
+
+/* Centers items, adds a horizontal line below, and pads the bottom of each book */
+
+li.bookInfo {
+	padding-bottom: 1.5vh;
+	text-align: center;
+	border-bottom: 2px groove rgb(71, 166, 255);
+}
+
 section {
   display: flex;
   flex-flow: column;
   height: 100vh;
 }
 
+/* Sets color:brightness:2 */
+
 header {
-  background: tomato;
+  background: rgb(104, 185, 255);
+	padding-bottom: 2vh;
 }
 
+/* Sets color:brightness:1, adds vertical scroll bar, hides horizontal scroll bar, limits width, adds margins */
+
 #content {
-	background: gold;
+	background: rgb(156, 217, 255);
 	overflow-y: auto;
 	overflow-x: hidden;
 	width: 80vw;
 	margin: auto;
+	padding-left: 2.5vw;
+	padding-right: 2.5vw;
+	padding-top: 1vh;
+	padding-bottom: 1vh;
+	max-width: 666px;
 }
 
-/* Removes body margin */
+/* Colors footer to color:brightness:4  */
+
+footer {
+	background: rgb(57, 157, 255);
+}
+
+/* Center class centers items */
+
+.center {
+	text-align: center;
+}
+
+/* Formats small logo correctly */
+
+.logosmall {
+    margin-left: auto;
+    margin-right: auto;
+    height: 3em;
+	width: auto;
+	vertical-align: middle;
+}
+
+/* navbar items */
+
+ul.navbar {
+    overflow: hidden;
+    background-color: rgb(57, 157, 255);
+    top: 0;
+	left: 0;
+    width: 100vw;
+}
+
+li.navbar {
+    float: left;
+}
+
+li.navbar a {
+    display: block;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+	color: white;
+}
+
+li.navbar a:hover {
+    background-color: rgb(71, 166, 255);
+}
+
+/* Removes bullet points from ul, and removes indentation */
+
+ul{
+	list-style-type: none;
+	margin: 0;
+    padding: 0;
+}
+
+/* Removes body margin, sets color:brightness:2 */
 
 body {
 	margin: 0;
+	background-color: rgb(104, 185, 255);
 }
