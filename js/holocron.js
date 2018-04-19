@@ -242,7 +242,7 @@ function storeBookInfo(bookID, infoName, info){
 				if(i != 0){
 					storeArrStr += '|';
 				}
-				storeArrStr += info[i];
+				storeArrStr += info[i].trim();
 			}
 			localStorage.setItem(storeName, storeArrStr);
 			console.log('Cached item with name: ' + storeName + ', Data: ' + storeArrStr);
@@ -270,11 +270,14 @@ function donate(){
 }
 
 function hex2a(hex) {
+	if(hex.indexOf('0x')==0){
+		hex = hex.substring(2);
+	}
     var str = '';
     for (var i = 0; i < hex.length; i += 2) {
 		str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
 	}
-    return str;
+    return str.trim();
 }
 
 function calculateStorageCost(size, gasPrice) {
