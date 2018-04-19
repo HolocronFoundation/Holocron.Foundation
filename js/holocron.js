@@ -13,6 +13,10 @@ function loadAuthorABI(){
 	return [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_parentAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeParentAddress", "outputs": [], "inputs": [{"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 20627}, {"name": "addExpansionAddress", "outputs": [], "inputs": [{"type": "address", "name": "_expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 40663}, {"name": "version", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 543}, {"name": "parentAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 573}, {"name": "expansionAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 603}, {"name": "usesExpansion", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 633}, {"name": "author__name", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1686}, {"name": "author__alias", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 2084}, {"name": "author__birthdate", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1746}, {"name": "author__deathdate", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1776}, {"name": "author__id", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 861}];
 }
 
+function loadZipABI(){
+	return 'FIX THIS'
+}
+
 var bookABI = loadBookABI();
 
 var authorABI = loadAuthorABI();
@@ -30,12 +34,6 @@ function checkIfUploaded(bookID) {
 	"use strict";
 	var bookContract = web3.eth.contract(bookABI).at(); //update
 	return bookContract.book.uploaded();
-}
-
-function getBookName(bookID) {
-	"use strict";
-	var bookContract = web3.eth.contract(bookABI).at(); //update
-	return bookContract.book.title();
 }
 
 function getBookTextBlockchain(bookID) {
@@ -79,8 +77,6 @@ function loadTextPage(bookID) {
 	zipABI = loadZipABI(bookID); //This loads the zip files ABI, responsible for downloading zip files
 	
 	var zip = new JSZip();
-	
-	var bookName = getBookName(bookID);
 	
 	document.title = 'Holocron.Foundation ♢ ' + bookName;
 	
@@ -225,6 +221,10 @@ function loadBookInfoBox(bookID){
 	});
 }
 
+function loadBookVariable(bookID, variableName){
+	
+}
+
 function storeBookInfo(bookID, infoName, info){
 	var storeName = '<' + bookID.toString() + '>' + infoName;
 	if(Array.isArray(info)){
@@ -303,4 +303,14 @@ function genUniqueRandomNumberArray(arrayLength, max){
 		}
 	}
 	return arr;
+}
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
 }

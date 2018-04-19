@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Holocron.Foundation ♢ Browse</title>
+	<link rel="stylesheet" type="text/css" href="stylesheet-remake-2.css">
+	<script src="./js/web3.min.js"></script>
+	<script src="./js/holocron.js"></script>
+</head>
+
+<body>
+	<section>
+		<header>
+			<ul class="navbar">
+				<li class="navbar"><a href="./home.html">Home</a></li>
+				<li class="navbar"><a href="./about.html">About</a></li>
+				<li class="navbar"><a href="./browse.html">Browse</a></li>
+				<li class="navbar"><a href="./donate.html">Donate</a></li>
+			</ul>
+			<div id="smallTitle" class="center">
+				<h2 class="name"><img class="logosmall" src="img/LogoClearBGPad.png" alt="♢"/> Book</h2>
+			</div>
+			<div id="search" class="center" >
+				<form action="/action_page.php">
+					<input type="text" placeholder="Search for a text">
+					<button type="submit"><i class="fa fa-search"></i></button>
+				</form>
+			</div>
+		</header>
+		<div id="content">
+			<div id="fullBookInfo">
+				<p class="title"><a href="./book.html?bookID=1"><b>The Declaration of Independence of the United States of America</b></a></p>
+				<p class="author">Authored by: <a href="./author.html?authorID=0">Jefferson, Thomas</a></p>
+				<p class="lang">Language: en</p>
+				<meter value="0" min="0" max="2.3"></meter>
+				<p class="recieved">0 Ξ Recieved / ≈0.0209475 Ξ Needed</p>
+				<div class="splitSlider"><p class="blankFlex1"></p><p class="left">Foundation</p><input type="range" min="0" max="100" value="30" class="slider"><p class="right">Book</p><p class="blankFlex1"></p></div>
+				<p>Donate with Ξ</p>
+				<p><a href="./donate.html?bookID=1">Donate with BTC, LTC, or USD</a></p>
+			</div>
+		</div>
+		<footer class="center">
+			<p>♢ Brought to you by the Holocron.Foundation ♢</p>
+  		</footer>
+	</section>
+</body>
+<script>
+	var activeID = getParameterByName('bookID');
+	if(activeID == null || activeID ==''){
+		document.location.href = "./browse.html";
+	}
+</script>
+</html>

@@ -30,6 +30,10 @@
 		</div>
 	</body>
 	<script>
-		loadTextPage(parseInt(location.search.slice(1)));
+		var activeID = getParameterByName('bookID');
+		if(activeID == null || activeID ==''){
+			document.location.href = "./browse.html";
+		}
+		loadTextPage(activeID);
 	</script>
 </html>
