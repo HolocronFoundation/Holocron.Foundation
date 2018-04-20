@@ -37,7 +37,8 @@ function loadBookTextChunk(bookID, chunk){
 			textContract= new web3.eth.Contract(loadZipABI(), res2);
 			var tempFunction = new Function("contract", "return contract.methods.zipBytes" + chunk + "().call().catch(function(error){ console.log(error);});");
 			return tempFunction(textContract);
-		})
+		});
+	});
 }
 
 async function getBookTextBlockchain(bookID) {
@@ -48,9 +49,9 @@ async function getBookTextBlockchain(bookID) {
 		numByteArrays++;
 	}
 	
-	bytePromises = []
+	bytePromises = [];
 	
-	for(int i = 0; i<numByteArrays; i++){
+	for(var i = 0; i<numByteArrays; i++){
 		bytePromises.push(loadBookTextChunk(bookID, i));
 	}
 	
@@ -114,8 +115,6 @@ async function loadTextPage(bookID) {
 	else {
 		fullTextZip = await getBookTextServer(bookID); //Loads the file from the server
 	}
-	
-	console.log(fullTextZip);
 	
 	//unzip file here
 	JSZip.loadAsync(fullTextZip)
@@ -202,13 +201,6 @@ function loadBookInfoBox(bookID){
 		var authorRolePromise = getAuthorRoles(bookID); //works
 		var authorIDsPromise = loadBookVariable(bookID, 'authorIDs');
 		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise]).then(async function(values) {
-			console.log(values[0]);
-			console.log(values[1]); //works
-			console.log(values[2]);
-			console.log(values[3]);
-			console.log(values[4]);
-			console.log(values[5]); //works
-			console.log(values[6]);
 			
 			var size = values[3];
 			var titleClean = values[0];
@@ -220,8 +212,7 @@ function loadBookInfoBox(bookID){
 			if(authorRolesIDArray != 'None'){
 				var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
 				var authorNameArray = values[1];
-				console.log(authorNameArray);
-				console.log(typeof(authorNameArray));
+
 				newHTML += '<p class="author">';
 				var lastRole = -1;
 				for (var k = 0; k<authorNameArray.length; k++){
@@ -251,13 +242,27 @@ function loadBookInfoBox(bookID){
 				}
 				newHTML += '</p>';
 			}
+			//Language Info
 			newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
+			
+			//View text
 			newHTML += '<p class="textLink"><a href="./text.html?bookID=' + bookID.toString() + '">View the text</a></p>';
+			
+			//Donation meter
 			newHTML += '<meter value="' + donationsETH + '" min="0" max="2.3"></meter>';
+			
+			//Donation stats
 			newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
-			newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left">Foundation</p><input type="range" min="0" max="100" value="30" class="slider"><p class="right">Book</p><p class="blankFlex1"></p></div>';
-			newHTML += '<p>Donate with Ξ</p>';
+			
+			//Donation slider
+			newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left" id="bookSplit' + bookID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + bookID +'" onchange="updateSplitValues(this.value, ' + bookID + ');"><p class="right" id="foundationSplit' + bookID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
+			
+			//ETH donate
+			newHTML += '<p><a href="javascript:donate(' + bookID + ');">Donate with Ξ</a></p>';
+			
+			//Other donate
 			newHTML += '<p><a href="./donate.html?bookID=' + bookID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
+			
 			infoItem = document.getElementsByName(bookID.toString())[0];
 			infoItem.innerHTML = newHTML;
 			storeBookInfo(bookID, 'basicInfo', true);
@@ -266,6 +271,11 @@ function loadBookInfoBox(bookID){
 			removeBookEntry(bookID);
 		});
 	});
+}
+
+function updateSplitValues(newValue, bookID){
+	document.getElementById('foundationSplit'+bookID).innerHTML = "Foundation: " + newValue + "%";
+	document.getElementById('bookSplit'+bookID).innerHTML = "Book: " + (100-newValue) + "%";
 }
 
 function loadInfoAddress(bookID){
@@ -350,15 +360,31 @@ function removeBookEntry(bookID){
 	}
 }
 
-function donate(){
+function donate(bookID, invalidNumber=false){
 	//need bookID, foundationSplitNumerator, foundationSplitDenominator, donationvalue
-	libraryContract.methods.donate(bookID, foundationSplitNumerator, foundationSplitDenominator).send({
-		value: donationValue
-	}).on('transactionHash', function(hash){
-		alert('Your donation has sent! The transaction hash is: ' + hash);
-	}).on('error', function(error){
-		alert('There was an error sending your donation. Error message: ' + error);
-	});
+	var donationValueString;
+	if(invalidNumber){
+		donationValueString = prompt("You entered an invalid number. Please enter the size of your donation, in ETH:", "0");
+	}
+	else{
+		donationValueString = prompt("Please enter the size of your donation, in ETH:", "0");
+	}
+	var donationValue = parseInt(donationValueString);
+	if(isNaN(donationValue) || donationValue <= 0){
+		donate(bookID, true);
+	}
+	else {
+		var foundationSplitNumerator = document.getElementById('slider'+bookID).value;
+		var foundationSplitDenominator = 100;
+		alert(foundationSplitNumerator);
+		libraryContract.methods.donate(bookID, foundationSplitNumerator, foundationSplitDenominator).send({
+			value: donationValue
+		}).on('transactionHash', function(hash){
+			alert('Your donation has sent! The transaction hash is: ' + hash);
+		}).on('error', function(error){
+			alert('There was an error sending your donation. Error message: ' + error);
+		});
+	}
 }
 
 function hex2a(hex) {
