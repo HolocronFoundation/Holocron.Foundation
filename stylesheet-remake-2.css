@@ -131,3 +131,26 @@ body {
 	margin: 0;
 	background-color: rgb(104, 185, 255);
 }
+
+/* Adds a margin to the text body */
+
+body#textBody {
+	margin-left: 2.5vw;
+	margin-right: 2.5vw;
+	margin-top: 1.5vh;
+	margin-bottom: 1.5vh;
+	background-color: beige;
+}
+
+/* Preserving whitespace in text files, and centers the text */
+
+#bookText {
+	text-align: center;
+}
+
+#bookText p {
+	white-space: pre-wrap;
+	
+	display: inline-block;
+	text-align: left;
+}
