@@ -136,83 +136,49 @@ function loadBookInfoBoxes(){
 	}
 }
 
-function getAuthors(bookID){
-	var localStorageName = '<' + bookID.toString() + '>authors';
-	var localItem = localStorage.getItem(localStorageName);
-	if(localItem != null){
-		return Promise.resolve(parseLocalStorage(localItem));
-	}
-	return loadInfoAddress(bookID).then(function(res){
-		currentContract = new web3.eth.Contract(bookABI, res);
-		return currentContract.methods.book__authorIDs().call().then(async function(res){
-			if(res == null){
+function loadBookInfoBox(bookID){
+	libraryContract.methods.getBookAddress(bookID).call()
+	.then(function(res){
+		storeBookInfo(bookID, 'infoAddress', res);
+		var bookContract = new web3.eth.Contract(bookABI, res);
+		var titlePromise = bookContract.methods.book__title().call();
+		var authorPromise = bookContract.methods.book__authorIDs().call();
+		var authorRole = bookContract.methods.book__authorRoles().call();
+		var langPromise = bookContract.methods.book__language().call();
+		var sizePromise = bookContract.methods.book__size().call();
+		var weiPromise = bookContract.methods.book__donations().call();
+		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRole]).then(async function(values) {
+			var titleClean = hex2a(values[0]);
+			var languageClean = hex2a(values[2]);
+			var size = values[3];
+			var ethRecieved = web3.utils.fromWei(values[4], "ether");
+			storeBookInfo(bookID, 'title', titleClean);
+			storeBookInfo(bookID, 'language', languageClean);
+			storeBookInfo(bookID, 'size', size);
+			storeBookInfo(bookID, 'donationsETH', ethRecieved);
+			var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
+			var newHTML = '<p class="title"><a href="./book.html?bookID=' + bookID.toString() + '"><b>' + titleClean + '</b></a></p> ';
+			var authorPromises = [];
+			if(values[1] == null){
 				storeBookInfo(bookID, 'authors', 'None');
-				return 'None';
+				storeBookInfo(bookID, 'authorRoles', 'None');
 			}
-			else{
-				var authorIDArray =  res.slice(2).match(/.{1,4}/g);
+			else {
+				var authorIDArray =  values[1].slice(2).match(/.{1,4}/g);
+				var authorRolesIDArray = values[5].slice(2).match(/.{1,2}/g);
 				var authorNameArray = [];
 				for(var j = 0; j<authorIDArray.length; j++){
 					var addr = await libraryContract.methods.getAuthorAddress(parseInt(authorIDArray[j], 16)).call();
 					var authorContract = new web3.eth.Contract(authorABI, addr);
 					var name = await authorContract.methods.author__name().call();
 					authorNameArray.push(hex2a(name));
-				}
+					//var currentRoleID = parseInt(authorRolesIDArray[j], 16);
+				};
 				storeBookInfo(bookID, 'authors', authorNameArray);
-				return authorNameArray;
-			}
-		});
-	});
-}
-
-function getAuthorRoles(bookID){
-	return loadInfoAddress(bookID).then(function(res){
-		currentContract = new web3.eth.Contract(bookABI, res);
-		return currentContract.methods.book__authorRoles().call().then(function(res1){
-			if(res1 == null){
-				return 'None';
-			}
-			var authorRolesIDArray = res1.slice(2).match(/.{1,2}/g);
-			storeBookInfo(bookID, 'authorRoles', authorRolesIDArray);
-			return authorRolesIDArray;
-		});
-	});
-}
-
-function loadBookInfoBox(bookID){
-	loadInfoAddress(bookID)
-	.then(function(res){
-		var titlePromise = loadBookVariable(bookID, 'title', true);
-		var langPromise = loadBookVariable(bookID, 'language', true);
-		var sizePromise = loadBookVariable(bookID, 'size');
-		var authorPromise = getAuthors(bookID); //works
-		var weiPromise = loadBookVariable(bookID, 'donations');
-		var authorRolePromise = getAuthorRoles(bookID); //works
-		var authorIDsPromise = loadBookVariable(bookID, 'authorIDs');
-		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise]).then(async function(values) {
-			console.log(values[0]);
-			console.log(values[1]); //works
-			console.log(values[2]);
-			console.log(values[3]);
-			console.log(values[4]);
-			console.log(values[5]); //works
-			console.log(values[6]);
-				
-			var titleClean = values[0];
-			var languageClean = values[2];
-			var size = values[3];
-			var authorRolesIDArray = values[5];
-			var donationsETH = web3.utils.fromWei(values[4].toString(), "ether");
-			var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
-			var newHTML = '<p class="title"><a href="./book.html?bookID=' + bookID.toString() + '"><b>' + titleClean + '</b></a></p> ';
-			if(authorRolesIDArray != 'None'){
-				var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
-				var authorNameArray = values[1];
-				console.log(authorNameArray);
-				console.log(typeof(authorNameArray));
+				storeBookInfo(bookID, 'authorRoles', authorRolesIDArray);
 				newHTML += '<p class="author">';
 				var lastRole = -1;
-				for (var k = 0; k<authorNameArray.length; k++){
+				for (var k = 0; k<authorIDArray.length; k++){
 					var currentRoleID = authorRolesIDArray[k];
 					if(currentRoleID != lastRole){
 						if (k!=0){
@@ -240,8 +206,8 @@ function loadBookInfoBox(bookID){
 				newHTML += '</p>';
 			}
 			newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
-			newHTML += '<meter value="' + donationsETH + '" min="0" max="2.3"></meter>';
-			newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
+			newHTML += '<meter value="' + ethRecieved + '" min="0" max="2.3"></meter>';
+			newHTML += '<p class="recieved">' + ethRecieved + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
 			newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left">Foundation</p><input type="range" min="0" max="100" value="30" class="slider"><p class="right">Book</p><p class="blankFlex1"></p></div>';
 			newHTML += '<p>Donate with Ξ</p>';
 			newHTML += '<p><a href="./donate.html?bookID=' + bookID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
@@ -255,42 +221,8 @@ function loadBookInfoBox(bookID){
 	});
 }
 
-function loadInfoAddress(bookID){
-	localStorageName = '<' + bookID.toString() + '>infoAddress';
-	var localItem = localStorage.getItem(localStorageName);
-	if(localItem != null){
-		return Promise.resolve(parseLocalStorage(localItem));
-	}
-	return libraryContract.methods.getBookAddress(bookID).call()
-	.then(function(res){
-		storeBookInfo(bookID, 'infoAddress', res);
-		return res;
-	});
-}
-
-function loadBookVariable(bookID, infoName, hexEncodedInContract=false){
-	var localStorageName = '<' + bookID.toString() + '>' + infoName;
-	var localItem = localStorage.getItem(localStorageName);
-	if(localItem != null){
-		return Promise.resolve(parseLocalStorage(localItem));
-	}
-	return loadInfoAddress(bookID).then(function(res){
-		currentContract = new web3.eth.Contract(bookABI, res);
-		if(hexEncodedInContract){
-			var tempFunction = new Function("contract", "return contract.methods.book__" + infoName + "().call().then(function(success){ var decodedInfo = hex2a(success); storeBookInfo(" + bookID + ", '" + infoName + "', decodedInfo); return decodedInfo;}).catch(function(error){ console.log(error); removeBookEntry(" + bookID + ");});");
-			return tempFunction(currentContract);
-		}
-		var tempFunction = new Function("contract", "return contract.methods.book__" + infoName + "().call().then(function(success){storeBookInfo(" + bookID + ", '" + infoName + "', success); return success;}).catch(function(error){ console.log(error); removeBookEntry(" + bookID + ");});");
-		return tempFunction(currentContract);
-	});
-}
-
-function parseLocalStorage(localItem){
-	if(localItem.charAt(0) == '[' && localItem.charAt(localItem.length-1) == ']'){
-		localItem = localItem.substring(1,localItem.length-1);
-		return localItem.split('|');
-	}
-	return localItem;
+function loadBookVariable(bookID, variableName){
+	
 }
 
 function storeBookInfo(bookID, infoName, info){
@@ -298,32 +230,32 @@ function storeBookInfo(bookID, infoName, info){
 	if(Array.isArray(info)){
 		if(info.length == 0){
 			localStorage.setItem(storeName, 'None');
-			//console.log('Cached item with name: ' + storeName + ', Data: None');
+			console.log('Cached item with name: ' + storeName + ', Data: None');
+		}
+		else if(info.length == 1){
+			localStorage.setItem(storeName, info[0]);
+			console.log('Cached item with name: ' + storeName + ', Data: ' + info[0]);
 		}
 		else {
-			storeArrStr = '[';
+			storeArrStr = '';
 			for(var i = 0; i < info.length; i++){
 				if(i != 0){
 					storeArrStr += '|';
 				}
-				storeArrStr += info[i];
+				storeArrStr += info[i].trim();
 			}
-			storeArrStr += ']';
 			localStorage.setItem(storeName, storeArrStr);
-			//console.log('Cached item with name: ' + storeName + ', Data: ' + storeArrStr);
+			console.log('Cached item with name: ' + storeName + ', Data: ' + storeArrStr);
 		}
 	}
 	else{
 		localStorage.setItem(storeName, info);
-		//console.log('Cached item with name: ' + storeName + ', Data: ' + info);
+		console.log('Cached item with name: ' + storeName + ', Data: ' + info);
 	}
 }
 
 function removeBookEntry(bookID){
-	entry = document.getElementsByName(bookID.toString())[0];
-	if(entry != undefined){
-		entry.remove()
-	}
+	document.getElementsByName(bookID.toString())[0].remove();
 }
 
 function donate(){
