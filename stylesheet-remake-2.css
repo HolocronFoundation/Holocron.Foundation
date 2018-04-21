@@ -33,6 +33,16 @@ Darkest
 	flex: 2;
 }
 
+/* Formats the logo */
+
+#logo {
+	display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 6em;
+    height: auto;
+}
+
 /* Centers items, adds a horizontal line below, and pads the bottom of each book */
 
 li.bookInfo {
@@ -51,7 +61,6 @@ section {
 
 header {
   background: rgb(104, 185, 255);
-	padding-bottom: 2vh;
 }
 
 /* Sets color:brightness:1, adds vertical scroll bar, hides horizontal scroll bar, limits width, adds margins */
