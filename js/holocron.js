@@ -26,7 +26,6 @@ var zipABI;
 var libraryAddress = '0xdA0835F4Ea95231B1CED731Ecd7B691139D6B4F5';
 
 var thirdPartyProvider;
-var web3 = setupWeb3();
 
 var libraryContract = new web3.eth.Contract(loadLibraryContractABI(), libraryAddress); //This loads the library ABI, responsible for most functions on our site
 
@@ -147,11 +146,13 @@ function loadBookInfoBoxes(){
 	}
 }
 
-function getAuthors(bookID){
-	var localStorageName = '<' + bookID.toString() + '>authors';
-	var localItem = localStorage.getItem(localStorageName);
-	if(localItem != null){
-		return Promise.resolve(parseLocalStorage(localItem));
+function getAuthors(bookID, localStorageAccess=true){
+	if(localStorageAccess){
+		var localStorageName = '<' + bookID.toString() + '>authors';
+		var localItem = localStorage.getItem(localStorageName);
+		if(localItem != null){
+			return Promise.resolve(parseLocalStorage(localItem));
+		}
 	}
 	return loadInfoAddress(bookID).then(function(res){
 		currentContract = new web3.eth.Contract(bookABI, res);
@@ -169,14 +170,23 @@ function getAuthors(bookID){
 					var name = await authorContract.methods.author__name().call();
 					authorNameArray.push(hex2a(name));
 				}
-				storeBookInfo(bookID, 'authors', authorNameArray);
+				if(localStorageAccess){
+					storeBookInfo(bookID, 'authors', authorNameArray);
+				}
 				return authorNameArray;
 			}
 		});
 	});
 }
 
-function getAuthorRoles(bookID){
+function getAuthorRoles(bookID, localStorageAccess=true){
+	if(localStorageAccess){
+		var localStorageName = '<' + bookID.toString() + '>authorRoles';
+		var localItem = localStorage.getItem(localStorageName);
+		if(localItem != null){
+			return Promise.resolve(parseLocalStorage(localItem));
+		}
+	}
 	return loadInfoAddress(bookID).then(function(res){
 		currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__authorRoles().call().then(function(res1){
@@ -184,7 +194,9 @@ function getAuthorRoles(bookID){
 				return 'None';
 			}
 			var authorRolesIDArray = res1.slice(2).match(/.{1,2}/g);
-			storeBookInfo(bookID, 'authorRoles', authorRolesIDArray);
+			if(localStorageAccess){
+				storeBookInfo(bookID, 'authorRoles', authorRolesIDArray);
+			}
 			return authorRolesIDArray;
 		});
 	});
@@ -196,9 +208,9 @@ function loadBookInfoBox(bookID){
 		var titlePromise = loadBookVariable(bookID, 'title', true, true);
 		var langPromise = loadBookVariable(bookID, 'language', true, true);
 		var sizePromise = loadBookVariable(bookID, 'size');
-		var authorPromise = getAuthors(bookID); //works
+		var authorPromise = getAuthors(bookID);
 		var weiPromise = loadBookVariable(bookID, 'donations', false);
-		var authorRolePromise = getAuthorRoles(bookID); //works
+		var authorRolePromise = getAuthorRoles(bookID);
 		var authorIDsPromise = loadBookVariable(bookID, 'authorIDs');
 		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise]).then(async function(values) {
 			
@@ -278,15 +290,19 @@ function updateSplitValues(newValue, bookID){
 	document.getElementById('bookSplit'+bookID).innerHTML = "Book: " + (100-newValue) + "%";
 }
 
-function loadInfoAddress(bookID){
-	localStorageName = '<' + bookID.toString() + '>infoAddress';
-	var localItem = localStorage.getItem(localStorageName);
-	if(localItem != null){
-		return Promise.resolve(parseLocalStorage(localItem));
+function loadInfoAddress(bookID, localStorageAccess=true){
+	if(localStorageAccess){
+		localStorageName = '<' + bookID.toString() + '>infoAddress';
+		var localItem = localStorage.getItem(localStorageName);
+		if(localItem != null){
+			return Promise.resolve(parseLocalStorage(localItem));
+		}
 	}
 	return libraryContract.methods.getBookAddress(bookID).call()
 	.then(function(res){
-		storeBookInfo(bookID, 'infoAddress', res);
+		if(localStorageAccess){
+			storeBookInfo(bookID, 'infoAddress', res);
+		}
 		return res;
 	});
 }
@@ -299,14 +315,23 @@ function loadBookVariable(bookID, infoName, useCache=true, hexEncodedInContract=
 			return Promise.resolve(parseLocalStorage(localItem));
 		}
 	}
-	return loadInfoAddress(bookID).then(function(res){
-		currentContract = new web3.eth.Contract(bookABI, res);
+	return loadInfoAddress(bookID, useCache).then(function(res){
+		var currentContract = new web3.eth.Contract(bookABI, res);
+		
+		var contractString = "return contract.methods.book__" + infoName + "().call().then(function(success){"
+		
 		if(hexEncodedInContract){
-			//need to modify due to useCache
-			var tempFunction = new Function("contract", "return contract.methods.book__" + infoName + "().call().then(function(success){ var decodedInfo = hex2a(success); storeBookInfo(" + bookID + ", '" + infoName + "', decodedInfo); return decodedInfo;}).catch(function(error){ console.log(error); removeBookEntry(" + bookID + ");});");
-			return tempFunction(currentContract);
+			contractString += "success = hex2a(success);"
 		}
-		var tempFunction = new Function("contract", "return contract.methods.book__" + infoName + "().call().then(function(success){storeBookInfo(" + bookID + ", '" + infoName + "', success); return success;}).catch(function(error){ console.log(error); removeBookEntry(" + bookID + ");});");
+		
+		if(useCache){
+			contractString += "storeBookInfo(" + bookID + ", '" + infoName + "', success);"
+		}
+		
+		contractString += "return success;}).catch(function(error){ console.log(error); removeBookEntry(" + bookID + ");});";
+		
+		var tempFunction = new Function("contract", contractString);
+		
 		return tempFunction(currentContract);
 	});
 }
@@ -420,7 +445,7 @@ function populateRandomContent(loadItems, maxIndex) {
 function genUniqueRandomNumberArray(arrayLength, max){
 	var arr = [];
 	while(arr.length < arrayLength){
-		var randomnumber = Math.floor(Math.random()*max) + 1;
+		var randomnumber = Math.floor(Math.random()*max);
 		if(arr.indexOf(randomnumber) == -1){
 			arr[arr.length] = randomnumber;
 		}
@@ -436,4 +461,51 @@ function getParameterByName(name, url) {
     if (!results) return null;
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+function searchLocalStorage(searchString){
+	
+}
+
+function sortedLocalStorageArray(){
+	var localStorageArray = new Array();
+	for (i=0;i<localStorage.length;i++){
+		localStorageArray[i] = localStorage.key(i)+localStorage.getItem(localStorage.key(i));
+	}
+	var sortedArray = localStorageArray.sort();
+	return sortedArray;
+}
+
+function checkIfCached(bookID){
+	var localStorageName = '<' + bookID.toString() + '>basicInfo';
+	var localItem = localStorage.getItem(localStorageName);
+	//Need to double check how true is actually stored. Is it "true" or "1"?
+	if(localItem == 'true'){
+		return true;
+	}
+	return false;
+}
+
+function workerCacheBooks(maxIndexNumber){
+	
+}
+
+//Consider adding maxIndex to library contract?
+function cacheBooks(maxIndexNumber) {
+	var randomnumber = Math.floor(Math.random()*maxIndexNumber);
+	if(!checkIfCached(randomnumber)){
+		if (window.Worker) {
+			workerCacheBooks(maxIndexNumber);
+		}
+		else {
+			loadInfoAddress(bookID).then(function(res){
+				loadBookVariable(bookID, 'title', true, true);
+				loadBookVariable(bookID, 'language', true, true);
+				loadBookVariable(bookID, 'size');
+				getAuthors(bookID);
+				getAuthorRoles(bookID);
+				loadBookVariable(bookID, 'authorIDs');
+			});
+		}
+	}
 }
