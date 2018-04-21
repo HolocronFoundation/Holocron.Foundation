@@ -376,13 +376,18 @@ function donate(bookID, invalidNumber=false){
 	else {
 		var foundationSplitNumerator = document.getElementById('slider'+bookID).value;
 		var foundationSplitDenominator = 100;
-		alert(foundationSplitNumerator);
 		libraryContract.methods.donate(bookID, foundationSplitNumerator, foundationSplitDenominator).send({
 			value: donationValue
 		}).on('transactionHash', function(hash){
 			alert('Your donation has sent! The transaction hash is: ' + hash);
-		}).on('error', function(error){
-			alert('There was an error sending your donation. Error message: ' + error);
+		}).catch(function(error){
+			if(error == 'Error: No "from" address specified in neither the given options, nor the default options.'){
+				alert("You were unable to send an Ξ donation because you don't have a default address set. Consider downloading the Metamask Extension (for Chrome, Firefox, Opera, or Brave) or the Mist Browser.\nMetamask: https://metamask.io/\nMist: https://github.com/ethereum/mist")
+			}
+			else {
+				alert('There was an error sending your donation. Error message: ' + error);
+			}
+			
 		});
 	}
 }
