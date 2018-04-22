@@ -486,26 +486,59 @@ function checkIfCached(bookID){
 	return false;
 }
 
-function workerCacheBooks(maxIndexNumber){
-	
+function workerCacheBooks(maxIndexNumber, existingWorker=null){
+	var randomnumber = Math.floor(Math.random()*maxIndexNumber);
+	if(!checkIfCached(randomnumber)){
+		if(existingWorker==null){
+			existingWorker = new Worker(workerCacheInfo.js);
+			existingWorker.onmessage = function(e){
+				logData = e.data;
+				for(int i = 0; i<logData.length; i++){
+					storeBookInfo(logData[i][0], logData[i][1], logData[i][2]);
+				}
+				workerCacheBooks(maxIndexNumber, existingWorker);
+			}
+		}
+		existingWorker.postMessage(randomnumber);
+	}
+	else{
+		workerCacheBooks(maxIndexNumber, existingWorker);
+	}
+}
+
+function mainCacheBooks(maxIndexNumber){
+	var randomnumber = Math.floor(Math.random()*maxIndexNumber);
+	loadInfoAddress(bookID)
+	.then(function(res){
+		var titlePromise = loadBookVariable(bookID, 'title', true, true);
+		var langPromise = loadBookVariable(bookID, 'language', true, true);
+		var sizePromise = loadBookVariable(bookID, 'size');
+		var authorPromise = getAuthors(bookID);
+		var weiPromise = loadBookVariable(bookID, 'donations', false);
+		var authorRolePromise = getAuthorRoles(bookID);
+		var authorIDsPromise = loadBookVariable(bookID, 'authorIDs');
+		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise])
+		.then(function(){
+			mainCacheBooks(maxIndexNumber);
+		}).catch(function(error){
+			console.log(error);
+			mainCacheBooks(maxIndexNumber);
+		});
+	})
+	.catch(function(error){
+		console.log(error);
+		mainCacheBooks(maxIndexNumber);
+	});
 }
 
 //Consider adding maxIndex to library contract?
-function cacheBooks(maxIndexNumber) {
-	var randomnumber = Math.floor(Math.random()*maxIndexNumber);
-	if(!checkIfCached(randomnumber)){
-		if (window.Worker) {
+function cacheBooks(maxIndexNumber, workerThreads) {
+	if (window.Worker) {
+		for(var i = 0; i < workerThreads; i++){
 			workerCacheBooks(maxIndexNumber);
 		}
-		else {
-			loadInfoAddress(bookID).then(function(res){
-				loadBookVariable(bookID, 'title', true, true);
-				loadBookVariable(bookID, 'language', true, true);
-				loadBookVariable(bookID, 'size');
-				getAuthors(bookID);
-				getAuthorRoles(bookID);
-				loadBookVariable(bookID, 'authorIDs');
-			});
-		}
+	}
+	else {
+		mainCacheBooks(maxIndexNumber)
 	}
 }

@@ -55,6 +55,13 @@ Darkest
 	flex: 2;
 }
 
+/* Removes link decoration from titles */
+
+.name a {
+	text-decoration: none;
+	color: black;
+}
+
 /* Adds Bullets Back For the Bullet Class */
 
 ul.bullet{

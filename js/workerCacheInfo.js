@@ -14,7 +14,16 @@ function loadBookInfo(bookID){
 		var authorsRoles = getAuthorRoles(bookID, false);
 		var authorIDs = loadBookVariable(bookID, 'authorIDs', false);
 		Promise.all([titlePromise, langPromise, sizePromise, authorsPromise, authorsRoles, authorIDs]).then(function(values){
-			var output = [[bookID, 'infoAddress', res], [bookID, 'title', values[0]], [bookID, 'language', values[1]], [bookID, 'size', values[2]], [bookID, 'authors', values[3]], [bookID, 'authorRoles', values[4]], [bookID, 'authorIDs', values[5]]]
+			self.postMessage([[bookID, 'infoAddress', res], [bookID, 'title', values[0]], [bookID, 'language', values[1]], [bookID, 'size', values[2]], [bookID, 'authors', values[3]], [bookID, 'authorRoles', values[4]], [bookID, 'authorIDs', values[5]]]);
+		}).catch(function(error){
+			self.postMessage(error);
 		});
+	}).catch(function(error){
+		self.postMessage(error);
 	});
 }
+
+self.addEventListener('message', function(e){
+	var bookID = e.data;
+	loadBookInfo(bookID);
+});
