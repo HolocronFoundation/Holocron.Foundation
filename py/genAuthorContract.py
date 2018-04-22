@@ -25,7 +25,7 @@ def outputVyperFile():
     header = collection[0]
     for row in collection:
         if not first:
-            genVyperFile(row, 'vyperAuthorFilesGenerated/' + str(row[4]) + 'vyperOutput.v.py', header, dataTypes, 'author')
+            genVyperFile(row, 'E:/vyperAuthorFilesGenerated/' + str(row[4]) + 'vyperOutput.v.py', header, dataTypes, 'author')
         else:
             first = False
 
@@ -53,7 +53,7 @@ def generateStorage(dataType, data):
         if len(data) == 0:
             return 'None'
         else:
-            return str(data.encode('utf-8')[1:])
+            return str(data.encode('utf-8'))[1:]
     elif(dataType == 'arrStrDynamic'):
         dataArr = ast.literal_eval(data)
         if len(dataArr) == 0:
