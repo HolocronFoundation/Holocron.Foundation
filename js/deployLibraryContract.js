@@ -38,9 +38,10 @@ function launchContract(password) {
 			.on('error', function(error){ console.log(error); })
 			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
 			.on('receipt', function(receipt){
-				console.log(receipt.contractAddress); // contains the new contract address
+				
 			})
-			.on('confirmation', function(confirmationNumber, receipt){ })
+			.on('confirmation', function(confirmationNumber, receipt){
+			})
 			.then(function(newContractInstance){
 				console.log(newContractInstance.options.address); // instance with the new contract address
 			});
