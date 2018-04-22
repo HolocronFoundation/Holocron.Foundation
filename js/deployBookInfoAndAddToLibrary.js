@@ -13,8 +13,10 @@ var _parentABI = [{"name": "Donation", "inputs": [{"type": "address", "name": "_
 
 var parentContract = new web3.eth.Contract(_parentABI, _parentAddress);
 
+var fileLoc = '/Users/us.tropers/Desktop/smallInfo/';
+
 //need to create files var
-var files = fs.readdirSync('/Volumes/Troper/vyperFilesGenerated/');
+var files = fs.readdirSync(fileLoc);
 
 //gets byte files
 var byteExtension = '.byte';
@@ -35,10 +37,10 @@ function prepFile(index){
 	if (index != byteFiles.length){
 		var entry = [];
 	
-		entry.push(byteFiles[index].slice(0, byteFiles[index].search(searchStr)))
-		fs.readFile('/Volumes/Troper/vyperFilesGenerated/' + byteFiles[index], 'utf-8', function(err, data){
+		entry.push(byteFiles[index].slice(0, byteFiles[index].search(searchStr)));
+		fs.readFile(fileLoc + byteFiles[index], 'utf-8', function(err, data){
 			entry.push(data.slice(0, data.length-1));
-			fs.readFile('/Volumes/Troper/vyperFilesGenerated/' + abiFiles[index], 'utf-8', function(err, data2){
+			fs.readFile(fileLoc + abiFiles[index], 'utf-8', function(err, data2){
 				entry.push(JSON.parse(data2));
 				deploymentArr.push(entry);
 				prepFile(index + 1);
@@ -62,6 +64,7 @@ deployedArr = [];
 
 function deployContract(index){
 	if (index != deploymentArr.length){
+		web3.eth.personal.unlockAccount(_senderAddress, _password);
 		var currentContract = new web3.eth.Contract(deploymentArr[index][2]);
 		var gasEstimate;
 		currentContract.deploy({
@@ -95,7 +98,7 @@ function deployContract(index){
 			.then(function(newContractInstance){
 				deployContract(index + 1);
 			});
-		})
+		});
 	}
 	else {
 		console.log(deployedArr);
@@ -105,6 +108,7 @@ function deployContract(index){
 
 function updateLibrary(index){
 	if (index != deployedArr.length) {
+		web3.eth.personal.unlockAccount(_senderAddress, _password);
 		var currentCall = parentContract.methods.addBook(deployedArr[index][0], deployedArr[index][1]);
 		var gasEstimate;
 		currentCall.estimateGas({from: _senderAddress}, function(err, gas){
@@ -121,15 +125,18 @@ function updateLibrary(index){
 			.then(function(newContractInstance){
 				updateLibrary(index + 1, parentContract);
 			});
-		})
+		});
 	}
 	else {
-		console.log('Well we did it....')
+		console.log('Well we did it....');
 	}
 }
 
-function deployContracts(password) {
-	web3.eth.personal.unlockAccount(_senderAddress, password).then(function(){
+var _password;
+
+function deployContracts(pw) {
+	_password = pw;
+	web3.eth.personal.unlockAccount(_senderAddress, _password).then(function(){
 		deployContract(0);																		
 	});
 }
