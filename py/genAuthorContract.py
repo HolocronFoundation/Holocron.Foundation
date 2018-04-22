@@ -25,7 +25,7 @@ def outputVyperFile():
     header = collection[0]
     for row in collection:
         if not first:
-            genVyperFile(row, 'E:/vyperAuthorFilesGenerated/' + str(row[4]) + 'vyperOutput.v.py', header, dataTypes, 'author')
+            genVyperFile(row, 'vyperAuthorFilesGenerated/' + str(row[4]) + 'vyperOutput.v.py', header, dataTypes, 'author')
         else:
             first = False
 
@@ -37,7 +37,7 @@ def parseTypeSize(dataType, data):
         else:
             bytesNeeded = 0
             for entry in dataArr:
-                bytesNeeded += len(entry) + 2
+                bytesNeeded += len(entry.encode('utf-8')) + 2
             bytesNeeded += len(dataArr) - 1
             return 'bytes[' + str(bytesNeeded) + ']'
     elif(dataType == 'bytesDynamic'):
@@ -65,7 +65,7 @@ def generateStorage(dataType, data):
                 if not first:
                     result += '|'
                 first = False
-                result += entry
+                result += "'" + str(entry.encode('utf-8'))[2:-1] + "'"
             return result+'"'
     elif(dataType == 'int128'):
         return data
