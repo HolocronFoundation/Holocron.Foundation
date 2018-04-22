@@ -38,7 +38,6 @@ function launchContract(password) {
 			.on('error', function(error){ console.log(error); })
 			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
 			.on('receipt', function(receipt){
-				
 			})
 			.on('confirmation', function(confirmationNumber, receipt){
 			})
