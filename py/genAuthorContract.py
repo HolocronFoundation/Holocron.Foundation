@@ -44,7 +44,7 @@ def parseTypeSize(dataType, data):
         if len(data) == 0:
             return 'bytes[1]'
         else:
-            return 'bytes[' + str(len(data)) + ']'
+            return 'bytes[' + str(len(data.encode('utf-8'))) + ']'
     elif(dataType == 'int128'):
         return 'int128'
 
@@ -53,7 +53,7 @@ def generateStorage(dataType, data):
         if len(data) == 0:
             return 'None'
         else:
-            return str(data.encode('utf-8'))[1:]
+            return str(data.encode('utf-8')[1:])
     elif(dataType == 'arrStrDynamic'):
         dataArr = ast.literal_eval(data)
         if len(dataArr) == 0:
