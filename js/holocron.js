@@ -1,13 +1,17 @@
 //Javascript for the holocron.foundation
 
-window.addEventListener('load', function() {
-	web3 = setupWeb3();
-	start();
-});
+if (typeof window !== 'undefined'){
+	window.addEventListener('load', function() {
+		web3 = setupWeb3();
+		start();
+	});
+}
 
 //Need to add account refreshing
 
 var web3;
+
+var skipCache = [];
 
 function loadLibraryContractABI() {
 	return [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "getBookAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 672}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 21976}, {"name": "getAuthorAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "authorID"}], "constant": true, "payable": false, "type": "function", "gas": 732}, {"name": "addAuthor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "authorAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22036}, {"name": "getSubjectAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "subjectID"}], "constant": true, "payable": false, "type": "function", "gas": 792}, {"name": "getLoCAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "LoCID"}], "constant": true, "payable": false, "type": "function", "gas": 822}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22280}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41411}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41386}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22039}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 6101}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4781}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1060}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 873}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 903}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1122}, {"name": "authors", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1152}, {"name": "subjects", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1182}, {"name": "LoC", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1212}];
@@ -43,7 +47,7 @@ function loadBookTextChunk(bookID, chunk){
 		currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__textAddress().call().then(function(res2){
 			textContract= new web3.eth.Contract(loadZipABI(), res2);
-			var tempFunction = new Function("contract", "return contract.methods.zipBytes" + chunk + "().call().catch(function(error){ console.log(error);});");
+			var tempFunction = new Function("contract", "return contract.methods.zipBytes" + chunk + "().call().catch(function(error){console.log(error);});");
 			return tempFunction(textContract);
 		});
 	});
@@ -166,7 +170,7 @@ function getAuthors(bookID, localStorageAccess=true){
 			return Promise.resolve(parseLocalStorage(localItem));
 		}
 	}
-	return loadInfoAddress(bookID).then(function(res){
+	return loadInfoAddress(bookID, localStorageAccess).then(function(res){
 		currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__authorIDs().call().then(async function(res){
 			if(res == null){
@@ -199,7 +203,7 @@ function getAuthorRoles(bookID, localStorageAccess=true){
 			return Promise.resolve(parseLocalStorage(localItem));
 		}
 	}
-	return loadInfoAddress(bookID).then(function(res){
+	return loadInfoAddress(bookID, localStorageAccess).then(function(res){
 		currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__authorRoles().call().then(function(res1){
 			if(res1 == null){
@@ -225,7 +229,6 @@ function loadBookInfoBox(bookID){
 		var authorRolePromise = getAuthorRoles(bookID);
 		var authorIDsPromise = loadBookVariable(bookID, 'authorIDs');
 		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise]).then(async function(values) {
-			
 			var size = values[3];
 			var titleClean = values[0];
 			var languageClean = values[2];
@@ -273,7 +276,7 @@ function loadBookInfoBox(bookID){
 			newHTML += '<p class="textLink"><a href="./text.html?bookID=' + bookID.toString() + '">View the text</a></p>';
 			
 			//Donation meter
-			newHTML += '<meter value="' + donationsETH + '" min="0" max="2.3"></meter>';
+			newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
 			
 			//Donation stats
 			newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
@@ -291,8 +294,12 @@ function loadBookInfoBox(bookID){
 			infoItem.innerHTML = newHTML;
 			storeBookInfo(bookID, 'basicInfo', true);
 		}).catch(function(error){
-			console.log(error);
-			removeBookEntry(bookID);
+			if(error.toString() != "Error: Couldn't decode bytes from ABI: 0x"){
+				console.log(error);
+			}
+			else{
+				removeBookEntry(bookID);
+			}
 		});
 	});
 }
@@ -328,6 +335,7 @@ function loadBookVariable(bookID, infoName, useCache=true, hexEncodedInContract=
 		}
 	}
 	return loadInfoAddress(bookID, useCache).then(function(res){
+		
 		var currentContract = new web3.eth.Contract(bookABI, res);
 		
 		var contractString = "return contract.methods.book__" + infoName + "().call().then(function(success){"
@@ -340,7 +348,7 @@ function loadBookVariable(bookID, infoName, useCache=true, hexEncodedInContract=
 			contractString += "storeBookInfo(" + bookID + ", '" + infoName + "', success);"
 		}
 		
-		contractString += "return success;}).catch(function(error){ console.log(error); removeBookEntry(" + bookID + ");});";
+		contractString += "return success;}).catch(function(error){if((error.toString() != \"Error: Couldn't decode bytes from ABI: 0x\") && (error.toString() != \"ReferenceError: name is not defined\") && (error.toString() != \"Error: Couldn't decode  from ABI: 0x\")){ console.log(error); } else{removeBookEntry(" + bookID + ");}});";
 		
 		var tempFunction = new Function("contract", contractString);
 		
@@ -391,9 +399,12 @@ function storeBookInfo(bookID, infoName, info){
 }
 
 function removeBookEntry(bookID){
-	entry = document.getElementsByName(bookID.toString())[0];
-	if(entry != undefined){
-		entry.remove()
+	if((typeof(document) !== "undefined") && (document != null)){
+		entry = document.getElementsByName(bookID.toString())[0];
+		if(entry != undefined){
+			entry.remove()
+		}
+		skipCache.push(bookID);
 	}
 }
 
@@ -406,17 +417,13 @@ function donate(bookID, invalidNumber=false){
 	else{
 		donationValueString = prompt("Please enter the size of your donation, in ETH:", "0");
 	}
-	console.log(donationValueString);
-	var donationValue = parseInt(donationValueString);
-	if(isNaN(donationValue) || donationValue <= 0){
+	var donationValue = parseFloat(donationValueString);
+	if (donationValueString == null){
+	}
+	else if(isNaN(donationValue) || donationValue <= 0){
 		donate(bookID, true);
 	}
-	else if (donationValueString == null){
-		
-	}
 	else {
-		console.log(donationValue)
-		console.log(web3.utils.toWei(donationValueString))
 		var foundationSplitNumerator = document.getElementById('slider'+bookID).value;
 		var foundationSplitDenominator = 100;
 		web3.eth.getAccounts(function(error, accounts) {
@@ -429,6 +436,9 @@ function donate(bookID, invalidNumber=false){
 				}).catch(function(fuck){
 					if(fuck == 'Error: No "from" address specified in neither the given options, nor the default options.'){
 						alert("You were unable to send an Ξ donation because you don't have a default address set. Consider downloading the Metamask Extension (for Chrome, Firefox, Opera, or Brave) or the Mist Browser.\nMetamask: https://metamask.io/\nMist: https://github.com/ethereum/mist")
+					}
+					else if(fuck.toString().indexOf("Error: Returned error: Error: MetaMask Tx Signature: User denied transaction signature." == -1)){
+						alert("You cancelled your donation.");
 					}
 					else {
 						alert('There was an error sending your donation. Error message: ' + fuck);
@@ -509,18 +519,28 @@ function checkIfCached(bookID){
 	if(localItem == 'true'){
 		return true;
 	}
+	else if (skipCache.includes(bookID)){
+		return true;
+	}
 	return false;
 }
 
 function workerCacheBooks(maxIndexNumber, existingWorker=null){
-	var randomnumber = Math.floor(Math.random()*maxIndexNumber);
+	var randomnumber = Math.floor(Math.random()*maxIndexNumber+1);
 	if(!checkIfCached(randomnumber)){
 		if(existingWorker==null){
 			existingWorker = new Worker('./js/workerCacheInfo.js');
 			existingWorker.onmessage = function(e){
 				logData = e.data;
 				for(var i = 0; i<logData.length; i++){
-					storeBookInfo(logData[i][0], logData[i][1], logData[i][2]);
+					//console.log("loc2")
+					//console.log(logData);
+					if(logData != "Error: Couldn't decode bytes from ABI: 0x"){
+						storeBookInfo(logData[i][0], logData[i][1], logData[i][2]);
+					}
+				}
+				if(Array.isArray(logData)){
+					storeBookInfo(logData[0][0], 'basicInfo', true);
 				}
 				workerCacheBooks(maxIndexNumber, existingWorker);
 				//console.log(localStorage);
@@ -534,7 +554,7 @@ function workerCacheBooks(maxIndexNumber, existingWorker=null){
 }
 
 function mainCacheBooks(maxIndexNumber){
-	var randomnumber = Math.floor(Math.random()*maxIndexNumber);
+	var randomnumber = Math.floor(Math.random()*maxIndexNumber+1);
 	loadInfoAddress(bookID)
 	.then(function(res){
 		var titlePromise = loadBookVariable(bookID, 'title', true, true);
@@ -546,13 +566,16 @@ function mainCacheBooks(maxIndexNumber){
 		var authorIDsPromise = loadBookVariable(bookID, 'authorIDs');
 		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise])
 		.then(function(){
+			storeBookInfo(bookID, 'basicInfo', true);
 			mainCacheBooks(maxIndexNumber);
 		}).catch(function(error){
+			console.log('Fick');
 			console.log(error);
 			mainCacheBooks(maxIndexNumber);
 		});
 	})
 	.catch(function(error){
+		console.log('Fuck');
 		console.log(error);
 		mainCacheBooks(maxIndexNumber);
 	});
