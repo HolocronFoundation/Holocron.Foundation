@@ -158,7 +158,7 @@ function setupWeb3() {
 function loadBookInfoBoxes(){
 	var elements = document.getElementsByClassName("bookInfo");
 	for (var i = 0; i < elements.length; i++){
-		loadBookInfoBox(parseInt(elements[i].getAttribute("name")));
+		loadInfoBox('b', parseInt(elements[i].getAttribute("name")));
 	}
 }
 
@@ -218,87 +218,104 @@ function getAuthorRoles(bookID, localStorageAccess=true){
 	});
 }
 
-function loadBookInfoBox(bookID){
-	loadInfoAddress('b', bookID)
-	.then(function(res){
-		var titlePromise = loadVariable('b', bookID, 'title', true, true);
-		var langPromise = loadVariable('b', bookID, 'language', true, true);
-		var sizePromise = loadVariable('b', bookID, 'size');
-		var authorPromise = getAuthors(bookID);
-		var weiPromise = loadVariable('b', bookID, 'donations', false);
-		var authorRolePromise = getAuthorRoles(bookID);
-		var authorIDsPromise = loadVariable('b', bookID, 'authorIDs');
-		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise]).then(async function(values) {
-			var size = values[3];
-			var titleClean = values[0];
-			var languageClean = values[2];
-			var authorRolesIDArray = values[5];
-			var donationsETH = web3.utils.fromWei(values[4].toString(), "ether");
-			var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
-			var newHTML = '<p class="title"><a href="./book.html?bookID=' + bookID.toString() + '"><b>' + titleClean + '</b></a></p> ';
-			if(authorRolesIDArray != 'None'){
-				var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
-				var authorNameArray = values[1];
+function loadData(tag, ID, useCache=true){
+	promiseData = []
+	if(tag == 'b'){
+		promiseData.push(loadVariable(tag, ID, 'title', useCache, true));
+		promiseData.push(loadVariable(tag, ID, 'language', useCache, true));
+		promiseData.push(loadVariable(tag, ID, 'size', useCache));
+		promiseData.push(getAuthors(ID, useCache));
+		promiseData.push(loadVariable(tag, ID, 'donations', false));
+		promiseData.push(getAuthorRoles(ID, useCache));
+		promiseData.push(loadVariable(tag, ID, 'authorIDs', useCache));
+	}
+	else if(tag == 'a'){
+		//do author stuff here
+	}
+	
+	return Promise.all(promiseData);
+}
 
-				newHTML += '<p class="author">';
-				var lastRole = -1;
-				for (var k = 0; k<authorNameArray.length; k++){
-					var currentRoleID = authorRolesIDArray[k];
-					if(currentRoleID != lastRole){
-						if (k!=0){
-							newHTML += ', ';
+function loadInfoBox(tag, ID){
+	loadInfoAddress(tag, ID)
+	.then(function(res){
+		promisedInfo = loadData(tag, ID);
+		promisedInfo.then(async function(values) {
+			if(tag == 'b'){
+				var titleClean = values[0];
+				var languageClean = values[1];
+				var size = values[2];
+				var donationsETH = web3.utils.fromWei(values[4].toString(), "ether");
+				var authorRolesIDArray = values[5];
+				var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
+				var newHTML = '<p class="title"><a href="./book.html?bookID=' + ID.toString() + '"><b>' + titleClean + '</b></a></p> ';
+				if(authorRolesIDArray != 'None'){
+					var authorNameArray = values[3];
+					var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
+
+					newHTML += '<p class="author">';
+					var lastRole = -1;
+					for (var k = 0; k<authorNameArray.length; k++){
+						var currentRoleID = authorRolesIDArray[k];
+						if(currentRoleID != lastRole){
+							if (k!=0){
+								newHTML += ', ';
+							}
+							if(currentRoleID == 0){
+								newHTML += 'Authored by: ';
+							}
+							else if (currentRoleID == 1){
+								newHTML += 'Translated by: ';
+							}
+							else if (currentRoleID == 2){
+								newHTML += 'Edited by: ';
+							}
+							else if (currentRoleID == 3){
+								newHTML += 'Illustrated by: ';
+							}
+							lastRole = currentRoleID;
 						}
-						if(currentRoleID == 0){
-							newHTML += 'Authored by: ';
+						else if(k!=0){
+							newHTML += ' & ';
 						}
-						else if (currentRoleID == 1){
-							newHTML += 'Translated by: ';
-						}
-						else if (currentRoleID == 2){
-							newHTML += 'Edited by: ';
-						}
-						else if (currentRoleID == 3){
-							newHTML += 'Illustrated by: ';
-						}
-						lastRole = currentRoleID;
+						newHTML += '<a href="./author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + authorNameArray[k] + '</a>';
 					}
-					else if(k!=0){
-						newHTML += ' & ';
-					}
-					newHTML += '<a href="./author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + authorNameArray[k] + '</a>';
+					newHTML += '</p>';
 				}
-				newHTML += '</p>';
+				//Language Info
+				newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
+
+				//View text
+				newHTML += '<p class="textLink"><a href="./text.html?bookID=' + ID.toString() + '">View the text</a></p>';
+
+				//Donation meter
+				newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
+
+				//Donation stats
+				newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
+
+				//Donation slider
+				newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
+
+				//ETH donate
+				newHTML += '<p><a href="javascript:donate(' + ID + ');">Donate with Ξ</a></p>';
+
+				//Other donate
+				newHTML += '<p><a href="./donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
+
+				infoItem = document.getElementsByName(ID.toString())[0];
+				infoItem.innerHTML = newHTML;
+				storeInfo('b', ID, 'basicInfo', true);
 			}
-			//Language Info
-			newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
-			
-			//View text
-			newHTML += '<p class="textLink"><a href="./text.html?bookID=' + bookID.toString() + '">View the text</a></p>';
-			
-			//Donation meter
-			newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
-			
-			//Donation stats
-			newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
-			
-			//Donation slider
-			newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left" id="bookSplit' + bookID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + bookID +'" onchange="updateSplitValues(this.value, ' + bookID + ');"><p class="right" id="foundationSplit' + bookID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
-			
-			//ETH donate
-			newHTML += '<p><a href="javascript:donate(' + bookID + ');">Donate with Ξ</a></p>';
-			
-			//Other donate
-			newHTML += '<p><a href="./donate.html?bookID=' + bookID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
-			
-			infoItem = document.getElementsByName(bookID.toString())[0];
-			infoItem.innerHTML = newHTML;
-			storeInfo('b', bookID, 'basicInfo', true);
+			else if(tag =='a'){
+				//do author stuff here
+			}
 		}).catch(function(error){
 			if(error.toString() != "Error: Couldn't decode bytes from ABI: 0x"){
 				console.log(error);
 			}
 			else{
-				removeEntry(bookID);
+				removeEntry(ID);
 			}
 		});
 	});
@@ -321,7 +338,7 @@ function loadInfoAddress(tag, ID, localStorageAccess=true){
 		return libraryContract.methods.getBookAddress(ID).call()
 		.then(function(res){
 			if(localStorageAccess){
-				storeInfo('b', bookID, 'infoAddress', res);
+				storeInfo('b', ID, 'infoAddress', res);
 			}
 			return res;
 		});
@@ -364,10 +381,10 @@ function loadVariable(typeLetter, ID, infoName, useCache=true, hexEncodedInContr
 		}
 		
 		if(useCache){
-			contractString += "storeInfo(" + typeLetter + ", " + ID + ", '" + infoName + "', success);"
+			contractString += "storeInfo('" + typeLetter + "', " + ID + ", '" + infoName + "', success);"
 		}
 		
-		contractString += "return success;}).catch(function(error){if((error.toString() != \"Error: Couldn't decode bytes from ABI: 0x\") && (error.toString() != \"ReferenceError: name is not defined\") && (error.toString() != \"Error: Couldn't decode  from ABI: 0x\")){ console.log(error); } else{removeEntry(" + bookID + ");}});";
+		contractString += "return success;}).catch(function(error){if((error.toString() != \"Error: Couldn't decode bytes from ABI: 0x\") && (error.toString() != \"ReferenceError: name is not defined\") && (error.toString() != \"Error: Couldn't decode  from ABI: 0x\")){ console.log(error); } else{removeEntry(" + ID + ");}});";
 		
 		var tempFunction = new Function("contract", contractString);
 		
@@ -392,7 +409,7 @@ function parseLocalStorage(localItem){
 }
 
 function storeInfo(tag, ID, infoName, info){
-	var storeName = '<' + tag + id + '>' + infoName;
+	var storeName = '<' + tag + ID + '>' + infoName;
 	if(Array.isArray(info)){
 		if(info.length == 0){
 			localStorage.setItem(storeName, 'None');
@@ -531,14 +548,14 @@ function sortedLocalStorageArray(){
 	return sortedArray;
 }
 
-function checkIfCached(bookID){
-	var localStorageName = '<b' + bookID.toString() + '>basicInfo';
+function checkIfCached(tag, ID){
+	var localStorageName = '<' + tag + ID.toString() + '>basicInfo';
 	var localItem = localStorage.getItem(localStorageName);
 	//Need to double check how true is actually stored. Is it "true" or "1"?
 	if(localItem == 'true'){
 		return true;
 	}
-	else if (skipCache.includes(bookID)){
+	else if (skipCache.includes(ID)){
 		return true;
 	}
 	return false;
@@ -546,7 +563,7 @@ function checkIfCached(bookID){
 
 function workerCacheBooks(maxIndexNumber, existingWorker=null){
 	var randomnumber = Math.floor(Math.random()*maxIndexNumber+1);
-	if(!checkIfCached(randomnumber)){
+	if(!checkIfCached('b', randomnumber)){
 		if(existingWorker==null){
 			existingWorker = new Worker('./js/workerCacheInfo.js');
 			existingWorker.onmessage = function(e){
