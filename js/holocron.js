@@ -1,5 +1,14 @@
 //Javascript for the holocron.foundation
 
+window.addEventListener('load', function() {
+	web3 = setupWeb3();
+	start();
+});
+
+//Need to add account refreshing
+
+var web3;
+
 function loadLibraryContractABI() {
 	return [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "getBookAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 672}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 21976}, {"name": "getAuthorAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "authorID"}], "constant": true, "payable": false, "type": "function", "gas": 732}, {"name": "addAuthor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "authorAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22036}, {"name": "getSubjectAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "subjectID"}], "constant": true, "payable": false, "type": "function", "gas": 792}, {"name": "getLoCAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "LoCID"}], "constant": true, "payable": false, "type": "function", "gas": 822}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22280}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41411}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41386}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22039}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 6101}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4781}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1060}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 873}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 903}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1122}, {"name": "authors", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1152}, {"name": "subjects", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1182}, {"name": "LoC", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1212}];
 }
@@ -128,10 +137,10 @@ async function loadTextPage(bookID) {
 }
 
 function setupWeb3() {
+	
 	if (typeof web3 !== 'undefined') {
 		thirdPartyProvider = true;
-		result = new Web3(web3.currentProvider);
-		return new Web3(web3.currentProvider); //If you already have a web3 provider (e.g. metamask) uses that
+		result = new Web3(web3.currentProvider); //If you already have a web3 provider (e.g. metamask) uses that
 	}
 	else {
 		thirdPartyProvider = false;
@@ -278,9 +287,6 @@ function loadBookInfoBox(bookID){
 			//Other donate
 			newHTML += '<p><a href="./donate.html?bookID=' + bookID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
 			
-			console.log(bookID);
-			console.log(document.getElementsByName(bookID.toString()));
-			console.log(document.getElementsByName(bookID.toString())[0]);
 			infoItem = document.getElementsByName(bookID.toString())[0];
 			infoItem.innerHTML = newHTML;
 			storeBookInfo(bookID, 'basicInfo', true);
@@ -400,25 +406,39 @@ function donate(bookID, invalidNumber=false){
 	else{
 		donationValueString = prompt("Please enter the size of your donation, in ETH:", "0");
 	}
+	console.log(donationValueString);
 	var donationValue = parseInt(donationValueString);
 	if(isNaN(donationValue) || donationValue <= 0){
 		donate(bookID, true);
 	}
+	else if (donationValueString == null){
+		
+	}
 	else {
+		console.log(donationValue)
+		console.log(web3.utils.toWei(donationValueString))
 		var foundationSplitNumerator = document.getElementById('slider'+bookID).value;
 		var foundationSplitDenominator = 100;
-		libraryContract.methods.donate(bookID, foundationSplitNumerator, foundationSplitDenominator).send({
-			value: donationValue
-		}).on('transactionHash', function(hash){
-			alert('Your donation has sent! The transaction hash is: ' + hash);
-		}).catch(function(error){
-			if(error == 'Error: No "from" address specified in neither the given options, nor the default options.'){
-				alert("You were unable to send an Ξ donation because you don't have a default address set. Consider downloading the Metamask Extension (for Chrome, Firefox, Opera, or Brave) or the Mist Browser.\nMetamask: https://metamask.io/\nMist: https://github.com/ethereum/mist")
+		web3.eth.getAccounts(function(error, accounts) {
+			if(!error){
+				libraryContract.methods.donate(bookID, foundationSplitNumerator, foundationSplitDenominator).send({
+					from: accounts[0],
+					value: web3.utils.toWei(donationValueString)
+				}).on('transactionHash', function(hash){
+					alert('Your donation has sent! The transaction hash is: ' + hash);
+				}).catch(function(fuck){
+					if(fuck == 'Error: No "from" address specified in neither the given options, nor the default options.'){
+						alert("You were unable to send an Ξ donation because you don't have a default address set. Consider downloading the Metamask Extension (for Chrome, Firefox, Opera, or Brave) or the Mist Browser.\nMetamask: https://metamask.io/\nMist: https://github.com/ethereum/mist")
+					}
+					else {
+						alert('There was an error sending your donation. Error message: ' + fuck);
+					}
+
+				});
 			}
-			else {
-				alert('There was an error sending your donation. Error message: ' + error);
+			else{
+				console.log(error)
 			}
-			
 		});
 	}
 }
@@ -503,7 +523,7 @@ function workerCacheBooks(maxIndexNumber, existingWorker=null){
 					storeBookInfo(logData[i][0], logData[i][1], logData[i][2]);
 				}
 				workerCacheBooks(maxIndexNumber, existingWorker);
-				console.log(localStorage);
+				//console.log(localStorage);
 			}
 		}
 		existingWorker.postMessage(randomnumber);
