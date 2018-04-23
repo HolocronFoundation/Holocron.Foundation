@@ -6,6 +6,12 @@
 	<link rel="stylesheet" type="text/css" href="stylesheet-remake-2.css">
 	<script src="./js/web3.min.js"></script>
 	<script src="./js/holocron.js"></script>
+	<script>
+		var activeID = getParameterByName('bookID');
+		if(activeID == null || activeID ==''){
+			document.location.href = "./library.html";
+		}
+	</script>
 </head>
 
 <body class="library">
@@ -37,12 +43,9 @@
 	</section>
 </body>
 <script>
-	var web3 = setupWeb3();
-	var activeID = getParameterByName('bookID');
-	if(activeID == null || activeID ==''){
-		document.location.href = "./browse.html";
+	function start(){
+		document.getElementById("content").innerHTML = '<div id="fullBookInfo" name="' + activeID + '"></div>';
+		loadBookInfoBox(activeID);
 	}
-	document.getElementById("content").innerHTML = '<div id="fullBookInfo" name="' + activeID + '"></div>';
-	loadBookInfoBox(activeID);
 </script>
 </html>

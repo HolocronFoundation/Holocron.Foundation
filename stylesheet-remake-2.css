@@ -55,6 +55,12 @@ Darkest
 	flex: 2;
 }
 
+/* Adds original line breaks to titles */
+
+.title {
+	white-space: pre-wrap;
+}
+
 /* Removes link decoration from titles */
 
 .name a {
@@ -89,6 +95,11 @@ li.bookInfo {
 	padding-bottom: 1.5vh;
 	text-align: center;
 	border-bottom: 2px groove rgb(229, 190, 151);
+}
+
+#fullBookInfo {
+	padding-bottom: 1.5vh;
+	text-align: center;
 }
 
 li.bookInfo.sample {
