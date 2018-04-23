@@ -66,6 +66,7 @@ def generateStorage(dataType, data):
                     result += '|'
                 first = False
                 result += "'" + str(entry.encode('utf-8'))[2:-1] + "'"
+                #need to catch quotes within entries too
             return result+'"'
     elif(dataType == 'int128'):
         return data

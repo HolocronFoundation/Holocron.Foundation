@@ -1,9 +1,15 @@
 // JavaScript Document
 
-importScripts(web3.min.js);
-importScripts(holocron.js);
+if( 'function' === typeof importScripts) {
+	importScripts(web3.min.js);
+	importScripts(holocron.js);
+	web3 = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //Currently set to ropsten
 
-web3 = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //Currently set to ropsten
+	self.addEventListener('message', function(e){
+		var bookID = e.data;
+		loadBookInfo(bookID);
+	});
+}
 
 function loadBookInfo(bookID){
 	loadInfoAddress(bookID, false).then(function(res){
@@ -22,8 +28,3 @@ function loadBookInfo(bookID){
 		self.postMessage(error);
 	});
 }
-
-self.addEventListener('message', function(e){
-	var bookID = e.data;
-	loadBookInfo(bookID);
-});

@@ -23,11 +23,11 @@ var authorABI = loadAuthorABI();
 
 var zipABI;
 
-var libraryAddress = '0xdA0835F4Ea95231B1CED731Ecd7B691139D6B4F5';
+var libraryAddress = '0x41Ea336a5b7Dd1b4Fc71E837c23349C17A87f6E6';
 
 var thirdPartyProvider;
 
-var libraryContract = new web3.eth.Contract(loadLibraryContractABI(), libraryAddress); //This loads the library ABI, responsible for most functions on our site
+var libraryContract; //This loads the library ABI, responsible for most functions on our site
 
 function loadBookTextChunk(bookID, chunk){
 	return loadInfoAddress(bookID).then(function(res){
@@ -130,13 +130,16 @@ async function loadTextPage(bookID) {
 function setupWeb3() {
 	if (typeof web3 !== 'undefined') {
 		thirdPartyProvider = true;
+		result = new Web3(web3.currentProvider);
 		return new Web3(web3.currentProvider); //If you already have a web3 provider (e.g. metamask) uses that
 	}
 	else {
 		thirdPartyProvider = false;
-		return new Web3(new Web3.providers.HttpProvider("http://localhost:8545")); //sets us as the provider
+		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //sets us as the provider
 		//To do: Disable donation without an external provider
 	}
+	libraryContract = new result.eth.Contract(loadLibraryContractABI(), libraryAddress);
+	return result;
 }
 
 function loadBookInfoBoxes(){
@@ -275,6 +278,9 @@ function loadBookInfoBox(bookID){
 			//Other donate
 			newHTML += '<p><a href="./donate.html?bookID=' + bookID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
 			
+			console.log(bookID);
+			console.log(document.getElementsByName(bookID.toString()));
+			console.log(document.getElementsByName(bookID.toString())[0]);
 			infoItem = document.getElementsByName(bookID.toString())[0];
 			infoItem.innerHTML = newHTML;
 			storeBookInfo(bookID, 'basicInfo', true);
@@ -490,13 +496,14 @@ function workerCacheBooks(maxIndexNumber, existingWorker=null){
 	var randomnumber = Math.floor(Math.random()*maxIndexNumber);
 	if(!checkIfCached(randomnumber)){
 		if(existingWorker==null){
-			existingWorker = new Worker(workerCacheInfo.js);
+			existingWorker = new Worker('./js/workerCacheInfo.js');
 			existingWorker.onmessage = function(e){
 				logData = e.data;
-				for(int i = 0; i<logData.length; i++){
+				for(var i = 0; i<logData.length; i++){
 					storeBookInfo(logData[i][0], logData[i][1], logData[i][2]);
 				}
 				workerCacheBooks(maxIndexNumber, existingWorker);
+				console.log(localStorage);
 			}
 		}
 		existingWorker.postMessage(randomnumber);

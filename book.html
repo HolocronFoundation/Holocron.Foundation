@@ -8,40 +8,41 @@
 	<script src="./js/holocron.js"></script>
 </head>
 
-<body>
+<body class="library">
 	<section>
-		<header>
+		<header class="library">
 			<ul class="navbar">
 				<li class="navbar"><a href="./home.html">Home</a></li>
-				<li class="navbar"><a href="./about.html">About</a></li>
-				<li class="navbar"><a href="./browse.html">Browse</a></li>
-				<li class="navbar"><a href="./donate.html">Donate</a></li>
+				<li class="navbar library"><a href="./library.html">Library</a></li>
+				<li class="navbar phoenix"><a href="./phoenix.html">Phoenix</a></li>
+				<li class="navbar reincarnationline"><a href="./reincarnationline.html">Reincarnati.online</a></li>
 			</ul>
 			<div id="smallTitle" class="center">
-				<h2 class="name"><img class="logosmall" src="img/LogoClearBGPad.png" alt="♢"/> Book</h2>
+				<h2 class="name"><img class="logosmall" src="img/LibraryLogoClearBG.png" alt="♢"/> Library</h2>
 			</div>
 			<div id="search" class="center" >
 				<form action="/action_page.php">
 					<input type="text" placeholder="Search for a text">
-					<button type="submit"><i class="fa fa-search"></i></button>
+					<button type="submit">Search</button>
 				</form>
 			</div>
 		</header>
-		<div id="content">
+		<div id="content" class="library">
 			<div id="fullBookInfo" class="">
 			</div>
 		</div>
-		<footer class="center">
-			<p>♢ Brought to you by the Holocron.Foundation ♢</p>
+		<footer class="center library">
+			<p>♢ <a href="./about.html">About</a> ♢ <a href="./home.html">Holocron.Foundation</a> ♢ <a href="./donate.html">Donate</a> ♢</p>
   		</footer>
 	</section>
 </body>
 <script>
+	var web3 = setupWeb3();
 	var activeID = getParameterByName('bookID');
 	if(activeID == null || activeID ==''){
 		document.location.href = "./browse.html";
 	}
-	document.getElementById("content").innerHTML = '<div id="fullBookInfo" class="' + activeID + '"></div>';
+	document.getElementById("content").innerHTML = '<div id="fullBookInfo" name="' + activeID + '"></div>';
 	loadBookInfoBox(activeID);
 </script>
 </html>
