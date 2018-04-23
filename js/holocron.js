@@ -174,7 +174,9 @@ function getAuthors(bookID, localStorageAccess=true){
 		currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__authorIDs().call().then(async function(res){
 			if(res == null){
-				storeInfo('b', bookID, 'authors', 'None');
+				if(localStorageAccess){
+					storeInfo('b', bookID, 'authors', 'None');
+				}
 				return 'None';
 			}
 			else{
@@ -230,7 +232,10 @@ function loadData(tag, ID, useCache=true){
 		promiseData.push(loadVariable(tag, ID, 'authorIDs', useCache));
 	}
 	else if(tag == 'a'){
-		//do author stuff here
+		promiseData.push(loadVariable(tag, ID, 'name', useCache, true));
+		promiseData.push(loadVariable(tag, ID, 'alias', useCache, true));
+		promiseData.push(loadVariable(tag, ID, 'birthdate', useCache, true));
+		promiseData.push(loadVariable(tag, ID, 'deathdate', useCache, true));
 	}
 	
 	return Promise.all(promiseData);
@@ -248,7 +253,19 @@ function loadInfoBox(tag, ID){
 				var donationsETH = web3.utils.fromWei(values[4].toString(), "ether");
 				var authorRolesIDArray = values[5];
 				var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
-				var newHTML = '<p class="title"><a href="./book.html?bookID=' + ID.toString() + '"><b>' + titleClean + '</b></a></p> ';
+				
+				
+				//Title
+				var newHTML = '<p class="title">';
+				if(getPageName() != 'book.html'){
+					newHTML += '<a href="./book.html?bookID=' + ID.toString() + '">';
+				}
+				newHTML += '<b>' + titleClean + '</b>';
+				if(getPageName() != 'book.html'){
+					newHTML += '</a>';
+				}
+				newHTML += '</p> ';
+				
 				if(authorRolesIDArray != 'None'){
 					var authorNameArray = values[3];
 					var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
@@ -305,10 +322,37 @@ function loadInfoBox(tag, ID){
 
 				infoItem = document.getElementsByName(ID.toString())[0];
 				infoItem.innerHTML = newHTML;
-				storeInfo('b', ID, 'basicInfo', true);
+				storeInfo(tag, ID, 'basicInfo', true);
 			}
 			else if(tag =='a'){
-				//do author stuff here
+				var name = values[0];
+				var alias = values[1];
+				var birthdate = values[2];
+				var deathdate = values[3];
+				
+				//Name
+				var newHTML = '<p class="authorName">';
+				if(getPageName() != 'author.html'){
+					newHTML += '<a href="./author.html?authorID=' + ID.toString() + '">';
+				}
+				newHTML += '<b>' + name + '</b>';
+				if(getPageName() != 'author.html'){
+					newHTML += '</a>';
+				}
+				newHTML += '</p> ';
+				
+				//Birthdate
+				newHTML += '<p class="birthYear">Birth Year: ' + birthdate + '</p>';
+				
+				//Deathdate
+				newHTML += '<p class="deathYear">Death Year: ' + deathdate + '</p>';
+				
+				//Aliases
+				newHTML += '<p class="alias">Alias(es): ' + alias + '</p>';
+
+				infoItem = document.getElementsByName(ID.toString())[0];
+				infoItem.innerHTML = newHTML;
+				storeInfo(tag, ID, 'basicInfo', true);
 			}
 		}).catch(function(error){
 			if(error.toString() != "Error: Couldn't decode bytes from ABI: 0x"){
@@ -632,4 +676,8 @@ function cacheBooks(maxIndexNumber, workerThreads) {
 	else {
 		mainCacheBooks(maxIndexNumber)
 	}
+}
+
+function getPageName(){
+	return window.location.pathname.split("/").pop();
 }
