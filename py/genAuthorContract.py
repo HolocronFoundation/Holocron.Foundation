@@ -62,12 +62,14 @@ def generateStorage(dataType, data):
             result = '"'
             first = True
             for entry in dataArr:
-                if not first:
+                if first:
+                    result += '"['
+                    first = False
+                else:
                     result += '|'
-                first = False
-                result += "'" + str(entry.encode('utf-8'))[2:-1] + "'"
+                result += str(entry.encode('utf-8'))[2:-1]
                 #need to catch quotes within entries too
-            return result+'"'
+            return result+']"'
     elif(dataType == 'int128'):
         return data
 
