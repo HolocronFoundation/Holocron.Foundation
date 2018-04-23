@@ -43,7 +43,7 @@ var thirdPartyProvider;
 var libraryContract; //This loads the library ABI, responsible for most functions on our site
 
 function loadBookTextChunk(bookID, chunk){
-	return loadInfoAddress(bookID).then(function(res){
+	return loadInfoAddress('b', bookID).then(function(res){
 		currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__textAddress().call().then(function(res2){
 			textContract= new web3.eth.Contract(loadZipABI(), res2);
@@ -55,7 +55,7 @@ function loadBookTextChunk(bookID, chunk){
 
 async function getBookTextBlockchain(bookID) {
 	
-	var size = await loadBookVariable(bookID, 'size');
+	var size = await loadVariable('b', bookID, 'size');
 	var numByteArrays = Math.floor(size/8192);
 	if (size%255 !== 0) {
 		numByteArrays++;
@@ -98,7 +98,7 @@ async function loadTextPage(bookID) {
 	
 	var zip = new JSZip();
 	
-	var bookName = await loadBookVariable(bookID, 'title', true, true);
+	var bookName = await loadVariable('b', bookID, 'title', true, true);
 	
 	document.title = 'Holocron.Foundation ♢ ' + bookName;
 	
@@ -106,7 +106,7 @@ async function loadTextPage(bookID) {
 	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '</p>';
 	
-	var uploaded = await loadBookVariable(bookID, 'uploaded', false);
+	var uploaded = await loadVariable('b', bookID, 'uploaded', false);
 	
 	if (uploaded) {
 		holocronInfoText += ' This text has been uploaded to the Ethereum Blockchain. You are viewing the copy stored there. Enjoy!';
@@ -164,17 +164,17 @@ function loadBookInfoBoxes(){
 
 function getAuthors(bookID, localStorageAccess=true){
 	if(localStorageAccess){
-		var localStorageName = '<' + bookID.toString() + '>authors';
+		var localStorageName = '<b' + bookID.toString() + '>authors';
 		var localItem = localStorage.getItem(localStorageName);
 		if(localItem != null){
 			return Promise.resolve(parseLocalStorage(localItem));
 		}
 	}
-	return loadInfoAddress(bookID, localStorageAccess).then(function(res){
+	return loadInfoAddress('b', bookID, localStorageAccess).then(function(res){
 		currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__authorIDs().call().then(async function(res){
 			if(res == null){
-				storeBookInfo(bookID, 'authors', 'None');
+				storeInfo('b', bookID, 'authors', 'None');
 				return 'None';
 			}
 			else{
@@ -187,7 +187,7 @@ function getAuthors(bookID, localStorageAccess=true){
 					authorNameArray.push(hex2a(name));
 				}
 				if(localStorageAccess){
-					storeBookInfo(bookID, 'authors', authorNameArray);
+					storeInfo('b', bookID, 'authors', authorNameArray);
 				}
 				return authorNameArray;
 			}
@@ -197,13 +197,13 @@ function getAuthors(bookID, localStorageAccess=true){
 
 function getAuthorRoles(bookID, localStorageAccess=true){
 	if(localStorageAccess){
-		var localStorageName = '<' + bookID.toString() + '>authorRoles';
+		var localStorageName = '<b' + bookID.toString() + '>authorRoles';
 		var localItem = localStorage.getItem(localStorageName);
 		if(localItem != null){
 			return Promise.resolve(parseLocalStorage(localItem));
 		}
 	}
-	return loadInfoAddress(bookID, localStorageAccess).then(function(res){
+	return loadInfoAddress('b', bookID, localStorageAccess).then(function(res){
 		currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__authorRoles().call().then(function(res1){
 			if(res1 == null){
@@ -211,7 +211,7 @@ function getAuthorRoles(bookID, localStorageAccess=true){
 			}
 			var authorRolesIDArray = res1.slice(2).match(/.{1,2}/g);
 			if(localStorageAccess){
-				storeBookInfo(bookID, 'authorRoles', authorRolesIDArray);
+				storeInfo('b', bookID, 'authorRoles', authorRolesIDArray);
 			}
 			return authorRolesIDArray;
 		});
@@ -219,15 +219,15 @@ function getAuthorRoles(bookID, localStorageAccess=true){
 }
 
 function loadBookInfoBox(bookID){
-	loadInfoAddress(bookID)
+	loadInfoAddress('b', bookID)
 	.then(function(res){
-		var titlePromise = loadBookVariable(bookID, 'title', true, true);
-		var langPromise = loadBookVariable(bookID, 'language', true, true);
-		var sizePromise = loadBookVariable(bookID, 'size');
+		var titlePromise = loadVariable('b', bookID, 'title', true, true);
+		var langPromise = loadVariable('b', bookID, 'language', true, true);
+		var sizePromise = loadVariable('b', bookID, 'size');
 		var authorPromise = getAuthors(bookID);
-		var weiPromise = loadBookVariable(bookID, 'donations', false);
+		var weiPromise = loadVariable('b', bookID, 'donations', false);
 		var authorRolePromise = getAuthorRoles(bookID);
-		var authorIDsPromise = loadBookVariable(bookID, 'authorIDs');
+		var authorIDsPromise = loadVariable('b', bookID, 'authorIDs');
 		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise]).then(async function(values) {
 			var size = values[3];
 			var titleClean = values[0];
@@ -292,13 +292,13 @@ function loadBookInfoBox(bookID){
 			
 			infoItem = document.getElementsByName(bookID.toString())[0];
 			infoItem.innerHTML = newHTML;
-			storeBookInfo(bookID, 'basicInfo', true);
+			storeInfo('b', bookID, 'basicInfo', true);
 		}).catch(function(error){
 			if(error.toString() != "Error: Couldn't decode bytes from ABI: 0x"){
 				console.log(error);
 			}
 			else{
-				removeBookEntry(bookID);
+				removeEntry(bookID);
 			}
 		});
 	});
@@ -309,46 +309,65 @@ function updateSplitValues(newValue, bookID){
 	document.getElementById('bookSplit'+bookID).innerHTML = "Book: " + (100-newValue) + "%";
 }
 
-function loadInfoAddress(bookID, localStorageAccess=true){
+function loadInfoAddress(tag, ID, localStorageAccess=true){
 	if(localStorageAccess){
-		localStorageName = '<' + bookID.toString() + '>infoAddress';
+		localStorageName = '<' + tag + ID.toString() + '>infoAddress';
 		var localItem = localStorage.getItem(localStorageName);
 		if(localItem != null){
 			return Promise.resolve(parseLocalStorage(localItem));
 		}
 	}
-	return libraryContract.methods.getBookAddress(bookID).call()
-	.then(function(res){
-		if(localStorageAccess){
-			storeBookInfo(bookID, 'infoAddress', res);
-		}
-		return res;
-	});
+	if(tag == 'b'){
+		return libraryContract.methods.getBookAddress(ID).call()
+		.then(function(res){
+			if(localStorageAccess){
+				storeInfo('b', bookID, 'infoAddress', res);
+			}
+			return res;
+		});
+	}
+	if(tag == 'a'){
+		return libraryContract.methods.getAuthorAddress(ID).call()
+		.then(function(res){
+			if(localStorageAccess){
+				storeInfo('a', ID, 'infoAddress', res);
+			}
+			return res;
+		});
+	}
 }
 
-function loadBookVariable(bookID, infoName, useCache=true, hexEncodedInContract=false){
+function loadVariable(typeLetter, ID, infoName, useCache=true, hexEncodedInContract=false){
 	if(useCache){
-		var localStorageName = '<' + bookID.toString() + '>' + infoName;
+		var localStorageName = '<' + typeLetter + ID.toString() + '>' + infoName;
 		var localItem = localStorage.getItem(localStorageName);
 		if(localItem != null){
 			return Promise.resolve(parseLocalStorage(localItem));
 		}
 	}
-	return loadInfoAddress(bookID, useCache).then(function(res){
+	return loadInfoAddress(typeLetter, ID, useCache).then(function(res){
 		
-		var currentContract = new web3.eth.Contract(bookABI, res);
+		var currentContract;
+		var contractString;
 		
-		var contractString = "return contract.methods.book__" + infoName + "().call().then(function(success){"
+		if(typeLetter == 'b'){
+			currentContract = new web3.eth.Contract(bookABI, res);
+			contractString = "return contract.methods.book__" + infoName + "().call().then(function(success){"
+		}
+		else if(typeLetter == 'a'){
+			currentContract = new web3.eth.Contract(authorABI, res);
+			contractString = "return contract.methods.author__" + infoName + "().call().then(function(success){"
+		}
 		
 		if(hexEncodedInContract){
 			contractString += "success = hex2a(success);"
 		}
 		
 		if(useCache){
-			contractString += "storeBookInfo(" + bookID + ", '" + infoName + "', success);"
+			contractString += "storeInfo(" + typeLetter + ", " + ID + ", '" + infoName + "', success);"
 		}
 		
-		contractString += "return success;}).catch(function(error){if((error.toString() != \"Error: Couldn't decode bytes from ABI: 0x\") && (error.toString() != \"ReferenceError: name is not defined\") && (error.toString() != \"Error: Couldn't decode  from ABI: 0x\")){ console.log(error); } else{removeBookEntry(" + bookID + ");}});";
+		contractString += "return success;}).catch(function(error){if((error.toString() != \"Error: Couldn't decode bytes from ABI: 0x\") && (error.toString() != \"ReferenceError: name is not defined\") && (error.toString() != \"Error: Couldn't decode  from ABI: 0x\")){ console.log(error); } else{removeEntry(" + bookID + ");}});";
 		
 		var tempFunction = new Function("contract", contractString);
 		
@@ -372,8 +391,8 @@ function parseLocalStorage(localItem){
 	return localItem;
 }
 
-function storeBookInfo(bookID, infoName, info){
-	var storeName = '<' + bookID.toString() + '>' + infoName;
+function storeInfo(tag, ID, infoName, info){
+	var storeName = '<' + tag + id + '>' + infoName;
 	if(Array.isArray(info)){
 		if(info.length == 0){
 			localStorage.setItem(storeName, 'None');
@@ -398,13 +417,13 @@ function storeBookInfo(bookID, infoName, info){
 	}
 }
 
-function removeBookEntry(bookID){
+function removeEntry(ID){
 	if((typeof(document) !== "undefined") && (document != null)){
-		entry = document.getElementsByName(bookID.toString())[0];
+		entry = document.getElementsByName(ID.toString())[0];
 		if(entry != undefined){
 			entry.remove()
 		}
-		skipCache.push(bookID);
+		skipCache.push(ID);
 	}
 }
 
@@ -513,7 +532,7 @@ function sortedLocalStorageArray(){
 }
 
 function checkIfCached(bookID){
-	var localStorageName = '<' + bookID.toString() + '>basicInfo';
+	var localStorageName = '<b' + bookID.toString() + '>basicInfo';
 	var localItem = localStorage.getItem(localStorageName);
 	//Need to double check how true is actually stored. Is it "true" or "1"?
 	if(localItem == 'true'){
@@ -535,15 +554,20 @@ function workerCacheBooks(maxIndexNumber, existingWorker=null){
 				for(var i = 0; i<logData.length; i++){
 					//console.log("loc2")
 					//console.log(logData);
-					if(logData != "Error: Couldn't decode bytes from ABI: 0x"){
-						storeBookInfo(logData[i][0], logData[i][1], logData[i][2]);
+					if((typeof(logData[i][1]) !== 'undefined') && (logData != "Error: Couldn't decode bytes from ABI: 0x")){
+						storeInfo('b', logData[i][0], logData[i][1], logData[i][2]);
 					}
 				}
 				if(Array.isArray(logData)){
-					storeBookInfo(logData[0][0], 'basicInfo', true);
+					storeInfo('b', logData[0][0], 'basicInfo', true);
 				}
-				workerCacheBooks(maxIndexNumber, existingWorker);
-				//console.log(localStorage);
+				if(logData != 'Error: Invalid JSON RPC response: ""'){
+					setTimeout(workerCacheBooks(maxIndexNumber, existingWorker), 3000);
+				}
+				else{
+					console.log("Error connecting workers to a web3 endpoint. Stopping cacheing now...");
+					existingWorker.terminate();
+				}
 			}
 		}
 		existingWorker.postMessage(randomnumber);
@@ -555,18 +579,18 @@ function workerCacheBooks(maxIndexNumber, existingWorker=null){
 
 function mainCacheBooks(maxIndexNumber){
 	var randomnumber = Math.floor(Math.random()*maxIndexNumber+1);
-	loadInfoAddress(bookID)
+	loadInfoAddress('b', bookID)
 	.then(function(res){
-		var titlePromise = loadBookVariable(bookID, 'title', true, true);
-		var langPromise = loadBookVariable(bookID, 'language', true, true);
-		var sizePromise = loadBookVariable(bookID, 'size');
+		var titlePromise = loadVariable('b', bookID, 'title', true, true);
+		var langPromise = loadVariable('b', bookID, 'language', true, true);
+		var sizePromise = loadVariable('b', bookID, 'size');
 		var authorPromise = getAuthors(bookID);
-		var weiPromise = loadBookVariable(bookID, 'donations', false);
+		var weiPromise = loadVariable('b', bookID, 'donations', false);
 		var authorRolePromise = getAuthorRoles(bookID);
-		var authorIDsPromise = loadBookVariable(bookID, 'authorIDs');
+		var authorIDsPromise = loadVariable('b', bookID, 'authorIDs');
 		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise])
 		.then(function(){
-			storeBookInfo(bookID, 'basicInfo', true);
+			storeInfo('b', bookID, 'basicInfo', true);
 			mainCacheBooks(maxIndexNumber);
 		}).catch(function(error){
 			console.log('Fick');
