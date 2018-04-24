@@ -24,16 +24,26 @@ class UpdatedDonate():
 @private
 class BookContract():
     @public
-    def changeParentAddress(newAddress: address): pass
+    def changeParentAddress(newAddress: address):
+        assert msg.sender == self.parentAddress
+        self.parentAddress = newAddress
 
     @public
-    def addExpansionAddress(_expansionAddress: address): pass
+    def addExpansionAddress(_expansionAddress: address):
+        assert msg.sender == self.parentAddress
+        self.expansionAddress = _expansionAddress
+        self.usesExpansion = True
 
     @public
-    def addText(_textAddress: address): pass
+    def addText(_textAddress: address):
+        assert msg.sender == self.parentAddress
+        self.book.textAddress = _textAddress
+        self.book.uploaded = True
 
     @public
-    def recieveDonation(value: wei_value): pass
+    def recieveDonation(value: wei_value):
+        assert msg.sender == self.parentAddress
+        self.book.donations = self.book.donations + value
     
 
 #Logging
@@ -151,3 +161,11 @@ def setTextAddress(id: int128, textAddress: address):
 def setExpansionAddress(id: int128, expansionAddress: address):
     assert msg.sender in self.foundationAddresses
     BookContract(self.books[id]).addExpansionAddress(expansionAddress)
+
+#Allows for withdrawals, given a set bookID # This will be deprecated later by an update once a better
+                                            # Uploading method with a middleman contract is determined.
+@public
+def withdrawFunds(bookID: int128, withdrawalAddress: address, withdrawal: wei_value):
+    assert not self.updatedContract
+    assert msg.sender in self.foundationAddresses
+    send(withdrawalAddress, withdrawal)
