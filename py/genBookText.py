@@ -11,7 +11,7 @@
 import os
 from fnmatch import fnmatch
 
-def walkZipsAndGenerateVyper(pullDirectory='C:/gutenbergnosubs/', writeDirectory='C:/vyperTextFiles/'):
+def walkZipsAndGenerateVyper(pullDirectory='/Users/us.tropers/Documents/GitHub/Library/zips', writeDirectory='/Users/us.tropers/Documents/GitHub/Library/zipsVyper'):
     for path, subdirs, files in os.walk(pullDirectory):
         for name in files:
             if fnmatch(name, '*.zip'):
