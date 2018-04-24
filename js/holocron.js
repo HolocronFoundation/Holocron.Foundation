@@ -13,6 +13,8 @@ var web3;
 
 var skipCache = [];
 
+var activeBookIDs = [];
+
 function loadLibraryContractABI() {
 	return [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "getBookAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 672}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 21976}, {"name": "getAuthorAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "authorID"}], "constant": true, "payable": false, "type": "function", "gas": 732}, {"name": "addAuthor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "authorAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22036}, {"name": "getSubjectAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "subjectID"}], "constant": true, "payable": false, "type": "function", "gas": 792}, {"name": "getLoCAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "LoCID"}], "constant": true, "payable": false, "type": "function", "gas": 822}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22280}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41411}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41386}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22039}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 6101}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4781}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1060}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 873}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 903}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1122}, {"name": "authors", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1152}, {"name": "subjects", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1182}, {"name": "LoC", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1212}];
 }
@@ -549,10 +551,19 @@ function calculateStorageCost(size, gasPrice) {
 	return 625*size*gasPrice;
 }
 
+function searchBooks(){
+	activeBookIDs = []
+	booksList = document.getElementById("booksList");
+	booksList.innerHTML = '';
+	var searchValue = document.getElementById("searchBar").value.toLowerCase();
+	searchLocalStorage(searchValue, booksList);
+}
+
 function populateRandomContent(loadItems, maxIndex) {
 	populateList = document.getElementById("booksList");
 	var randomArray = genUniqueRandomNumberArray(loadItems, maxIndex);
 	for (var i = 0; i < randomArray.length; i++){
+		activeBookIDs.push(randomArray[i]);
 		populateList.innerHTML += '<li class="bookInfo" name="' + randomArray[i] + '"></li>';
 	}
 	loadBookInfoBoxes();
@@ -579,17 +590,33 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
-function searchLocalStorage(searchString){
-	
-}
-
-function sortedLocalStorageArray(){
-	var localStorageArray = new Array();
-	for (i=0;i<localStorage.length;i++){
-		localStorageArray[i] = localStorage.key(i)+localStorage.getItem(localStorage.key(i));
+function searchLocalStorage(searchString, booksList, start=0){
+	//currently only searches for books
+	localStorageString = JSON.stringify(localStorage).toLowerCase();
+	nextIndex = localStorageString.indexOf(searchString, start);
+	if(nextIndex != -1){
+		//Add item to result box
+		var lastAuthorTag = localStorageString.lastIndexOf('<a', nextIndex);
+		var lastBookTag = localStorageString.lastIndexOf('<b', nextIndex);
+		
+		if(lastBookTag > lastAuthorTag){
+			var endOfBookTag = localStorageString.indexOf('>', lastBookTag);
+			var ID = localStorageString.slice(lastBookTag+2,endOfBookTag);
+			if(!activeBookIDs.includes(ID)){
+				var endOfBookTag = localStorageString.indexOf('>', lastBookTag);
+				booksList.innerHTML += '<li class="bookInfo" name="' + ID + '"></li>';
+				activeBookIDs.push(ID);
+				loadInfoBox('b', parseInt(ID));
+			}
+		}
+		
+		searchLocalStorage(searchString, booksList, nextIndex+1);
 	}
-	var sortedArray = localStorageArray.sort();
-	return sortedArray;
+	else{
+		if(activeBookIDs.length == 0){
+			booksList.innerHTML = '<p class="center">No results found!</p>'; 
+		}
+	}
 }
 
 function checkIfCached(tag, ID){
