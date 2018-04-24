@@ -5,6 +5,10 @@ _notes/
 /bower_components/
 /node_modules/
 py/vyperFilesGenerate/*
+py/vyperAuthorFilesGenerated/*
 *.csv
 
 /py/vyperFilesGenerated/*
+/py/vyperAuthorFilesGenerated/*
+*.zip
+/zipsvyper/*

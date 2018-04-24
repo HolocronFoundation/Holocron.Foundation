@@ -1,0 +1,278 @@
+@charset "utf-8";
+/* CSS Document */
+
+/* Holocron Blue Color Codes!
+
+Lightest
+	rgb(156, 217, 255) = 1
+	rgb(104, 185, 255)
+	rgb(71, 166, 255)
+	rgb(57, 157, 255) = 4
+Darkest
+
+*/
+
+/* Library Beige Color Codes 
+
+Lightest
+	rgb(240, 215, 201)
+	rgb(233, 200, 171)
+	rgb(229, 190, 151)
+	rgb(227, 186, 143) = 4
+Darkest
+
+*/
+
+/* Phoenix Red Color Codes
+
+Lightest
+	rgb(245, 150, 155)
+	rgb(237, 120, 117)
+	rgb(233, 92, 85)
+	rgb(232, 85, 74) = 4
+Darkest
+
+*/
+
+.splitSlider {
+	justify-content:  center;
+	display: flex;
+}
+
+.blankFlex1 {
+	flex: 1;
+}
+
+.splitSlider .left {
+	flex: 2;
+}
+
+.splitSlider .slider {
+	flex: 3;
+}
+
+.splitSlider .right {
+	flex: 2;
+}
+
+/* Adds original line breaks to titles */
+
+.title {
+	white-space: pre-wrap;
+}
+
+/* Removes link decoration from titles */
+
+.name a {
+	text-decoration: none;
+	color: black;
+}
+
+/* Adds Bullets Back For the Bullet Class */
+
+ul.bullet{
+	list-style-type:circle;
+	margin: .75em;
+	padding-top: .25em;
+	padding-bottom: .25em;
+	padding-right: 2em;
+	padding-left: 2em;
+}
+
+/* Formats the logo */
+
+#logo {
+	display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 6em;
+    height: auto;
+}
+
+/* Centers items, adds a horizontal line below, and pads the bottom of each book */
+
+li.bookInfo {
+	padding-bottom: 1.5vh;
+	text-align: center;
+	border-bottom: 2px groove rgb(229, 190, 151);
+}
+
+#fullBookInfo {
+	padding-bottom: 1.5vh;
+	text-align: center;
+}
+
+li.bookInfo.sample {
+	border-bottom: 2px groove rgb(71, 166, 255);
+}
+
+section {
+  display: flex;
+  flex-flow: column;
+  height: 100vh;
+}
+
+/* Sets color:brightness:2 */
+
+header {
+  background: rgb(104, 185, 255);
+}
+
+header.library {
+	background: rgb(233, 200, 171);
+}
+
+/* Sets color:brightness:1, adds vertical scroll bar, hides horizontal scroll bar, limits width, adds margins */
+
+#content {
+	background: rgb(156, 217, 255);
+	overflow-y: auto;
+	overflow-x: hidden;
+	width: 80vw;
+	margin: auto;
+	padding-left: 3.75vw;
+	padding-right: 3.75vw;
+	padding-top: 1vh;
+	padding-bottom: 1vh;
+	max-width: 666px;
+}
+
+#content.library {
+	background: rgb(240, 215, 201);
+}
+
+/* Colors footer to color:brightness:4  */
+
+footer {
+	background: rgb(57, 157, 255);
+}
+
+footer.library{
+	background: rgb(227, 186, 143);
+}
+
+/* Center class centers items */
+
+.center {
+	text-align: center;
+}
+
+/* Formats small logo correctly */
+
+.logosmall {
+    margin-left: auto;
+    margin-right: auto;
+    height: 3em;
+	width: auto;
+	vertical-align: middle;
+}
+
+/* navbar items */
+
+ul.navbar {
+    overflow: hidden;
+    background-color: rgb(57, 157, 255);
+    top: 0;
+	left: 0;
+    width: 100vw;
+}
+
+li.navbar.phoenix {
+	background-color: rgb(232, 85, 74);
+}
+
+li.navbar.phoenix a:hover {
+    background-color: rgb(233, 92, 85);
+}
+
+li.navbar.reincarnationline {
+	background-color: white;
+}
+
+li.navbar.reincarnationline a{
+	color: black;
+}
+
+li.navbar.reincarnationline a:hover {
+    background-color: whitesmoke;
+}
+
+li.navbar.library {
+	background-color: rgb(227, 186, 143);
+}
+
+li.navbar.library a:hover {
+    background-color: rgb(229, 190, 151);
+}
+
+li.navbar {
+    float: left;
+}
+
+li.navbar a {
+    display: block;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+	color: white;
+}
+
+li.navbar a:hover {
+    background-color: rgb(71, 166, 255);
+}
+
+/* Removes bullet points from ul, and removes indentation */
+
+ul{
+	list-style-type: none;
+	margin: 0;
+    padding: 0;
+}
+
+/* Removes body margin, sets color:brightness:2 */
+
+body {
+	margin: 0;
+	background-color: rgb(104, 185, 255);
+}
+
+body.library {
+	background-color: rgb(233, 200, 171);
+}
+
+/* Adds a margin to the text body */
+
+body#textBody {
+	margin-left: 2.5vw;
+	margin-right: 2.5vw;
+	margin-top: 1.5vh;
+	margin-bottom: 1.5vh;
+	background-color: beige;
+}
+
+/* Sets footer text color to white, removes decoration */
+
+footer p {
+	color: white;
+}
+
+footer p a {
+	text-decoration: none;
+	color: white;
+}
+
+footer p a:hover {
+	color: silver;
+}
+
+/* Preserving whitespace in text files, and centers the text */
+
+#bookText {
+	text-align: center;
+}
+
+#bookText p {
+	white-space: pre-wrap;
+	display: inline-block;
+	text-align: left;
+}

@@ -3,37 +3,43 @@
 <head>
 	<meta charset="utf-8">
 	<title>Holocron.Foundation ♢ Donate</title>
-	<link rel="stylesheet" type="text/css" href="stylesheet.css">
-	<link href="https://fonts.googleapis.com/css?family=Raleway|Roboto" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="stylesheet-remake-2.css">
 </head>
 <body>
-	<ul class="navbar">
-		<li class="navbar"><a href="./home.html">Home</a></li>
-		<li class="navbar"><a href="./about.html">About</a></li>
-		<li class="navbar"><a href="./browse.html">Browse</a></li>
-		<li class="navbar"><a href="./donate.html">Donate</a></li>
-	</ul>
-	<div id="start">
-		<h2 class="name"><img class="logosmall" src="img/LogoClearBG.png" alt="♢"/> Donate</h2>
-	</div>
-	<div>
+	<section>
+		<header>
+			<ul class="navbar">
+				<li class="navbar"><a href="./home.html">Home</a></li>
+				<li class="navbar library"><a href="./library.html">Library</a></li>
+				<li class="navbar phoenix"><a href="./phoenix.html">Phoenix</a></li>
+				<li class="navbar reincarnationline"><a href="./reincarnationline.html">Reincarnati.online</a></li>
+			</ul>
+		</header>
+		<div id="content">
+			<div id="mainTitle" class="center">
+				<img id="logo" src="img/LogoClearBG.png" alt="♢"/>
+				<h1 class="name">Donate</h1>
+			</div>
+			<div id="donations">
+				<p>We accept donations in a variety of formats. We accept Ethereum, Bitcoin, Litecoin, Paypal, Credit and Debit (via Paypal).</p>
+				<p class="center">Ethereum Address:</p>
+				<p class="center">Bitcoin Address:</p>
+				<p class="center">Litcoin Address:</p>
+				<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" class="center">
+					<input type="hidden" name="cmd" value="_s-xclick">
+					<input type="hidden" name="hosted_button_id" value="W7JMCPYGHBMDS">
+					<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+					<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+				</form>
+			</div>
 		
-		<div id="donations">
-			<p>We accept donations in a variety of formats. We accept Ethereum, Bitcoin, Litecoin, Paypal, Credit and Debit (via Paypal).</p>
-			<p>Ethereum Address:</p>
-			<p>Bitcoin Address:</p>
-			<p>Litcoin Address:</p>
-			<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-				<input type="hidden" name="cmd" value="_s-xclick">
-				<input type="hidden" name="hosted_button_id" value="W7JMCPYGHBMDS">
-				<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-				<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
-			</form>
-		</div>
-		
-		<p>Ethereum donations can be sent directly to a specific book from our browse page. If you would like a Bitcoin or Litecoin donation to head to specific works, please include the ID(s) in a message attached to your transaction. If you would like USD donations to head to a specific work, please include the ID(s) in the form when making your donation. <b>We take 30% of donations given towards specific works in order to support general operations and expansion.</b> This 30% is automatically taken from Ethereum donations and will be manually taken from other donations.</p>
+		<p>Ethereum donations can be sent directly to a specific book from a books page. Bitcoin, Litecoin, and USD donations <b>can not</b> be sent to a specific work at this time.</p>
 		
 		<p>The holocron.foundation is recognized as a nonprofit by the state of Ohio, but are not recognized as a 501(c)(3) by the IRS. We are in the process of applying to become a 501(c)(3). Should we recieve that recognition, all donations, past and future, will be considered tax deductible. <b>We are not guaranteeing that we will be deemed a 501(c)(3) by the IRS.</b></p>
-	</div>
+		</div>
+		<footer class="center">
+			<p>♢ <a href="./about.html">About</a> ♢ <a href="./home.html">Holocron.Foundation</a> ♢ <a href="./donate.html">Donate</a> ♢</p>
+  		</footer>
+	</section>
 </body>
 </html>

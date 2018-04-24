@@ -3,43 +3,60 @@
 <head>
 	<meta charset="utf-8">
 	<title>Holocron.Foundation ♢ Home</title>
-	<link rel="stylesheet" type="text/css" href="stylesheet.css">
-	<link href="https://fonts.googleapis.com/css?family=Raleway|Roboto" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="stylesheet-remake-2.css">
+	<script src="./js/web3.min.js"></script>
+	<script src="./js/holocron.js"></script>
 </head>
 <body>
-	<ul class="navbar">
-		<li class="navbar"><a href="./home.html">Home</a></li>
-		<li class="navbar"><a href="./about.html">About</a></li>
-		<li class="navbar"><a href="./browse.html">Browse</a></li>
-		<li class="navbar"><a href="./donate.html">Donate</a></li>
-	</ul>
-	<div id="start">
-		<img id="logo" src="img/LogoClearBG.png" alt="♢"/>
-		<h1 class="name">Holocron.Foundation</h1>
-	</div>
-	<div id="desc">
-		<p>Welcome to the <b>Holocron.Foundation</b>. We aim to preserve important scientific and cultural works on the Ethereum blockchain, all while contributing knowledge regarding storage and other related breakthroughs to the greater Ethereum ecosystem through our open source code. Please see our about page for more info!</p>
-	</div>
-	<div id="samples">
-		<h1>Sample Works</h1>
-		<p>Some samples are below, including works that have been uploaded in their entirety to the blockchain, as well as some works that are collecting ETH to prepare for upload! Please see the browse page for search and sorting!</p>
-		<ul class="itemsList">
-			<li>
-				<h2 class="title">Title: Subtitle</h2>
-				
-				<h2 class="author">Author First Last</h2>
-				
-				<h2 class="lang">Language</h2>
-				
-				<meter value="1.1" min="0" max="2.3">1.1 ETH Recieved, 2.3 ETH Needed</meter>
-				
-				<h2 class="size">xxxxKB</h2>
-				
-				<h2 class="recieved">xx.xxxx</h2>
-				
-				<h2 class="needed">xx.xxxx</h2>
-			</li>
-		</ul>
-	</div>
+	<section>
+		<header>
+			<ul class="navbar">
+				<li class="navbar"><a href="./home.html">Home</a></li>
+				<li class="navbar library"><a href="./library.html">Library</a></li>
+				<li class="navbar phoenix"><a href="./phoenix.html">Phoenix</a></li>
+				<li class="navbar reincarnationline"><a href="./reincarnationline.html">Reincarnati.online</a></li>
+			</ul>
+		</header>
+		<div id="content">
+			<div id="mainTitle" class="center">
+				<img id="logo" src="img/LogoClearBG.png" alt="♢"/>
+				<h1 class="name">Holocron.Foundation</h1>
+			</div>
+			<div id="desc">
+				<p>Welcome to the <b>Holocron.Foundation</b>. We aim to preserve important scientific and cultural works on the Ethereum blockchain, all while contributing knowledge regarding storage and other related breakthroughs to the greater Ethereum ecosystem through our open source code. Please see our <a href="./about.html">about page</a> for more info!</p>
+			</div>
+			<div id="library">
+				<div class="center">
+					<h2 class="name"><a href="./library.html"><img class="logosmall" src="img/LibraryLogoClearBG.png" alt="♢"/> Library</a></h2>
+				</div>
+				<p>The library acts as a repository of human knowledge. Some of the greatest works of all time can now be preserved on the Ethereum Blockchain. Check out some samples below, or go ahead and browse the full library.</p>
+				<ul id="booksList">
+					<li class="bookInfo sample" name="1"></li>
+					<li class="bookInfo sample" name="2"></li>
+					<li class="bookInfo sample" name="3"></li>
+				</ul>
+			</div>
+			<div id="phoenix">
+				<div id="smallTitle" class="center">
+					<h2 class="name"><a href="./phoenix.html"><img class="logosmall" src="img/PhoenixLogoClearBG.png" alt="♢"/> Phoenix</a></h2>
+				</div>
+				<p>Project Phoenix is the open source and public domain generalized implementation of the technology behind the Library. This technology can be leveraged to turn CSVs or SQL databases into files that can be uploaded onto the Ethereum Blockchain. This is a work in progress and is currently early in development. From the ashes of the old file systems will arise a new file system.</p>
+			</div>
+			<div id="reincarnationline">
+				<div id="smallTitle" class="center">
+					<h2 class="name"><a href="./reincarnationline.html"><img class="logosmall" src="img/ReincarnationLogoClearBG.png" alt="♢"/> Reincarnati.online</a></h2>
+				</div>
+				<p>Reincarnati.online is a project designed to minimize web pages and deliver them using the power of the Ethereum Network... You might not have noticed it, but the Holocron.Founcation is running on our first version of this technology!</p>
+			</div>
+		</div>
+		<footer class="center">
+			<p>♢ <a href="./about.html">About</a> ♢ <a href="./home.html">Holocron.Foundation</a> ♢ <a href="./donate.html">Donate</a> ♢</p>
+  		</footer>
+	</section>
 </body>
+<script>
+	function start(){
+		loadBookInfoBoxes();
+	}
+</script>
 </html>

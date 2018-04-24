@@ -11,26 +11,66 @@
 import os
 from fnmatch import fnmatch
 
-def walkZipsAndGenerateVyper(pullDirectory='C:/gutenbergnosubs/', writeDirectory='C:/vyperTextFiles/'):
+def walkZipsAndGenerateVyper(pullDirectory='/Users/us.tropers/Documents/GitHub/Library/zips', writeDirectory='/Users/us.tropers/Documents/GitHub/Library/zipsVyper'):
     for path, subdirs, files in os.walk(pullDirectory):
         for name in files:
             if fnmatch(name, '*.zip'):
-                generateVyperFile(name, path, directory)
+                generateVyperFile(name, path, writeDirectory)
 
 def generateVyperFile(fileName, filePath, directory):
     zipBytes = None
     with open(os.path.join(filePath, fileName), 'rb') as readFile:
-        zipBits = readFile.read()
+        zipBytes = readFile.read()
 
     #Generate the vyper file:
     vyperFileString = '''
-listingAddress: public(address)
-zipBytes: public(bytes <= ''' + str(len(zipBits)) + ''')
+listingAddress: public(address)'''
+
+    if len(zipBytes) <= 8192:
+        vyperFileString += '''
+zipBytes0: public(bytes[''' + str(len(zipBytes)) + '''])
 
 @public
-def __init__():
-    self.listingAddress = None
-    self.zipBytes = ''' + str(zipBits)[1:]
+def __init__(_listingAddress: address):
+    self.listingAddress = _listingAddress
+    self.zipBytes0 = ''' + str(zipBytes)[1:]
 
-    with open(directory + fileName[:-4] + '.v.py', 'w', encoding = 'utf-8') as writeFile:
+    else:
+        vyperFileString += '''
+modifierAddress: public(address)'''
+        count = 0
+
+        for i in range(int(len(zipBytes)/8192)):
+            vyperFileString += ('''
+zipBytes''' + str(count) + ''': public(bytes[8192])''')
+            count += 1
+
+        if len(zipBytes) % 8192 != 0:
+            vyperFileString += '''
+zipBytes''' + str(count) + ''': public(bytes[''' + str(len(zipBytes) % 8192) + '''])'''
+
+        vyperFileString += '''
+@public
+def __init__(_listingAddress: address, _modifierAddress: address):
+    self.listingAddress = _listingAddress
+    self.modifierAddress = _modifierAddress
+    self.zipBytes0 = ''' + str(zipBytes[0:8192])[1:]
+
+        for i in range(count):
+            if i is not 0:
+                vyperFileString += '''
+@public
+def setText''' + str(i) + '''(newText: bytes[8192]):
+    assert msg.sender == self.modifierAddress
+    self.zipBytes''' + str(i) + ''' = newText'''
+
+        if len(zipBytes) % 8192 != 0:
+            vyperFileString += '''
+@public
+def setText''' + str(count) + '''(newText: bytes[''' + str(len(zipBytes) % 8192) + ''']):
+    assert msg.sender == self.modifierAddress
+    self.zipBytes''' + str(count) + ''' = newText'''
+    
+    with open(directory + fileName[:-4] + '.v.py', 'w') as writeFile:
         writeFile.write(vyperFileString)
+

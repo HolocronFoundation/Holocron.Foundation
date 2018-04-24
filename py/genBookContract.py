@@ -34,7 +34,7 @@ def genVyperFile(dataRow, writeFile):
 class SendDonation():
     @payable
     @public
-    def donateWithDifferentDonor(id: int128, donorAddress: address): pass
+    def donateWithDifferentDonor(id: int128, foundationSplitNumerator: int128, foundationSplitDenominator: int128, donorAddress: address): pass
 
 version: public(bool)
 parentAddress: public(address)
@@ -45,19 +45,19 @@ book: public({
 
     id: int128,
 
-    title: bytes <= ''' + genTitleBytesSize(dataRow[1]) + ''',
+    title: bytes[''' + genTitleBytesSize(dataRow[1]) + '''],
 
     copyright: bool,
 
-    language: bytes <= 2,
+    language: bytes[''' + str(len(dataRow[4])) + '''],
 
-    libraryOfCongress: bytes <= ''' + genLibraryOfCongressBytesSize(dataRow[6]) + ''',
+    libraryOfCongress: bytes[''' + genLibraryOfCongressBytesSize(dataRow[6]) + '''],
 
-    subjects: bytes <= ''' + genSubjectBytesSize(dataRow[5]) + ''',
+    subjects: bytes[''' + genSubjectBytesSize(dataRow[5]) + '''],
 
-    authorIDs: bytes <= ''' + genAuthorIDsBytesSize(dataRow[2]) + ''',
+    authorIDs: bytes[''' + genAuthorIDsBytesSize(dataRow[2]) + '''],
 
-    authorRoles: bytes <= ''' + genAuthorsRolesBytesSize(dataRow[2]) + ''',
+    authorRoles: bytes[''' + genAuthorsRolesBytesSize(dataRow[2]) + '''],
 
     size: int128,
 
@@ -70,11 +70,11 @@ book: public({
 })
 
 @public
-def __init__():
+def __init__(_parentAddress: address):
 
     self.version = True
 
-    self.parentAddress = None
+    self.parentAddress = _parentAddress
 
     self.expansionAddress = None
 
@@ -104,8 +104,8 @@ def __init__():
 
 @payable
 @public
-def donate():
-    SendDonation(self.parentAddress).donateWithDifferentDonor(self.book.id, msg.sender)
+def donate(foundationSplitNumerator: int128, foundationSplitDenominator: int128):
+    SendDonation(self.parentAddress).donateWithDifferentDonor(self.book.id, foundationSplitNumerator, foundationSplitDenominator, msg.sender)
 
 @public
 def changeParentAddress(newAddress: address):
@@ -140,9 +140,14 @@ def genTitleBytes(titleData):
     return str(titleData.encode('utf-8'))
 
 def genLibraryOfCongressBytesSize(LoCData):
-    return str(2*len(ast.literal_eval(LoCData)))
+    number = 2*len(ast.literal_eval(LoCData))
+    if number == 0:
+        return str(1)
+    return str(number)
 
 def genLibraryOfCongressBytes(LoCData):
+    if genLibraryOfCongressBytesSize(LoCData) == str(1):
+        return 'xNone'
     LoCDataList = ast.literal_eval(LoCData)
     numberBytes = []
     for number in LoCDataList:
@@ -151,9 +156,14 @@ def genLibraryOfCongressBytes(LoCData):
     return str(output)
 
 def genSubjectBytesSize(subjectData):
-    return str(2*len(ast.literal_eval(subjectData)))
+    number = 2*len(ast.literal_eval(subjectData))
+    if number == 0:
+        return str(1)
+    return str(number)
 
 def genSubjectBytes(subjectData):
+    if genSubjectBytesSize(subjectData) == str(1):
+        return 'xNone'
     subjectDataList = ast.literal_eval(subjectData)
     numberBytes = []
     for number in subjectDataList:
@@ -162,9 +172,14 @@ def genSubjectBytes(subjectData):
     return str(output)
 
 def genAuthorIDsBytesSize(authorIDsData):
-    return str(2*len(ast.literal_eval(authorIDsData)))
+    number = 2*len(ast.literal_eval(authorIDsData))
+    if number == 0:
+        return str(1)
+    return str(number)
 
 def genAuthorIDsBytes(authorIDsData):
+    if genAuthorIDsBytesSize(authorIDsData) == str(1):
+        return 'xNone'
     authorIDsDataList = ast.literal_eval(authorIDsData)
     numberBytes = []
     for number in authorIDsDataList.keys():
@@ -173,10 +188,15 @@ def genAuthorIDsBytes(authorIDsData):
     return str(output)
 
 def genAuthorsRolesBytesSize(authorRolesData):
-    return str(len(ast.literal_eval(authorRolesData)))
+    number = len(ast.literal_eval(authorRolesData))
+    if number == 0:
+        return str(1)
+    return str(number)
 
 def genAuthorsRolesBytes(authorRolesData):
     authorRolesDataList = ast.literal_eval(authorRolesData)
+    if len(authorRolesDataList) == 0:
+        return 'xNone'
     numberBytes = []
     for number in authorRolesDataList.values():
         numberBytes.append(number.to_bytes(1, byteorder='big', signed=False))
