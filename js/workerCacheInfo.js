@@ -17,18 +17,18 @@ if( 'function' === typeof importScripts) {
 
 function loadInfo(tag, ID){
 	loadInfoAddress(tag, ID, false).then(function(res){
-		promisedInfo = loadData(tag, ID, false);
-		promiseInfo.then(function(values){
+		var promisedInfo = loadData(tag, ID, false);
+		promisedInfo.then(function(values){
 			if(tag == 'b'){
-				self.postMessage([[bookID, 'infoAddress', res], [bookID, 'title', values[0]], [bookID, 'language', values[1]], [bookID, 'size', values[2]], [bookID, 'authors', values[3]], [bookID, 'authorRoles', values[5]], [bookID, 'authorIDs', values[6]]]);
+				self.postMessage([[ID, 'infoAddress', res], [ID, 'title', values[0]], [ID, 'language', values[1]], [ID, 'size', values[2]], [ID, 'authors', values[3]], [ID, 'authorRoles', values[5]], [ID, 'authorIDs', values[6]]]);
 			}
 			else if(tag =='a'){
 				//do author stuff here
 			}
 		}).catch(function(error){
-			self.postMessage(error.toString());
+			self.postMessage([error.toString(), ID]);
 		});
 	}).catch(function(error){
-		self.postMessage(error.toString());
+		self.postMessage([error.toString(), ID]);
 	});
 }

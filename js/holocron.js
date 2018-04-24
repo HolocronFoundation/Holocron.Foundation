@@ -11,8 +11,6 @@ if (typeof window !== 'undefined'){
 
 var web3;
 
-var skipCache = [];
-
 var activeBookIDs = [];
 
 function loadLibraryContractABI() {
@@ -486,7 +484,6 @@ function removeEntry(ID){
 		if(entry != undefined){
 			entry.remove()
 		}
-		skipCache.push(ID);
 	}
 }
 
@@ -559,6 +556,12 @@ function searchBooks(){
 	searchLocalStorage(searchValue, booksList);
 }
 
+async function loadAuthorBooks(ID){
+	activeBookIDs = []
+	booksList = document.getElementById("booksList");
+	searchLocalStorage((await loadVariable('a', ID, 'name', true, true)).toLowerCase(), booksList);
+}
+
 function populateRandomContent(loadItems, maxIndex) {
 	populateList = document.getElementById("booksList");
 	var randomArray = genUniqueRandomNumberArray(loadItems, maxIndex);
@@ -626,42 +629,47 @@ function checkIfCached(tag, ID){
 	if(localItem == 'true'){
 		return true;
 	}
-	else if (skipCache.includes(ID)){
-		return true;
-	}
 	return false;
 }
 
-function workerCacheBooks(maxIndexNumber, existingWorker=null){
-	var randomnumber = Math.floor(Math.random()*maxIndexNumber+1);
-	if(!checkIfCached('b', randomnumber)){
-		if(existingWorker==null){
-			existingWorker = new Worker('./js/workerCacheInfo.js');
-			existingWorker.onmessage = function(e){
-				logData = e.data;
-				for(var i = 0; i<logData.length; i++){
-					//console.log("loc2")
-					//console.log(logData);
-					if((typeof(logData[i][1]) !== 'undefined') && (logData != "Error: Couldn't decode bytes from ABI: 0x")){
-						storeInfo('b', logData[i][0], logData[i][1], logData[i][2]);
-					}
-				}
-				if(Array.isArray(logData)){
-					storeInfo('b', logData[0][0], 'basicInfo', true);
-				}
-				if(logData != 'Error: Invalid JSON RPC response: ""'){
-					setTimeout(workerCacheBooks(maxIndexNumber, existingWorker), 3000);
+function workerCacheBooks(maxIndexNumber, existingWorker=null, skipCache = []){
+	if(existingWorker==null){
+		existingWorker = new Worker('./js/workerCacheInfo.js');
+		existingWorker.onmessage = function(e){
+			logData = e.data;
+			if(typeof logData[0] == 'string'){
+				removeEntry(logData[1]);
+				skipCache.push(logData[1]);
+				if(logData[0] != 'Error: Invalid JSON RPC response: ""'){
+					setTimeout(workerCacheBooks(maxIndexNumber, existingWorker, skipCache), 3000);
 				}
 				else{
 					console.log("Error connecting workers to a web3 endpoint. Stopping cacheing now...");
 					existingWorker.terminate();
 				}
 			}
+			else{
+				for(var i = 0; i<logData.length; i++){
+					//console.log("loc2")
+					//console.log(logData);
+					if(typeof(logData[i][1]) !== 'undefined'){
+						storeInfo('b', logData[i][0], logData[i][1], logData[i][2]);
+					}
+				}
+				if(Array.isArray(logData)){
+					storeInfo('b', logData[0][0], 'basicInfo', true);
+				}
+				setTimeout(workerCacheBooks(maxIndexNumber, existingWorker, skipCache), 3000);
+			}
 		}
+	}
+	var randomnumber = Math.floor(Math.random()*maxIndexNumber+1);
+	if(!checkIfCached('b', randomnumber) && !skipCache.includes(randomnumber)){
 		existingWorker.postMessage(randomnumber);
 	}
 	else{
-		workerCacheBooks(maxIndexNumber, existingWorker);
+		// need to stop worker here if everything has been cached
+		workerCacheBooks(maxIndexNumber, existingWorker, skipCache);
 	}
 }
 

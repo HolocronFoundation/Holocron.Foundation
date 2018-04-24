@@ -24,18 +24,20 @@
 				<li class="navbar reincarnationline"><a href="./reincarnationline.html">Reincarnati.online</a></li>
 			</ul>
 			<div id="smallTitle" class="center">
-				<h2 class="name"><img class="logosmall" src="img/LibraryLogoClearBG.png" alt="♢"/> Library</h2>
+				<h2 class="name"><a href="./library.html"><img class="logosmall" src="img/LibraryLogoClearBG.png" alt="♢"/> Library</a></h2>
 			</div>
 			<div id="search" class="center" >
-				<form action="/action_page.php">
+				<form action="javascript:searchBooks()">
 					<input type="text" id="searchBar" placeholder="Search for a text">
 					<button type="submit">Search</button>
 				</form>
 			</div>
 		</header>
 		<div id="content" class="library">
-			<div id="fullAuthorInfo" class="">
+			<div id="fullAuthorInfo">
 			</div>
+			<ul id="booksList">
+			</ul>
 		</div>
 		<footer class="center library">
 			<p>♢ <a href="./about.html">About</a> ♢ <a href="./home.html">Holocron.Foundation</a> ♢ <a href="./donate.html">Donate</a> ♢</p>
@@ -44,8 +46,9 @@
 </body>
 <script>
 	function start(){
-		document.getElementById("content").innerHTML = '<div id="fullAuthorInfo" name="' + activeID + '"></div>';
+		document.getElementById("fullAuthorInfo").innerHTML = '<div id="fullAuthorInfo" name="' + activeID + '"></div>';
 		loadInfoBox('a', activeID);
+		loadAuthorBooks(activeID);
 	}
 </script>
 </html>
