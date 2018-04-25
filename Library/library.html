@@ -36,7 +36,7 @@
 			</ul>
 			<div id="pageNavigation" class="center">
 				<div id="nextButton">
-					<form action="javascript:nextPage()" class="center">
+					<form action="javascript:goToPage(currentPage+1);" class="center">
 						<button type="submit">Next Page</button>
 					</form>
 				</div>
@@ -51,6 +51,8 @@
 	function start(){
 		
 		if(currentPage == null){
+			currentPage = 0;
+			currentPageType = 'r';
 			populateRandomContent();
 		}
 		else{

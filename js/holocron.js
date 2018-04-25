@@ -24,7 +24,7 @@ var maxIndex = 50;
 
 //Add to option page later
 
-var maxEntries = 20;
+var maxEntries = 5;
 
 function loadLibraryContractABI() {
 	return [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "getBookAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 672}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 21976}, {"name": "getAuthorAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "authorID"}], "constant": true, "payable": false, "type": "function", "gas": 732}, {"name": "addAuthor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "authorAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22036}, {"name": "getSubjectAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "subjectID"}], "constant": true, "payable": false, "type": "function", "gas": 792}, {"name": "getLoCAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "LoCID"}], "constant": true, "payable": false, "type": "function", "gas": 822}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22280}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41411}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41386}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22039}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 6101}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4781}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1060}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 873}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 903}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1122}, {"name": "authors", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1152}, {"name": "subjects", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1182}, {"name": "LoC", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1212}];
@@ -166,13 +166,6 @@ function setupWeb3() {
 	}
 	libraryContract = new result.eth.Contract(loadLibraryContractABI(), libraryAddress);
 	return result;
-}
-
-function loadBookInfoBoxes(){
-	var elements = document.getElementsByClassName("bookInfo");
-	for (var i = 0; i < elements.length; i++){
-		loadInfoBox('b', parseInt(elements[i].getAttribute("name")));
-	}
 }
 
 function getAuthors(bookID, localStorageAccess=true){
@@ -589,25 +582,18 @@ async function loadAuthorBooks(ID){
 }
 
 function populateRandomContent() {
-	currentPage = 0;
-	currentPageType = 'r';
-	populateList = document.getElementById("booksList");
-	var randomArray = genUniqueRandomNumberArray(maxEntries, maxIndex);
-	for (var i = 0; i < randomArray.length; i++){
-		pageBooks[currentPage].push(randomArray[i]);
-		populateList.innerHTML += '<li class="bookInfo" name="' + randomArray[i] + '"></li>';
+	for(var i = 0; i < maxEntries; i++){
+		addRandomEntry()
 	}
-	loadBookInfoBoxes();
 }
 
 function loadBooksByPage(){
 	populateList = document.getElementById("booksList");
 	var pageArray = pageBooks[currentPage];
 	for (var i = 0; i < pageArray.length; i++){
-		pageBooks[currentPage].push(pageArray[i]);
 		populateList.innerHTML += '<li class="bookInfo" name="' + pageArray[i] + '"></li>';
+		loadInfoBox('b', pageArray[i]);
 	}
-	loadBookInfoBoxes();
 }
 
 function genUniqueRandomNumberArray(arrayLength, max){
@@ -777,23 +763,51 @@ function getPageName(){
 	return window.location.pathname.split("/").pop();
 }
 
-function nextPage(){
-	var nextButton = document.getElementById("nextButton");
-	var mycontent = document.createElement("div");
-	mycontent.appendChild(document.createTextNode("Fuck"));
-	nextButton.parentNode.insertBefore(mycontent, nextButton);
-	if(currentPage == 0){
+function goToPage(page){
+	if(page == 0){
+		//Removes back button
+		var backButton = document.getElementById("backButton");
+		if(backButton != null){
+			backButton.parentElement.removeChild(backButton);
+		}
+	}
+	else if(currentPage == 0){
+		//Adds back button
 		var backButton = document.createElement("div");
+		backButton.id = "backButton";
+		var backForm = document.createElement('form');
+		backForm.action = 'javascript:goToPage(currentPage-1);'
+		var button = document.createElement("button")
+		button.type = 'submit'
+		button.appendChild(document.createTextNode("Last Page"))
+		backForm.appendChild(button);
+		backButton.appendChild(backForm);
+		var pageNavigation = document.getElementById("pageNavigation");
+		pageNavigation.insertBefore(backButton, pageNavigation.firstChild);
 	}
 	
-	//check if higher element exists, if not then add this page link
+	if(page > pageBooks.length-1){
+		//Adds a link to generated pages
+		var nextButton = document.getElementById("nextButton");
+		var mycontent = document.createElement("div");
+		var a = document.createElement('a');
+		var nextPage = currentPage +1;
+		a.href = 'javascript:goToPage(' + currentPage + ');';
+		a.title = nextPage;
+		a.appendChild(document.createTextNode(nextPage));
+		mycontent.appendChild(a);
+		nextButton.parentNode.insertBefore(mycontent, nextButton);
+		pageBooks.push([]);
+	}
 	
-	//add a clickable link to the prior page
-	//load next page
-}
-
-function lastPage(){
-	if(currentPage == 1){
-		//remove last page button
+	currentPage = page;
+	populateList = document.getElementById("booksList");
+	populateList.innerHTML = '';
+	
+	if(pageBooks[page].length > 0){
+		loadBooksByPage();
+	}
+	else if(currentPageType == 'r'){
+		populateRandomContent();
 	}
 }

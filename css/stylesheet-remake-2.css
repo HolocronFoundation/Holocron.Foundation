@@ -59,6 +59,8 @@ Darkest
 
 #pageNavigation div {
 	display: inline-block;
+	margin-left: .25vw;
+	margin-right: .25vw;
 }
 
 /* Displays search settings on a line */
