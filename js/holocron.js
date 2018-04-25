@@ -318,10 +318,11 @@ function loadInfoBox(tag, ID){
 				newHTML += '<p><a href="javascript:donate(' + ID + ');">Donate with Ξ</a></p>';
 
 				//Other donate
-				newHTML += '<p><a href="./donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
+				newHTML += '<p><a href="../donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
 
 				infoItem = document.getElementsByName(ID.toString())[0];
 				infoItem.innerHTML = newHTML;
+				infoItem.className = infoItem.className + ' loaded';
 				storeInfo(tag, ID, 'basicInfo', true);
 			}
 			else if(tag =='a'){
