@@ -596,6 +596,7 @@ function calculateStorageCost(size, gasPrice) {
 function searchBooks(){
 	pageBooks = [[]];
 	currentPage = 0;
+	displayNextButton(true);
 	
 	//clear page indicators here
 	
@@ -623,6 +624,9 @@ function populateRandomContent() {
 function loadBooksByPage(){
 	populateList = document.getElementById("booksList");
 	var pageArray = pageBooks[currentPage];
+	if(pageArray.length < maxEntries){
+		displayNextButton(false);
+	}
 	for (var i = 0; i < pageArray.length; i++){
 		populateList.innerHTML += '<li class="bookInfo" name="' + pageArray[i] + '"></li>';
 		loadInfoBox('b', pageArray[i]);
@@ -705,6 +709,10 @@ function searchLocalStorage(searchString, booksList, start=0, clearSection=false
 	}
 	else{
 		if(retries < 10){
+			//Hides the next button if there are not enough entries on this page
+			if(pageBooks[currentPage].length < maxEntries){
+				displayNextButton(false);
+			}
 			if(pageBooks[currentPage].length == 0){
 				booksList.innerHTML = '<p class="center">No results found!<br>We\'ll try checking again in a few seconds!</p>';
 				setTimeout(function(){searchLocalStorage(searchString, booksList, 0, true, retries+1);}, 250);
@@ -827,29 +835,35 @@ function getPageName(){
 	return window.location.pathname.split("/").pop();
 }
 
+function displayNextButton(yeaOrNo){
+	var nextButton = document.getElementById("nextButton");
+	if(yeaOrNo){
+		nextButton.style.display = "inline-block";
+	}
+	else{
+		nextButton.style.display = "none";
+	}
+}
+
+function displayBackButton(yeaOrNo){
+	var backButton = document.getElementById("backButton");
+	if(yeaOrNo){
+		backButton.style.display = "inline-block";
+	}
+	else{
+		backButton.style.display = "none";
+	}
+}
+
 function goToPage(page){
 	if(page == 0){
 		//Removes back button
-		var backButton = document.getElementById("backButton");
-		if(backButton != null){
-			backButton.parentElement.removeChild(backButton);
-		}
+		displayBackButton(false);
 	}
-	else if(currentPage == 0){
-		//Adds back button
-		var backButton = document.createElement("div");
-		backButton.id = "backButton";
-		var backForm = document.createElement('form');
-		backForm.action = 'javascript:goToPage(currentPage-1);'
-		var button = document.createElement("button")
-		button.type = 'submit'
-		button.appendChild(document.createTextNode("Last Page"))
-		backForm.appendChild(button);
-		backButton.appendChild(backForm);
-		var pageNavigation = document.getElementById("pageNavigation");
-		pageNavigation.insertBefore(backButton, pageNavigation.firstChild);
+	else{
+		displayBackButton(true);
 	}
-	
+
 	if(page > pageBooks.length-1){
 		//Adds a link to generated pages
 		var nextButton = document.getElementById("nextButton");
@@ -863,6 +877,8 @@ function goToPage(page){
 		nextButton.parentNode.insertBefore(mycontent, nextButton);
 		pageBooks.push([]);
 	}
+	
+	displayNextButton(true);
 	
 	currentPage = page;
 	populateList = document.getElementById("booksList");

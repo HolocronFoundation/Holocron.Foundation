@@ -35,6 +35,11 @@
 			<ul id="booksList">
 			</ul>
 			<div id="pageNavigation" class="center">
+				<div id="backButton" style="display: none;">
+					<form action="javascript:goToPage(currentPage-1);" class="center">
+						<button type="submit">Last Page</button>
+					</form>
+				</div>
 				<div id="nextButton">
 					<form action="javascript:goToPage(currentPage+1);" class="center">
 						<button type="submit">Next Page</button>
