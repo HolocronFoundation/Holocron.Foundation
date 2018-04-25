@@ -82,9 +82,34 @@ function deployContract(index){
 		.on('error', function(error){ console.log('Error: ' + error); })
 		.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
 		.on('receipt', function(receipt){
-			console.log('Id: ' + deploymentArr[index][0] + ', Address: ' + receipt.contractAddress); updateContract(receipt.contractAddress); //Got to here then dead...
+			console.log('Id: ' + deploymentArr[index][0] + ', Address: ' + receipt.contractAddress);
+			updateContract(receipt.contractAddress, fileIndex); //Got to here then dead...
 		});
 	});
+}
+
+function updateContract(address, fileIndex){
+	if (index != zbFiles.length) {
+		web3.eth.personal.unlockAccount(_senderAddress, _password);
+		var currentCall = parentContract.methods.addAuthor(deployedArr[index][0], deployedArr[index][1]);
+		var gasEstimate;
+		currentCall.estimateGas({from: _senderAddress}, function(err, gas){
+			console.log('Gas Estimate: ' + gas);
+			gasEstimate = gas;
+		}).then(function(){
+			currentCall.send({from: _senderAddress, gas: gasEstimate})
+			.on('error', function(error){ console.log('Error: ' + error); })
+			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
+			.on('receipt', function(receipt){
+				console.log('Logged author with id: ' + deployedArr[index][0] + ', at address: ' + deployedArr[index][1]);
+				updated += 1;
+			})
+			updateLibrary(index + 1, parentContract);
+		});
+	}
+	else {
+		waitThenDone();
+	}
 }
 
 function waitThenUpdate(){

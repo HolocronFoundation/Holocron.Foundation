@@ -11,6 +11,9 @@ if( 'function' === typeof importScripts) {
 	libraryContract = new web3.eth.Contract(loadLibraryContractABI(), libraryAddress);
 	self.addEventListener('message', function(e){
 		var bookID = e.data;
+		if(e.data instanceof Web3){
+			web3 = e.data;
+		}
 		loadInfo('b', bookID);
 	});
 }

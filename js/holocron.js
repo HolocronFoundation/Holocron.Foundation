@@ -14,6 +14,8 @@ var currentPageType = null;
 
 var pageBooks = [[]];
 
+var searchValue;
+
 //Need to add account refreshing
 
 var web3;
@@ -157,10 +159,12 @@ function setupWeb3() {
 	
 	if (typeof web3 !== 'undefined') {
 		thirdPartyProvider = true;
+		console.log('Using users web3!')
 		result = new Web3(web3.currentProvider); //If you already have a web3 provider (e.g. metamask) uses that
 	}
 	else {
 		thirdPartyProvider = false;
+		console.log('Using our web3. :( Check out Metamask or Mist.')
 		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //sets us as the provider
 		//To do: Disable donation without an external provider
 	}
@@ -236,6 +240,7 @@ function loadData(tag, ID, useCache=true){
 		promiseData.push(loadVariable(tag, ID, 'donations', false));
 		promiseData.push(getAuthorRoles(ID, useCache));
 		promiseData.push(loadVariable(tag, ID, 'authorIDs', useCache));
+		promiseData.push(loadVariable(tag, ID, 'uploaded', false))
 	}
 	else if(tag == 'a'){
 		promiseData.push(loadVariable(tag, ID, 'name', useCache, true));
@@ -259,6 +264,7 @@ function loadInfoBox(tag, ID){
 				var donationsETH = web3.utils.fromWei(values[4].toString(), "ether");
 				var authorRolesIDArray = values[5];
 				var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
+				var uploaded = values[7];
 				
 				
 				//Title
@@ -310,12 +316,30 @@ function loadInfoBox(tag, ID){
 
 				//View text
 				newHTML += '<p class="textLink"><a href="./text.html?bookID=' + ID.toString() + '">View the text</a></p>';
-
-				//Donation meter
-				newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
-
-				//Donation stats
-				newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
+				
+				if(uploaded){
+					newHTML += '<p>This text has been uploaded to the blockchain. Donations may still be made in the name of the text.</p>';
+					
+					//Donation stats
+					newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
+					
+				}
+				else{
+					newHTML += '<p>This text is <b>not</b> yet uploaded to the blockchain.</p>';
+					
+					if(donationsETH > web3.utils.fromWei(gweiStorageCost.toString(), "ether")){
+						newHTML += '<p>Enough donations have been recieved to upload the text to the blockchain!<br>It will be available shortly. Donations may still be made in the name of the text.</p>'
+						
+						newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
+					}
+					else{
+						//Donation meter
+						newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
+						
+						//Donation stats
+						newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
+					}
+				}
 
 				//Donation slider
 				newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
@@ -566,10 +590,13 @@ function calculateStorageCost(size, gasPrice) {
 function searchBooks(){
 	pageBooks = [[]];
 	currentPage = 0;
+	
+	//clear page indicators here
+	
 	currentPageType = 's';
 	booksList = document.getElementById("booksList");
 	booksList.innerHTML = '';
-	var searchValue = document.getElementById("searchBar").value.toLowerCase();
+	searchValue = document.getElementById("searchBar").value.toLowerCase();
 	searchLocalStorage(searchValue, booksList);
 }
 
@@ -640,11 +667,11 @@ function insertParameter(key, value, state=null){
 	window.history.pushState(state, document.title, url);
 }
 
-function searchLocalStorage(searchString, booksList, start=0){
+function searchLocalStorage(searchString, booksList, start=0, clearSection=false){
 	//currently only searches for books
 	localStorageString = JSON.stringify(localStorage).toLowerCase();
 	nextIndex = localStorageString.indexOf(searchString, start);
-	if(nextIndex != -1){
+	if(nextIndex != -1 && pageBooks[currentPage].length < maxEntries){
 		//Add item to result box
 		var lastAuthorTag = localStorageString.lastIndexOf('<a', nextIndex);
 		var lastBookTag = localStorageString.lastIndexOf('<b', nextIndex);
@@ -652,19 +679,32 @@ function searchLocalStorage(searchString, booksList, start=0){
 		if(lastBookTag > lastAuthorTag){
 			var endOfBookTag = localStorageString.indexOf('>', lastBookTag);
 			var ID = localStorageString.slice(lastBookTag+2,endOfBookTag);
-			if(!pageBooks[currentPage].includes(ID)){
+			var j = 0;
+			while(j < pageBooks.length && !pageBooks[j].includes(ID)){
+				j++;
+			}
+			if(j == pageBooks.length){
 				var endOfBookTag = localStorageString.indexOf('>', lastBookTag);
+				if(clearSection){
+					booksList.innerHTML = '';
+					clearSection = true;
+				}
 				booksList.innerHTML += '<li class="bookInfo" name="' + ID + '"></li>';
 				pageBooks[currentPage].push(ID);
 				loadInfoBox('b', parseInt(ID));
 			}
 		}
 		
-		searchLocalStorage(searchString, booksList, nextIndex+1);
+		searchLocalStorage(searchString, booksList, nextIndex+1, clearSection);
 	}
 	else{
 		if(pageBooks[currentPage].length == 0){
-			booksList.innerHTML = '<p class="center">No results found!</p>'; 
+			booksList.innerHTML = '<p class="center">No results found!<br>We\'ll try checking again in a few seconds!</p>';
+			//Add search again
+			setTimeout(searchLocalStorage(searchString, booksList, start, true), 2000);
+		}	
+		else if(pageBooks[currentPage].length < maxEntries){
+			setTimeout(searchLocalStorage(searchString, booksList, start, clearSection), 2000);
 		}
 	}
 }
@@ -686,7 +726,9 @@ function workerCacheBooks(existingWorker=null, skipCache = []){
 			logData = e.data;
 			if(typeof logData[0] == 'string'){
 				removeEntry(logData[1]);
-				skipCache.push(logData[1]);
+				if(!skipCache.includes(logData[1])){
+					skipCache.push(logData[1]);
+				}
 				if(logData[0] != 'Error: Invalid JSON RPC response: ""'){
 					setTimeout(workerCacheBooks(maxIndex, existingWorker, skipCache), 3000);
 				}
@@ -710,42 +752,53 @@ function workerCacheBooks(existingWorker=null, skipCache = []){
 			}
 		}
 	}
+	
 	var randomnumber = Math.floor(Math.random()*maxIndex+1);
-	if(!checkIfCached('b', randomnumber) && !skipCache.includes(randomnumber)){
-		existingWorker.postMessage(randomnumber);
+	if(!skipCache.includes(randomnumber)){
+		if(checkIfCached('b', randomnumber)){
+			skipCache.push(randomnumber);
+			workerCacheBooks(existingWorker, skipCache);
+		}
+		else{
+			existingWorker.postMessage(randomnumber);
+		}
 	}
 	else{
-		// need to stop worker here if everything has been cached
-		workerCacheBooks(existingWorker, skipCache);
+		if(skipCache.length < maxIndex){
+			setTimeout(workerCacheBooks(existingWorker, skipCache), 100);
+		}
+		else{
+			console.log('Cached all books...');
+		}
 	}
 }
 
-function mainCacheBooks(){
+function mainCacheBooks(skipCache = []){
 	var randomnumber = Math.floor(Math.random()*maxIndex+1);
-	loadInfoAddress('b', bookID)
-	.then(function(res){
-		var titlePromise = loadVariable('b', bookID, 'title', true, true);
-		var langPromise = loadVariable('b', bookID, 'language', true, true);
-		var sizePromise = loadVariable('b', bookID, 'size');
-		var authorPromise = getAuthors(bookID);
-		var weiPromise = loadVariable('b', bookID, 'donations', false);
-		var authorRolePromise = getAuthorRoles(bookID);
-		var authorIDsPromise = loadVariable('b', bookID, 'authorIDs');
-		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise])
-		.then(function(){
-			storeInfo('b', bookID, 'basicInfo', true);
-			mainCacheBooks();
-		}).catch(function(error){
-			console.log('Fick');
-			console.log(error);
-			mainCacheBooks();
-		});
-	})
-	.catch(function(error){
-		console.log('Fuck');
-		console.log(error);
-		mainCacheBooks();
-	});
+	if(!skipCache.includes(randomnumber)){
+		if(checkIfCached('b', randomnumber)){
+			skipCache.push(randomnumber);
+			mainCacheBooks(skipCache);
+		}
+		else{
+			loadData('b', randomnumber)
+			.then(function(res){
+				storeInfo('b', randmnumber, 'basicInfo', true);
+				setTimeout(mainCacheBooks(skipCache), 500);
+			}).catch(function(error){
+				skipCache.push(randomnumber);
+				setTimeout(mainCacheBooks(skipCache), 500);
+			});
+		}
+	}
+	else{
+		if(skipCache.length < maxIndex){
+			setTimeout(mainCacheBooks(skipCache), 100);
+		}
+		else{
+			console.log('Cached all books...');
+		}
+	}
 }
 
 function cacheBooks(workerThreads) {
@@ -754,9 +807,7 @@ function cacheBooks(workerThreads) {
 			workerCacheBooks();
 		}
 	}
-	else {
-		mainCacheBooks()
-	}
+	mainCacheBooks();
 }
 
 function getPageName(){
@@ -809,5 +860,8 @@ function goToPage(page){
 	}
 	else if(currentPageType == 'r'){
 		populateRandomContent();
+	}
+	else if(currentPageType == 's'){
+		searchLocalStorage(searchValue, populateList);
 	}
 }
