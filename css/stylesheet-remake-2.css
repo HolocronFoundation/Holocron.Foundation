@@ -55,6 +55,18 @@ Darkest
 	flex: 2;
 }
 
+/* Displays next page stuff on a line */
+
+#pageNavigation div {
+	display: inline-block;
+}
+
+/* Displays search settings on a line */
+
+#searchSettings div {
+	display: inline-block;
+}
+
 /* Adds original line breaks to titles */
 
 .title {

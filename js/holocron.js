@@ -7,11 +7,24 @@ if (typeof window !== 'undefined'){
 	});
 }
 
+var currentPage = null;
+
+//r = random, a = author, s = search
+var currentPageType = null;
+
+var pageBooks = [[]];
+
 //Need to add account refreshing
 
 var web3;
 
-var activeBookIDs = [];
+//Consider adding maxIndex to library contract?
+
+var maxIndex = 50;
+
+//Add to option page later
+
+var maxEntries = 20;
 
 function loadLibraryContractABI() {
 	return [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "getBookAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 672}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 21976}, {"name": "getAuthorAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "authorID"}], "constant": true, "payable": false, "type": "function", "gas": 732}, {"name": "addAuthor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "authorAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22036}, {"name": "getSubjectAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "subjectID"}], "constant": true, "payable": false, "type": "function", "gas": 792}, {"name": "getLoCAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "LoCID"}], "constant": true, "payable": false, "type": "function", "gas": 822}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22280}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41411}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41386}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22039}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 6101}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4781}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1060}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 873}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 903}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1122}, {"name": "authors", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1152}, {"name": "subjects", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1182}, {"name": "LoC", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1212}];
@@ -319,10 +332,11 @@ function loadInfoBox(tag, ID){
 
 				//Other donate
 				newHTML += '<p><a href="../donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
-
+				
 				infoItem = document.getElementsByName(ID.toString())[0];
 				infoItem.innerHTML = newHTML;
 				infoItem.className = infoItem.className + ' loaded';
+				
 				storeInfo(tag, ID, 'basicInfo', true);
 			}
 			else if(tag =='a'){
@@ -483,7 +497,14 @@ function removeEntry(ID){
 	if((typeof(document) !== "undefined") && (document != null)){
 		entry = document.getElementsByName(ID.toString())[0];
 		if(entry != undefined){
+			index = pageBooks[currentPage].indexOf(ID);
+			if(ID > -1){
+				pageBooks[currentPage].splice(index, 1);
+			}
 			entry.remove()
+			if(currentPage != null && currentPageType == 'r'){
+				addRandomEntry();
+			}
 		}
 	}
 }
@@ -550,7 +571,9 @@ function calculateStorageCost(size, gasPrice) {
 }
 
 function searchBooks(){
-	activeBookIDs = []
+	pageBooks = [[]];
+	currentPage = 0;
+	currentPageType = 's';
 	booksList = document.getElementById("booksList");
 	booksList.innerHTML = '';
 	var searchValue = document.getElementById("searchBar").value.toLowerCase();
@@ -558,17 +581,31 @@ function searchBooks(){
 }
 
 async function loadAuthorBooks(ID){
-	activeBookIDs = []
+	pageBooks = [[]];
+	currentPage = 0;
+	currentPageType = 'a';
 	booksList = document.getElementById("booksList");
 	searchLocalStorage((await loadVariable('a', ID, 'name', true, true)).toLowerCase(), booksList);
 }
 
-function populateRandomContent(loadItems, maxIndex) {
+function populateRandomContent() {
+	currentPage = 0;
+	currentPageType = 'r';
 	populateList = document.getElementById("booksList");
-	var randomArray = genUniqueRandomNumberArray(loadItems, maxIndex);
+	var randomArray = genUniqueRandomNumberArray(maxEntries, maxIndex);
 	for (var i = 0; i < randomArray.length; i++){
-		activeBookIDs.push(randomArray[i]);
+		pageBooks[currentPage].push(randomArray[i]);
 		populateList.innerHTML += '<li class="bookInfo" name="' + randomArray[i] + '"></li>';
+	}
+	loadBookInfoBoxes();
+}
+
+function loadBooksByPage(){
+	populateList = document.getElementById("booksList");
+	var pageArray = pageBooks[currentPage];
+	for (var i = 0; i < pageArray.length; i++){
+		pageBooks[currentPage].push(pageArray[i]);
+		populateList.innerHTML += '<li class="bookInfo" name="' + pageArray[i] + '"></li>';
 	}
 	loadBookInfoBoxes();
 }
@@ -584,6 +621,22 @@ function genUniqueRandomNumberArray(arrayLength, max){
 	return arr;
 }
 
+function addRandomEntry(){
+	var randomNumber = Math.floor(Math.random()*maxIndex);
+	var i = 0;
+	while(i < pageBooks.length){
+		if(pageBooks[i].indexOf(randomNumber) != -1){
+			i = 0;
+			randomNumber = Math.floor(Math.random()*maxIndex);
+		}
+		i++;
+	}
+	populateList = document.getElementById("booksList");
+	pageBooks[currentPage].push(randomNumber);
+	populateList.innerHTML += '<li class="bookInfo" name="' + randomNumber + '"></li>';
+	loadInfoBox('b', randomNumber);
+}
+
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
     name = name.replace(/[\[\]]/g, "\\$&");
@@ -592,6 +645,13 @@ function getParameterByName(name, url) {
     if (!results) return null;
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+function insertParameter(key, value, state=null){
+	var searchParams = new URLSearchParams(window.location.search);
+    searchParams.set(key, value);
+	var url = window.location.pathname + '?' + searchParams.toString();
+	window.history.pushState(state, document.title, url);
 }
 
 function searchLocalStorage(searchString, booksList, start=0){
@@ -606,10 +666,10 @@ function searchLocalStorage(searchString, booksList, start=0){
 		if(lastBookTag > lastAuthorTag){
 			var endOfBookTag = localStorageString.indexOf('>', lastBookTag);
 			var ID = localStorageString.slice(lastBookTag+2,endOfBookTag);
-			if(!activeBookIDs.includes(ID)){
+			if(!pageBooks[currentPage].includes(ID)){
 				var endOfBookTag = localStorageString.indexOf('>', lastBookTag);
 				booksList.innerHTML += '<li class="bookInfo" name="' + ID + '"></li>';
-				activeBookIDs.push(ID);
+				pageBooks[currentPage].push(ID);
 				loadInfoBox('b', parseInt(ID));
 			}
 		}
@@ -617,7 +677,7 @@ function searchLocalStorage(searchString, booksList, start=0){
 		searchLocalStorage(searchString, booksList, nextIndex+1);
 	}
 	else{
-		if(activeBookIDs.length == 0){
+		if(pageBooks[currentPage].length == 0){
 			booksList.innerHTML = '<p class="center">No results found!</p>'; 
 		}
 	}
@@ -633,7 +693,7 @@ function checkIfCached(tag, ID){
 	return false;
 }
 
-function workerCacheBooks(maxIndexNumber, existingWorker=null, skipCache = []){
+function workerCacheBooks(existingWorker=null, skipCache = []){
 	if(existingWorker==null){
 		existingWorker = new Worker('./js/workerCacheInfo.js');
 		existingWorker.onmessage = function(e){
@@ -642,7 +702,7 @@ function workerCacheBooks(maxIndexNumber, existingWorker=null, skipCache = []){
 				removeEntry(logData[1]);
 				skipCache.push(logData[1]);
 				if(logData[0] != 'Error: Invalid JSON RPC response: ""'){
-					setTimeout(workerCacheBooks(maxIndexNumber, existingWorker, skipCache), 3000);
+					setTimeout(workerCacheBooks(maxIndex, existingWorker, skipCache), 3000);
 				}
 				else{
 					console.log("Error connecting workers to a web3 endpoint. Stopping cacheing now...");
@@ -660,22 +720,22 @@ function workerCacheBooks(maxIndexNumber, existingWorker=null, skipCache = []){
 				if(Array.isArray(logData)){
 					storeInfo('b', logData[0][0], 'basicInfo', true);
 				}
-				setTimeout(workerCacheBooks(maxIndexNumber, existingWorker, skipCache), 3000);
+				setTimeout(workerCacheBooks(maxIndex, existingWorker, skipCache), 3000);
 			}
 		}
 	}
-	var randomnumber = Math.floor(Math.random()*maxIndexNumber+1);
+	var randomnumber = Math.floor(Math.random()*maxIndex+1);
 	if(!checkIfCached('b', randomnumber) && !skipCache.includes(randomnumber)){
 		existingWorker.postMessage(randomnumber);
 	}
 	else{
 		// need to stop worker here if everything has been cached
-		workerCacheBooks(maxIndexNumber, existingWorker, skipCache);
+		workerCacheBooks(existingWorker, skipCache);
 	}
 }
 
-function mainCacheBooks(maxIndexNumber){
-	var randomnumber = Math.floor(Math.random()*maxIndexNumber+1);
+function mainCacheBooks(){
+	var randomnumber = Math.floor(Math.random()*maxIndex+1);
 	loadInfoAddress('b', bookID)
 	.then(function(res){
 		var titlePromise = loadVariable('b', bookID, 'title', true, true);
@@ -688,32 +748,52 @@ function mainCacheBooks(maxIndexNumber){
 		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise])
 		.then(function(){
 			storeInfo('b', bookID, 'basicInfo', true);
-			mainCacheBooks(maxIndexNumber);
+			mainCacheBooks();
 		}).catch(function(error){
 			console.log('Fick');
 			console.log(error);
-			mainCacheBooks(maxIndexNumber);
+			mainCacheBooks();
 		});
 	})
 	.catch(function(error){
 		console.log('Fuck');
 		console.log(error);
-		mainCacheBooks(maxIndexNumber);
+		mainCacheBooks();
 	});
 }
 
-//Consider adding maxIndex to library contract?
-function cacheBooks(maxIndexNumber, workerThreads) {
+function cacheBooks(workerThreads) {
 	if (window.Worker) {
 		for(var i = 0; i < workerThreads; i++){
-			workerCacheBooks(maxIndexNumber);
+			workerCacheBooks();
 		}
 	}
 	else {
-		mainCacheBooks(maxIndexNumber)
+		mainCacheBooks()
 	}
 }
 
 function getPageName(){
 	return window.location.pathname.split("/").pop();
+}
+
+function nextPage(){
+	var nextButton = document.getElementById("nextButton");
+	var mycontent = document.createElement("div");
+	mycontent.appendChild(document.createTextNode("Fuck"));
+	nextButton.parentNode.insertBefore(mycontent, nextButton);
+	if(currentPage == 0){
+		var backButton = document.createElement("div");
+	}
+	
+	//check if higher element exists, if not then add this page link
+	
+	//add a clickable link to the prior page
+	//load next page
+}
+
+function lastPage(){
+	if(currentPage == 1){
+		//remove last page button
+	}
 }
