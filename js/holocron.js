@@ -14,6 +14,10 @@ var currentPageType = null;
 
 var pageBooks = [[]];
 
+var skipCache = [];
+
+var badID = [];
+
 var searchValue;
 
 //Need to add account refreshing
@@ -515,7 +519,9 @@ function removeEntry(ID){
 		entry = document.getElementsByName(ID.toString())[0];
 		if(entry != undefined){
 			index = pageBooks[currentPage].indexOf(ID);
-			if(ID > -1){
+			if(index > -1){
+				badID.push(ID);
+				skipCache.push(ID);
 				pageBooks[currentPage].splice(index, 1);
 			}
 			entry.remove()
@@ -667,7 +673,7 @@ function insertParameter(key, value, state=null){
 	window.history.pushState(state, document.title, url);
 }
 
-function searchLocalStorage(searchString, booksList, start=0, clearSection=false){
+function searchLocalStorage(searchString, booksList, start=0, clearSection=false, retries=0){
 	//currently only searches for books
 	localStorageString = JSON.stringify(localStorage).toLowerCase();
 	nextIndex = localStorageString.indexOf(searchString, start);
@@ -678,33 +684,40 @@ function searchLocalStorage(searchString, booksList, start=0, clearSection=false
 		
 		if(lastBookTag > lastAuthorTag){
 			var endOfBookTag = localStorageString.indexOf('>', lastBookTag);
-			var ID = localStorageString.slice(lastBookTag+2,endOfBookTag);
+			var ID = parseInt(localStorageString.slice(lastBookTag+2,endOfBookTag));
 			var j = 0;
-			while(j < pageBooks.length && !pageBooks[j].includes(ID)){
+			while(j < pageBooks.length && !pageBooks[j].includes(ID) && !badID.includes(ID)){
 				j++;
 			}
 			if(j == pageBooks.length){
 				var endOfBookTag = localStorageString.indexOf('>', lastBookTag);
 				if(clearSection){
 					booksList.innerHTML = '';
-					clearSection = true;
+					clearSection = false;
 				}
 				booksList.innerHTML += '<li class="bookInfo" name="' + ID + '"></li>';
 				pageBooks[currentPage].push(ID);
-				loadInfoBox('b', parseInt(ID));
+				loadInfoBox('b', ID);
 			}
 		}
 		
-		searchLocalStorage(searchString, booksList, nextIndex+1, clearSection);
+		searchLocalStorage(searchString, booksList, nextIndex+1);
 	}
 	else{
-		if(pageBooks[currentPage].length == 0){
-			booksList.innerHTML = '<p class="center">No results found!<br>We\'ll try checking again in a few seconds!</p>';
-			//Add search again
-			setTimeout(searchLocalStorage(searchString, booksList, start, true), 2000);
-		}	
-		else if(pageBooks[currentPage].length < maxEntries){
-			setTimeout(searchLocalStorage(searchString, booksList, start, clearSection), 2000);
+		if(retries < 10){
+			if(pageBooks[currentPage].length == 0){
+				booksList.innerHTML = '<p class="center">No results found!<br>We\'ll try checking again in a few seconds!</p>';
+				setTimeout(function(){searchLocalStorage(searchString, booksList, 0, true, retries+1);}, 250);
+			}	
+			else{
+				setTimeout(function(){searchLocalStorage(searchString, booksList, 0, clearSection, retries+1);}, 250);
+			}
+		}
+		else{
+			if(booksList.innerHTML == '<p class="center">No results found!<br>We\'ll try checking again in a few seconds!</p>'){
+				booksList.innerHTML = '<p class="center">No results found!</p>';
+			}
+			console.log("Done searching!");
 		}
 	}
 }
@@ -719,7 +732,7 @@ function checkIfCached(tag, ID){
 	return false;
 }
 
-function workerCacheBooks(existingWorker=null, skipCache = []){
+function workerCacheBooks(existingWorker=null){
 	if(existingWorker==null){
 		existingWorker = new Worker('./js/workerCacheInfo.js');
 		existingWorker.onmessage = function(e){
@@ -730,7 +743,7 @@ function workerCacheBooks(existingWorker=null, skipCache = []){
 					skipCache.push(logData[1]);
 				}
 				if(logData[0] != 'Error: Invalid JSON RPC response: ""'){
-					setTimeout(workerCacheBooks(maxIndex, existingWorker, skipCache), 3000);
+					setTimeout(workerCacheBooks(maxIndex, existingWorker), 3000);
 				}
 				else{
 					console.log("Error connecting workers to a web3 endpoint. Stopping cacheing now...");
@@ -748,7 +761,7 @@ function workerCacheBooks(existingWorker=null, skipCache = []){
 				if(Array.isArray(logData)){
 					storeInfo('b', logData[0][0], 'basicInfo', true);
 				}
-				setTimeout(workerCacheBooks(maxIndex, existingWorker, skipCache), 3000);
+				setTimeout(workerCacheBooks(maxIndex, existingWorker), 3000);
 			}
 		}
 	}
@@ -757,7 +770,7 @@ function workerCacheBooks(existingWorker=null, skipCache = []){
 	if(!skipCache.includes(randomnumber)){
 		if(checkIfCached('b', randomnumber)){
 			skipCache.push(randomnumber);
-			workerCacheBooks(existingWorker, skipCache);
+			workerCacheBooks(existingWorker);
 		}
 		else{
 			existingWorker.postMessage(randomnumber);
@@ -765,7 +778,7 @@ function workerCacheBooks(existingWorker=null, skipCache = []){
 	}
 	else{
 		if(skipCache.length < maxIndex){
-			setTimeout(workerCacheBooks(existingWorker, skipCache), 100);
+			setTimeout(workerCacheBooks(existingWorker), 100);
 		}
 		else{
 			console.log('Cached all books...');
@@ -773,27 +786,27 @@ function workerCacheBooks(existingWorker=null, skipCache = []){
 	}
 }
 
-function mainCacheBooks(skipCache = []){
+function mainCacheBooks(){
 	var randomnumber = Math.floor(Math.random()*maxIndex+1);
 	if(!skipCache.includes(randomnumber)){
 		if(checkIfCached('b', randomnumber)){
 			skipCache.push(randomnumber);
-			mainCacheBooks(skipCache);
+			mainCacheBooks();
 		}
 		else{
 			loadData('b', randomnumber)
 			.then(function(res){
 				storeInfo('b', randmnumber, 'basicInfo', true);
-				setTimeout(mainCacheBooks(skipCache), 500);
+				setTimeout(mainCacheBooks(), 500);
 			}).catch(function(error){
 				skipCache.push(randomnumber);
-				setTimeout(mainCacheBooks(skipCache), 500);
+				setTimeout(mainCacheBooks(), 500);
 			});
 		}
 	}
 	else{
 		if(skipCache.length < maxIndex){
-			setTimeout(mainCacheBooks(skipCache), 100);
+			setTimeout(mainCacheBooks(), 100);
 		}
 		else{
 			console.log('Cached all books...');
