@@ -11,7 +11,6 @@ def splitZipFiles(defaultDirectory='/Users/us.tropers/Desktop/gutenbergNoSubs/')
     for path, subdirs, files in os.walk(defaultDirectory):
         for name in files:
             if fnmatch(name, '*.zip'):
-                print(name)
                 splitZipFile(name, path)
 
 
@@ -28,7 +27,7 @@ def splitZipFile(fileName, filePath):
     pathlib.Path(filePath + '/' + fileName[:-4]).mkdir(parents=True, exist_ok=True)
 
     for i in range(numberOfSplits):
-        with open(filePath + fileName[:-4] + '/zipBytes' + str(i), 'wb') as writeFile:
+        with open(filePath + fileName[:-4] + '/zipBytes' + str(i) + '.zb', 'wb') as writeFile:
             if i == numberOfSplits-1:
                 writeFile.write(zipBytes[i*8192:])
             else:

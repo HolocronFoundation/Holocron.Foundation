@@ -13,9 +13,9 @@ var _parentABI = [{"name": "Donation", "inputs": [{"type": "address", "name": "_
 
 var libraryContract = new web3.eth.Contract(_parentABI, _parentAddress);
 
-//type in file name here -------------------------------------------\
-var fileLoc = '/Users/us.tropers/Documents/GitHub/Library/zipsvyper/1/';
-//------------------------------------------------------------------/
+//type in file name here --------------------------------\
+var fileLoc = '/Users/us.tropers/Desktop/gutenbergNoSubs/1';
+//-------------------------------------------------------/
 
 //need to create files var
 var files = fs.readdirSync(fileLoc);
