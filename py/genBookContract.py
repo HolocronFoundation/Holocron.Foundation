@@ -7,7 +7,7 @@
 
 ################################################################################
 
-import csv, ast
+import csv, ast, math, os
 
 #Imports the database as a CSV.
 def importDBCSV(defaultFile='finalBooksHopefully.csv'):
@@ -21,10 +21,14 @@ def importDBCSV(defaultFile='finalBooksHopefully.csv'):
 def outputVyperFile():
     collection = importDBCSV()
     first = True
+    i = 0
     for row in collection:
-        print(row[0])
         if not first and ast.literal_eval(row[3]) == 1:
-            genVyperFile(row, 'vyperFilesGenerated/bookVyperOutput' + str(row[0]) + '.v.py')
+            i += 1
+            folderNum = math.floor(i/100)
+            if not os.path.exists('/Users/us.tropers/Desktop/Formatted for Upload/BookInfo/' + str(folderNum)):
+                os.makedirs('/Users/us.tropers/Desktop/Formatted for Upload/BookInfo/' + str(folderNum))
+            genVyperFile(row, '/Users/us.tropers/Desktop/Formatted for Upload/BookInfo/' + str(folderNum) + '/bookInfoContract' + str(row[0]) + '.v.py')
         else:
             first = False
 
