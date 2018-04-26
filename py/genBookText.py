@@ -71,6 +71,6 @@ def setText''' + str(count) + '''(newText: bytes[''' + str(len(zipBytes) % 8192)
     assert msg.sender == self.modifierAddress
     self.zipBytes''' + str(count) + ''' = newText'''
     
-    with open(directory + fileName[:-4] + '.v.py', 'w') as writeFile:
+    with open(directory + 'zipBookVyperOutput' + fileName[:-4] + '.v.py', 'w') as writeFile:
         writeFile.write(vyperFileString)
 

@@ -25,7 +25,7 @@ def outputVyperFile():
     header = collection[0]
     for row in collection:
         if not first:
-            genVyperFile(row, '/Volumes/Troper/vyperAuthorFilesGenerated/' + str(row[4]) + 'vyperOutput.v.py', header, dataTypes, 'author')
+            genVyperFile(row, '/Volumes/Troper/vyperAuthorFilesGenerated/authorVyperOutput' + str(row[4]) + '.v.py', header, dataTypes, 'author')
         else:
             first = False
 

@@ -24,7 +24,7 @@ def outputVyperFile():
     for row in collection:
         print(row[0])
         if not first and ast.literal_eval(row[3]) == 1:
-            genVyperFile(row, 'vyperFilesGenerated/' + str(row[0]) + 'vyperOutput.v.py')
+            genVyperFile(row, 'vyperFilesGenerated/bookVyperOutput' + str(row[0]) + '.v.py')
         else:
             first = False
 
