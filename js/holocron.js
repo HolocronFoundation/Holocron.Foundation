@@ -484,7 +484,7 @@ function loadVariable(typeLetter, ID, infoName, useCache=true, hexEncodedInContr
 			contractString += "storeInfo('" + typeLetter + "', " + ID + ", '" + infoName + "', success);"
 		}
 		
-		contractString += "return success;}).catch(function(error){if((error.toString() != \"Error: Couldn't decode bytes from ABI: 0x\") && (error.toString() != \"ReferenceError: name is not defined\") && (error.toString() != \"Error: Couldn't decode  from ABI: 0x\")){ console.log(error); } else{removeEntry(" + ID + ");}});";
+		contractString += "return success;}).catch(function(error){if((error.toString() != \"Error: Couldn't decode bytes from ABI: 0x\") && (error.toString() != \"ReferenceError: name is not defined\") && (error.toString() != \"Error: Couldn't decode  from ABI: 0x\") && (error.toString() != \"Error: Couldn't decode bool from ABI: 0x\")){ console.log(error); } else{removeEntry(" + ID + ");}});";
 		
 		var tempFunction = new Function("contract", contractString);
 		
