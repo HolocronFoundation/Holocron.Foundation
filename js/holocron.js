@@ -20,13 +20,15 @@ var badID = [];
 
 var searchValue;
 
+var currentFilters = new Map([['server', true], ['blockchain', true]]);
+
 //Need to add account refreshing
 
 var web3;
 
-var workerTimeOut = 3000;
+var workerTimeOut = 100;
 
-var mainTimeOut = 500;
+var mainTimeOut = 0;
 
 //Consider adding maxIndex to library contract?
 
@@ -185,11 +187,11 @@ function setupWeb3() {
 		thirdPartyProvider = true;
 		console.log('Using users web3!')
 		result = new Web3(web3.currentProvider); //If you already have a web3 provider (e.g. metamask) uses that
-		mainTimeOut = 0;
 	}
 	else {
 		thirdPartyProvider = false;
 		console.log('Using external web3. :( Check out Metamask or Mist.')
+		mainTimeOut = 500;
 		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //sets us as the provider
 	}
 	libraryContract = new result.eth.Contract(loadLibraryContractABI(), libraryAddress);
@@ -290,95 +292,189 @@ function loadInfoBox(tag, ID){
 				var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
 				var uploaded = values[7];
 				
-				
-				//Title
-				var newHTML = '<p class="title">';
-				if(getPageName() != 'book.html'){
-					newHTML += '<a href="./book.html?bookID=' + ID.toString() + '">';
-				}
-				newHTML += '<b>' + titleClean + '</b>';
-				if(getPageName() != 'book.html'){
-					newHTML += '</a>';
-				}
-				newHTML += '</p> ';
-				
-				if(authorRolesIDArray != 'None'){
-					var authorNameArray = values[3];
-					var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
-
-					newHTML += '<p class="author">';
-					var lastRole = -1;
-					for (var k = 0; k<authorNameArray.length; k++){
-						var currentRoleID = authorRolesIDArray[k];
-						if(currentRoleID != lastRole){
-							if (k!=0){
-								newHTML += ', ';
-							}
-							if(currentRoleID == 0){
-								newHTML += 'Authored by: ';
-							}
-							else if (currentRoleID == 1){
-								newHTML += 'Translated by: ';
-							}
-							else if (currentRoleID == 2){
-								newHTML += 'Edited by: ';
-							}
-							else if (currentRoleID == 3){
-								newHTML += 'Illustrated by: ';
-							}
-							lastRole = currentRoleID;
-						}
-						else if(k!=0){
-							newHTML += ' & ';
-						}
-						newHTML += '<a href="./author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + authorNameArray[k] + '</a>';
+				if(currentFilters.get('blockchain') && uploaded){
+					//Title
+					var newHTML = '<p class="title">';
+					if(getPageName() != 'book.html'){
+						newHTML += '<a href="./book.html?bookID=' + ID.toString() + '">';
 					}
-					newHTML += '</p>';
-				}
-				//Language Info
-				newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
+					newHTML += '<b>' + titleClean + '</b>';
+					if(getPageName() != 'book.html'){
+						newHTML += '</a>';
+					}
+					newHTML += '</p> ';
 
-				//View text
-				newHTML += '<p class="textLink"><a href="./text.html?bookID=' + ID.toString() + '">View the text</a></p>';
-				
-				if(uploaded){
-					newHTML += '<p>This text has been uploaded to the blockchain. Donations may still be made in the name of the text.</p>';
-					
-					//Donation stats
-					newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
-					
-				}
-				else{
-					newHTML += '<p>This text is <b>not</b> yet uploaded to the blockchain.</p>';
-					
-					if(donationsETH > web3.utils.fromWei(gweiStorageCost.toString(), "ether")){
-						newHTML += '<p>Enough donations have been recieved to upload the text to the blockchain!<br>It will be available shortly. Donations may still be made in the name of the text.</p>'
-						
+					if(authorRolesIDArray != 'None'){
+						var authorNameArray = values[3];
+						var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
+
+						newHTML += '<p class="author">';
+						var lastRole = -1;
+						for (var k = 0; k<authorNameArray.length; k++){
+							var currentRoleID = authorRolesIDArray[k];
+							if(currentRoleID != lastRole){
+								if (k!=0){
+									newHTML += ', ';
+								}
+								if(currentRoleID == 0){
+									newHTML += 'Authored by: ';
+								}
+								else if (currentRoleID == 1){
+									newHTML += 'Translated by: ';
+								}
+								else if (currentRoleID == 2){
+									newHTML += 'Edited by: ';
+								}
+								else if (currentRoleID == 3){
+									newHTML += 'Illustrated by: ';
+								}
+								lastRole = currentRoleID;
+							}
+							else if(k!=0){
+								newHTML += ' & ';
+							}
+							newHTML += '<a href="./author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + authorNameArray[k] + '</a>';
+						}
+						newHTML += '</p>';
+					}
+					//Language Info
+					newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
+
+					//View text
+					newHTML += '<p class="textLink"><a href="./text.html?bookID=' + ID.toString() + '">View the text</a></p>';
+
+					if(uploaded){
+						newHTML += '<p>This text has been uploaded to the blockchain. Donations may still be made in the name of the text.</p>';
+
+						//Donation stats
 						newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
+
 					}
 					else{
-						//Donation meter
-						newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
-						
-						//Donation stats
-						newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
+						newHTML += '<p>This text is <b>not</b> yet uploaded to the blockchain.</p>';
+
+						if(donationsETH > web3.utils.fromWei(gweiStorageCost.toString(), "ether")){
+							newHTML += '<p>Enough donations have been recieved to upload the text to the blockchain!<br>It will be available shortly. Donations may still be made in the name of the text.</p>'
+
+							newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
+						}
+						else{
+							//Donation meter
+							newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
+
+							//Donation stats
+							newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
+						}
 					}
+
+					//Donation slider
+					newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
+
+					//ETH donate
+					newHTML += '<p><a href="javascript:donate(' + ID + ');">Donate with Ξ</a></p>';
+
+					//Other donate
+					newHTML += '<p><a href="../donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
+
+					infoItem = document.getElementsByName(ID.toString())[0];
+					infoItem.innerHTML = newHTML;
+					infoItem.className = infoItem.className + ' loaded';
+
+					storeInfo(tag, ID, 'basicInfo', true);
 				}
+				else if (currentFilters.get('server') && !uploaded){
+					//Title
+					var newHTML = '<p class="title">';
+					if(getPageName() != 'book.html'){
+						newHTML += '<a href="./book.html?bookID=' + ID.toString() + '">';
+					}
+					newHTML += '<b>' + titleClean + '</b>';
+					if(getPageName() != 'book.html'){
+						newHTML += '</a>';
+					}
+					newHTML += '</p> ';
 
-				//Donation slider
-				newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
+					if(authorRolesIDArray != 'None'){
+						var authorNameArray = values[3];
+						var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
 
-				//ETH donate
-				newHTML += '<p><a href="javascript:donate(' + ID + ');">Donate with Ξ</a></p>';
+						newHTML += '<p class="author">';
+						var lastRole = -1;
+						for (var k = 0; k<authorNameArray.length; k++){
+							var currentRoleID = authorRolesIDArray[k];
+							if(currentRoleID != lastRole){
+								if (k!=0){
+									newHTML += ', ';
+								}
+								if(currentRoleID == 0){
+									newHTML += 'Authored by: ';
+								}
+								else if (currentRoleID == 1){
+									newHTML += 'Translated by: ';
+								}
+								else if (currentRoleID == 2){
+									newHTML += 'Edited by: ';
+								}
+								else if (currentRoleID == 3){
+									newHTML += 'Illustrated by: ';
+								}
+								lastRole = currentRoleID;
+							}
+							else if(k!=0){
+								newHTML += ' & ';
+							}
+							newHTML += '<a href="./author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + authorNameArray[k] + '</a>';
+						}
+						newHTML += '</p>';
+					}
+					//Language Info
+					newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
 
-				//Other donate
-				newHTML += '<p><a href="../donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
-				
-				infoItem = document.getElementsByName(ID.toString())[0];
-				infoItem.innerHTML = newHTML;
-				infoItem.className = infoItem.className + ' loaded';
-				
-				storeInfo(tag, ID, 'basicInfo', true);
+					//View text
+					newHTML += '<p class="textLink"><a href="./text.html?bookID=' + ID.toString() + '">View the text</a></p>';
+
+					if(uploaded){
+						newHTML += '<p>This text has been uploaded to the blockchain. Donations may still be made in the name of the text.</p>';
+
+						//Donation stats
+						newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
+
+					}
+					else{
+						newHTML += '<p>This text is <b>not</b> yet uploaded to the blockchain.</p>';
+
+						if(donationsETH > web3.utils.fromWei(gweiStorageCost.toString(), "ether")){
+							newHTML += '<p>Enough donations have been recieved to upload the text to the blockchain!<br>It will be available shortly. Donations may still be made in the name of the text.</p>'
+
+							newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
+						}
+						else{
+							//Donation meter
+							newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
+
+							//Donation stats
+							newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
+						}
+					}
+
+					//Donation slider
+					newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
+
+					//ETH donate
+					newHTML += '<p><a href="javascript:donate(' + ID + ');">Donate with Ξ</a></p>';
+
+					//Other donate
+					newHTML += '<p><a href="../donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
+
+					infoItem = document.getElementsByName(ID.toString())[0];
+					infoItem.innerHTML = newHTML;
+					infoItem.className = infoItem.className + ' loaded';
+
+					storeInfo(tag, ID, 'basicInfo', true);
+				}
+				else {
+					removeEntry(ID);
+				}
 			}
 			else if(tag =='a'){
 				var name = values[0];
@@ -780,8 +876,6 @@ function workerCacheBooks(existingWorker=null){
 			}
 			else{
 				for(var i = 0; i<logData.length; i++){
-					//console.log("loc2")
-					//console.log(logData);
 					if(typeof(logData[i][1]) !== 'undefined'){
 						storeInfo('b', logData[i][0], logData[i][1], logData[i][2]);
 					}
@@ -917,5 +1011,27 @@ function goToPage(page){
 	}
 	else if(currentPageType == 's'){
 		searchLocalStorage(searchValue, populateList);
+	}
+}
+
+function setStorageFilter(){
+	currentFilters.set('blockchain', document.getElementById('uploaded').checked);
+	currentFilters.set('server', document.getElementById('notUploaded').checked);
+	reloadPage();
+}
+
+function reloadPage(){
+	populateList = document.getElementById("booksList");
+	populateList.innerHTML = '';
+	pageBooks = [[]];
+	currentPage = 0;
+	if(currentPageType == 'r'){
+		populateRandomContent();
+	}
+	else if(currentPageType == 's'){
+		searchBooks();
+	}
+	else if(currentPageType == 'a'){
+		loadAuthorBooks(getParameterByName('authorID'));
 	}
 }
