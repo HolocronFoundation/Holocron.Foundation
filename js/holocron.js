@@ -751,7 +751,7 @@ function workerCacheBooks(existingWorker=null){
 					skipCache.push(logData[1]);
 				}
 				if(logData[0] != 'Error: Invalid JSON RPC response: ""'){
-					setTimeout(workerCacheBooks(maxIndex, existingWorker), 3000);
+					setTimeout(new function{workerCacheBooks(existingWorker);}, 3000);
 				}
 				else{
 					console.log("Error connecting workers to a web3 endpoint. Stopping cacheing now...");
@@ -769,7 +769,7 @@ function workerCacheBooks(existingWorker=null){
 				if(Array.isArray(logData)){
 					storeInfo('b', logData[0][0], 'basicInfo', true);
 				}
-				setTimeout(workerCacheBooks(maxIndex, existingWorker), 3000);
+				setTimeout(new function{workerCacheBooks(existingWorker);}, 3000);
 			}
 		}
 	}
@@ -786,7 +786,7 @@ function workerCacheBooks(existingWorker=null){
 	}
 	else{
 		if(skipCache.length < maxIndex){
-			setTimeout(workerCacheBooks(existingWorker), 100);
+			setTimeout(new function{workerCacheBooks(existingWorker);}, 3000);
 		}
 		else{
 			console.log('Cached all books...');
@@ -863,19 +863,24 @@ function goToPage(page){
 	else{
 		displayBackButton(true);
 	}
+	
+	currentPageNumber = document.getElementById('pageNumber' + currentPage);
+	currentPageNumber.innerHTML = '<a href="javascript:goToPage(' + (currentPage).toString() + ');" title="' + (currentPage+1).toString() + '"> ' + (currentPage+1).toString() +' </a>'
+	
 
 	if(page > pageBooks.length-1){
 		//Adds a link to generated pages
 		var nextButton = document.getElementById("nextButton");
-		var mycontent = document.createElement("div");
-		var a = document.createElement('a');
-		var nextPage = currentPage +1;
-		a.href = 'javascript:goToPage(' + currentPage + ');';
-		a.title = nextPage;
-		a.appendChild(document.createTextNode(nextPage));
-		mycontent.appendChild(a);
-		nextButton.parentNode.insertBefore(mycontent, nextButton);
+		var newPageNum = document.createElement("div");
+		var nextPage = page + 1;
+		newPageNum.appendChild(document.createTextNode(' ' + nextPage.toString() + ' '));
+		newPageNum.id = 'pageNumber' + page.toString();
+		nextButton.parentNode.insertBefore(newPageNum, nextButton);
 		pageBooks.push([]);
+	}
+	else{
+		newPageNumber = document.getElementById('pageNumber' + page);
+		newPageNumber.innerHTML = page+1;
 	}
 	
 	displayNextButton(true);
