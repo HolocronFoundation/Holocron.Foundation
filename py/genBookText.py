@@ -52,7 +52,7 @@ zipBytesFinal: public(bytes[''' + str(len(zipBytes) % 8192) + '''])'''
 def __init__(_listingAddress: address, _modifierAddress: address):
     self.listingAddress = _listingAddress
     self.modifierAddress = _modifierAddress
-    self.zipBytesFinal = ''' + str(zipBytes[-len(zipBytes) % 8192:])[1:]
+    self.zipBytesFinal = ''' + str(zipBytes[-(len(zipBytes) % 8192):])[1:]
 
         vyperFileString += '''
 
