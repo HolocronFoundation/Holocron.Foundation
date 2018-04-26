@@ -7,7 +7,7 @@ his file is used to split zip files into 8kb chunks.
 import os, math, pathlib
 from fnmatch import fnmatch
 
-def splitZipFiles(defaultDirectory='C:/gutenbergNoSubs/'):
+def splitZipFiles(defaultDirectory='/Users/us.tropers/Desktop/gutenbergNoSubs/'):
     for path, subdirs, files in os.walk(defaultDirectory):
         for name in files:
             if fnmatch(name, '*.zip'):

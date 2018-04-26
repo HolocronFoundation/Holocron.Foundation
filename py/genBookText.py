@@ -11,7 +11,7 @@
 import os, shutil
 from fnmatch import fnmatch
 
-def walkZipsAndGenerateVyper(pullDirectory='/Users/us.tropers/Desktop/gutenbergNoSubs2/', writeDirectory='/Users/us.tropers/Desktop/gutenbergNoSubs2/'):
+def walkZipsAndGenerateVyper(pullDirectory='/Users/us.tropers/Desktop/gutenbergNoSubs', writeDirectory='/Users/us.tropers/Desktop/gutenbergNoSubs'):
     for path, subdirs, files in os.walk(pullDirectory):
         for name in files:
             if fnmatch(name, '*.zip'):
@@ -74,4 +74,5 @@ def setText''' + str(count) + '''(newText: bytes[''' + str(len(zipBytes) % 8192)
     with open(directory + '/' + fileName[:-4] + '/' + fileName[:-4] + '.v.py', 'w') as writeFile:
         writeFile.write(vyperFileString)
     shutil.move(directory + '/' + fileName, directory + '/' + fileName[:-4] + '/' + fileName)
+    os.remove(directory + '/' + fileName[:-4] + '.txt')
 
