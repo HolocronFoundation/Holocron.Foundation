@@ -72,10 +72,10 @@ Darkest
 /* Sets width of search box and button */
 
 #searchBar {
-	width: 40vw;
+	width: 50em;
 }
 #searchButton {
-	width: 15vw;
+	width: 10em;
 }
 
 /* Adds original line breaks to titles */
