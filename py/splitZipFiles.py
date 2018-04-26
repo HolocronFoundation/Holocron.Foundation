@@ -1,4 +1,4 @@
-his file is used to split zip files into 8kb chunks.
+#this file is used to split zip files into 8kb chunks.
 
 
 
