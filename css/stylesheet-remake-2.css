@@ -69,6 +69,15 @@ Darkest
 	display: inline-block;
 }
 
+/* Sets width of search box and button */
+
+#searchBar {
+	width: 40vw;
+}
+#searchButton {
+	width: 15vw;
+}
+
 /* Adds original line breaks to titles */
 
 .title {
@@ -191,6 +200,7 @@ footer.library{
     height: 3em;
 	width: auto;
 	vertical-align: middle;
+	padding-bottom: .4em;
 }
 
 /* navbar items */
