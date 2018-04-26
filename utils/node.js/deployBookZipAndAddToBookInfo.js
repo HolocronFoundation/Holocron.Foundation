@@ -6,6 +6,7 @@ var fs = require('fs');
 const readline = require('readline');
 var Web3 = require('web3');
 var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+var bookContract;
 
 var _parentAddress = '0x41Ea336a5b7Dd1b4Fc71E837c23349C17A87f6E6';
 var _senderAddress = '0x96164079bf312E80e061b226ccF27f143cf3f3ff';
@@ -13,9 +14,11 @@ var _parentABI = [{"name": "Donation", "inputs": [{"type": "address", "name": "_
 
 var libraryContract = new web3.eth.Contract(_parentABI, _parentAddress);
 
-//type in file name here --------------------------------\
-var fileLoc = '/Users/us.tropers/Desktop/gutenbergNoSubs/1';
-//-------------------------------------------------------/
+//CHANGE BOOK ID HERE |							<--------
+var bookID = 1;//<----/        <------
+//DON'T FORGET MOTHERFUCKER				<-----
+
+var fileLoc = '/Users/us.tropers/Desktop/gutenbergNoSubs/' + bookID.toString + '/';
 
 //need to create files var
 var files = fs.readdirSync(fileLoc);
@@ -62,36 +65,69 @@ function deployContract(index){
 	web3.eth.personal.unlockAccount(_senderAddress, _password);
 	var currentContract = new web3.eth.Contract(abiFiles[0]);
 	var gasEstimate;
-	currentContract.deploy({
-		data: byteFiles[0],
-		arguments: _parentAddress
-	})
-	.estimateGas(function(err, gas){
-		console.log('Gas Estimate: ' + gas);
-		gasEstimate = gas;
-	}).then(function(){
+	if(zbFiles.length == 1){
 		currentContract.deploy({
 			data: byteFiles[0],
-			arguments: _parentAddress
+			arguments: [_parentAddress]
 		})
-		.send({
-			from: _senderAddress,
-			gas: gasEstimate,
-		},
-		function(error, transactionHash){})
-		.on('error', function(error){ console.log('Error: ' + error); })
-		.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
-		.on('receipt', function(receipt){
-			console.log('Id: ' + deploymentArr[index][0] + ', Address: ' + receipt.contractAddress);
-			updateContract(receipt.contractAddress, fileIndex); //Got to here then dead...
+		.estimateGas(function(err, gas){
+			console.log('Gas Estimate: ' + gas);
+			gasEstimate = gas;
+		}).then(function(){
+			currentContract.deploy({
+				data: byteFiles[0],
+				arguments: [_parentAddress]
+			})
+			.send({
+				from: _senderAddress,
+				gas: gasEstimate,
+			},
+			function(error, transactionHash){})
+			.on('error', function(error){ console.log('Error: ' + error); })
+			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
+			.on('receipt', function(receipt){
+				console.log('Stored book at address: ' + receipt.contractAddress);
+				bookContract = new web3.eth.Contract(abiFiles[0], receipt.contractAddress);
+				addBookToLibrary(receipt.contractAddress);
+			});
 		});
-	});
+	}
+	else{
+		currentContract.deploy({
+			data: byteFiles[0],
+			arguments: [_parentAddress, _senderAddress]
+		})
+		.estimateGas(function(err, gas){
+			console.log('Gas Estimate: ' + gas);
+			gasEstimate = gas;
+		}).then(function(){
+			currentContract.deploy({
+				data: byteFiles[0],
+				arguments: [_parentAddress, _senderAddress]
+			})
+			.send({
+				from: _senderAddress,
+				gas: gasEstimate,
+			},
+			function(error, transactionHash){})
+			.on('error', function(error){ console.log('Error: ' + error); })
+			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
+			.on('receipt', function(receipt){
+				zipsStored++;
+				console.log('Stored book at address: ' + receipt.contractAddress);
+				bookContract = new web3.eth.Contract(abiFiles[0], receipt.contractAddress);
+				addZips(receipt.contractAddress, 0);
+			});
+		});
+	}
 }
 
-function updateContract(address, fileIndex){
-	if (index != zbFiles.length) {
+var zipsStored = 0;
+
+function addZips(address, fileIndex){
+	if (index+1 != zbFiles.length) {
 		web3.eth.personal.unlockAccount(_senderAddress, _password);
-		var currentCall = parentContract.methods.addAuthor(deployedArr[index][0], deployedArr[index][1]);
+		var currentCall = bookContract.methods.setZipBytes(fileIndex, zbFiles[fileIndex]);
 		var gasEstimate;
 		currentCall.estimateGas({from: _senderAddress}, function(err, gas){
 			console.log('Gas Estimate: ' + gas);
@@ -101,58 +137,53 @@ function updateContract(address, fileIndex){
 			.on('error', function(error){ console.log('Error: ' + error); })
 			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
 			.on('receipt', function(receipt){
-				console.log('Logged author with id: ' + deployedArr[index][0] + ', at address: ' + deployedArr[index][1]);
-				updated += 1;
+				console.log('Stored zb file ' + fileIndex);
+				zipsStored++;
 			})
-			updateLibrary(index + 1, parentContract);
+			addZips(receipt.contractAddress, fileIndex+1);
 		});
 	}
 	else {
-		waitThenDone();
+		waitThenUpdateLibrary();
 	}
-}
-
-function waitThenUpdate(){
-  if (deployedArr.length == deploymentArr.length){
-    console.log(deployedArr);
-	updateLibrary(0);
-  } else {
-    setTimeout(waitThenUpdate, 100);
-  }
 }
 
 var updated = 0;
+var updatedLib = false;
 
-function updateLibrary(index){
-	if (index != deployedArr.length) {
-		web3.eth.personal.unlockAccount(_senderAddress, _password);
-		var currentCall = parentContract.methods.addAuthor(deployedArr[index][0], deployedArr[index][1]);
-		var gasEstimate;
-		currentCall.estimateGas({from: _senderAddress}, function(err, gas){
-			console.log('Gas Estimate: ' + gas);
-			gasEstimate = gas;
-		}).then(function(){
-			currentCall.send({from: _senderAddress, gas: gasEstimate})
-			.on('error', function(error){ console.log('Error: ' + error); })
-			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
-			.on('receipt', function(receipt){
-				console.log('Logged author with id: ' + deployedArr[index][0] + ', at address: ' + deployedArr[index][1]);
-				updated += 1;
-			})
-			updateLibrary(index + 1, parentContract);
-		});
-	}
-	else {
+function updateLibrary(){
+	web3.eth.personal.unlockAccount(_senderAddress, _password);
+	var currentCall = parentContract.methods.setTextAddress(bookID, bookContract.address);
+	var gasEstimate;
+	currentCall.estimateGas({from: _senderAddress}, function(err, gas){
+		console.log('Gas Estimate: ' + gas);
+		gasEstimate = gas;
+	}).then(function(){
+		currentCall.send({from: _senderAddress, gas: gasEstimate})
+		.on('error', function(error){ console.log('Error: ' + error); })
+		.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
+		.on('receipt', function(receipt){
+			updated = true;
+		})
 		waitThenDone();
+	});
+}
+
+function waitThenUpdateLibrary(){
+	web3.eth.personal.unlockAccount(_senderAddress, _password);
+	if (updated == zbFile.length){
+		updateLibrary;
+	} else {
+		setTimeout(function(){waitThenUpdateLibrary();}, 100);
 	}
 }
 
 function waitThenDone(){
-  if (updated == deployedArr.length){
-    console.log('Well we did it....');
-  } else {
-    setTimeout(waitThenDone, 100);
-  }
+	if (updatedLib){
+		console.log('Done!!!')
+	} else {
+		setTimeout(function(){waitThenDone();}, 100);
+	}
 }
 
 var _password

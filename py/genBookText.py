@@ -28,7 +28,7 @@ listingAddress: public(address)'''
 
     if len(zipBytes) <= 8192:
         vyperFileString += '''
-zipBytes0: public(bytes[''' + str(len(zipBytes)) + '''])
+zipBytesFinal: public(bytes[''' + str(len(zipBytes)) + '''])
 
 @public
 def __init__(_listingAddress: address):
@@ -40,36 +40,27 @@ def __init__(_listingAddress: address):
 modifierAddress: public(address)'''
         count = 0
 
-        for i in range(int(len(zipBytes)/8192)):
-            vyperFileString += ('''
-zipBytes''' + str(count) + ''': public(bytes[8192])''')
-            count += 1
+        vyperFileString += ('''
+zipBytes: public(bytes[8192][''' + str(int(len(zipBytes)/8192)) + '''])'''
 
         if len(zipBytes) % 8192 != 0:
             vyperFileString += '''
-zipBytes''' + str(count) + ''': public(bytes[''' + str(len(zipBytes) % 8192) + '''])'''
+zipBytesFinal: public(bytes[''' + str(len(zipBytes) % 8192) + '''])'''
 
         vyperFileString += '''
 @public
 def __init__(_listingAddress: address, _modifierAddress: address):
     self.listingAddress = _listingAddress
     self.modifierAddress = _modifierAddress
-    self.zipBytes0 = ''' + str(zipBytes[0:8192])[1:]
+    self.zipBytesFinal = ''' + str(zipBytes[-len(zipBytes) % 8192:])[1:]
 
-        for i in range(count):
-            if i is not 0:
-                vyperFileString += '''
-@public
-def setText''' + str(i) + '''(newText: bytes[8192]):
-    assert msg.sender == self.modifierAddress
-    self.zipBytes''' + str(i) + ''' = newText'''
+        vyperFileString += '''
 
-        if len(zipBytes) % 8192 != 0:
-            vyperFileString += '''
 @public
-def setText''' + str(count) + '''(newText: bytes[''' + str(len(zipBytes) % 8192) + ''']):
+def setZipBytes(_index: int128, newZip: bytes[8192]):
     assert msg.sender == self.modifierAddress
-    self.zipBytes''' + str(count) + ''' = newText'''
+    self.zipBytes[_index] = newZip'''
+
     
     with open(directory + '/' + fileName[:-4] + '/' + fileName[:-4] + '.v.py', 'w') as writeFile:
         writeFile.write(vyperFileString)
