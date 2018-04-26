@@ -8,10 +8,10 @@
 
 ################################################################################
 
-import os
+import os, shutil
 from fnmatch import fnmatch
 
-def walkZipsAndGenerateVyper(pullDirectory='/Users/us.tropers/Documents/GitHub/Library/zips', writeDirectory='/Users/us.tropers/Documents/GitHub/Library/zipsVyper'):
+def walkZipsAndGenerateVyper(pullDirectory='/Users/us.tropers/Desktop/gutenbergNoSubs2/', writeDirectory='/Users/us.tropers/Desktop/gutenbergNoSubs2/'):
     for path, subdirs, files in os.walk(pullDirectory):
         for name in files:
             if fnmatch(name, '*.zip'):
@@ -71,6 +71,7 @@ def setText''' + str(count) + '''(newText: bytes[''' + str(len(zipBytes) % 8192)
     assert msg.sender == self.modifierAddress
     self.zipBytes''' + str(count) + ''' = newText'''
     
-    with open(directory + 'zipBookVyperOutput' + fileName[:-4] + '.v.py', 'w') as writeFile:
+    with open(directory + '/' + fileName[:-4] + '/' + fileName[:-4] + '.v.py', 'w') as writeFile:
         writeFile.write(vyperFileString)
+    shutil.move(directory + '/' + fileName, directory + '/' + fileName[:-4] + '/' + fileName)
 
