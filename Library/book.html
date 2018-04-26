@@ -20,17 +20,23 @@
 			<ul class="navbar">
 				<li class="navbar"><a href="../home.html">Home</a></li>
 				<li class="navbar library"><a href="./library.html">Library</a></li>
-				<li class="navbar phoenix"><a href="./phoenix.html">Phoenix</a></li>
-				<li class="navbar reincarnationline"><a href="./reincarnationline.html">Reincarnati.online</a></li>
+				<li class="navbar phoenix"><a href="../phoenix/phoenix.html">Phoenix</a></li>
+				<li class="navbar reincarnationline"><a href="../reincarnati.online/reincarnationline.html">Reincarnati.online</a></li>
 			</ul>
 			<div id="smallTitle" class="center">
-				<h2 class="name"><img class="logosmall" src="../img/LibraryLogoClearBG.png" alt="♢"/> Library</h2>
+				<h2 class="name"><a href="./library.html"><img class="logosmall" src="../img/LibraryBG.png" alt="♢"/> Library</a></h2>
 			</div>
 			<div id="search" class="center" >
-				<form action="/action_page.php">
-					<input type="text" placeholder="Search for a text">
-					<button type="submit">Search</button>
-				</form>
+				<div id="searchBarDiv">
+					<form action="javascript:searchBooks()">
+						<input type="text" id="searchBar" placeholder="Search for a text">
+						<button type="submit" id='searchButton'>Search</button>
+					</form>
+				</div>
+				<div id="searchSettings">
+					<div>Available on the blockchain: <input type="checkbox" id="uploaded" checked></div>
+					<div>Available on our server: <input type="checkbox" id="notUploaded" checked></div>
+				</div>
 			</div>
 		</header>
 		<div id="content" class="library">

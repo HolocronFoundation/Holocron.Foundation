@@ -105,7 +105,9 @@ async function getBookTextBlockchain(bookID) {
 	}
 	
 	Promise.all(bytePromises).then(function(values){
-		console.log(values[0]);
+		for(var i = 0; i < bytePromises.length; i++){
+			//merge then return here
+		}
 	});
 }
 

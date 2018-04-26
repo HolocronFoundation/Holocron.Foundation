@@ -152,7 +152,7 @@ header {
 }
 
 header.library {
-	background: rgb(233, 200, 171);
+	background: navajowhite;
 }
 
 /* Sets color:brightness:1, adds vertical scroll bar, hides horizontal scroll bar, limits width, adds margins , fills vertically */
@@ -173,7 +173,7 @@ header.library {
 }
 
 #content.library {
-	background: rgb(240, 215, 201);
+	background: bisque;
 }
 
 /* Colors footer to color:brightness:4  */
@@ -183,7 +183,21 @@ footer {
 }
 
 footer.library{
-	background: rgb(227, 186, 143);
+	background: navajowhite;
+}
+
+footer.library p{
+	color: black;
+}
+
+footer.library p a{
+	color: black;
+}
+
+/* Pads the search section */
+
+#search div{
+	padding-bottom: .5vh;
 }
 
 /* Center class centers items */
@@ -273,7 +287,7 @@ body {
 }
 
 body.library {
-	background-color: rgb(233, 200, 171);
+	background-color: maroon;
 }
 
 /* Adds a margin to the text body */
