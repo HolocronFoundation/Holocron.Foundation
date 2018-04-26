@@ -176,6 +176,10 @@ header.library {
 	background: bisque;
 }
 
+#content.phoenix {
+	background: mistyrose;
+}
+
 /* Colors footer to color:brightness:4  */
 
 footer {
@@ -192,6 +196,10 @@ footer.library p{
 
 footer.library p a{
 	color: black;
+}
+
+footer.phoenix{
+	background-color: rgb(232, 85, 74);
 }
 
 /* Pads the search section */
@@ -225,6 +233,14 @@ ul.navbar {
     top: 0;
 	left: 0;
     width: 100vw;
+}
+
+ul.navbar.library {
+	background-color: rgb(227, 186, 143);
+}
+
+ul.navbar.phoenix {
+	background-color: rgb(232, 85, 74);
 }
 
 li.navbar.phoenix {
@@ -267,7 +283,11 @@ li.navbar a {
 	color: white;
 }
 
-li.navbar a:hover {
+li.navbar.holocron {
+	background-color: rgb(57, 157, 255);
+}
+
+li.navbar.holocron a:hover {
     background-color: rgb(71, 166, 255);
 }
 
@@ -288,6 +308,10 @@ body {
 
 body.library {
 	background-color: maroon;
+}
+
+body.phoenix {
+	background-color: firebrick;
 }
 
 /* Adds a margin to the text body */
