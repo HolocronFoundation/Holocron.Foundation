@@ -293,6 +293,11 @@ function loadInfoBox(tag, ID){
 				var uploaded = values[7];
 				
 				if(currentFilters.get('blockchain') && uploaded){
+					if(clearBooksSection){
+						booksList.innerHTML = '';
+						clearBooksSection = false;
+					}
+					
 					//Title
 					var newHTML = '<p class="title">';
 					if(getPageName() != 'book.html'){
@@ -383,6 +388,11 @@ function loadInfoBox(tag, ID){
 					storeInfo(tag, ID, 'basicInfo', true);
 				}
 				else if (currentFilters.get('server') && !uploaded){
+					if(clearBooksSection){
+						booksList.innerHTML = '';
+						clearBooksSection = false;
+					}
+					
 					//Title
 					var newHTML = '<p class="title">';
 					if(getPageName() != 'book.html'){
@@ -469,7 +479,11 @@ function loadInfoBox(tag, ID){
 					infoItem = document.getElementsByName(ID.toString())[0];
 					infoItem.innerHTML = newHTML;
 					infoItem.className = infoItem.className + ' loaded';
-
+					
+					if(pageBooks[currentPage].length == maxEntries){
+						displayNextButton(true);
+					}
+					
 					storeInfo(tag, ID, 'basicInfo', true);
 				}
 				else {
@@ -609,7 +623,6 @@ function storeInfo(tag, ID, infoName, info){
 	if(Array.isArray(info)){
 		if(info.length == 0){
 			localStorage.setItem(storeName, 'None');
-			//console.log('Cached item with name: ' + storeName + ', Data: None');
 		}
 		else {
 			storeArrStr = '[';
@@ -621,25 +634,23 @@ function storeInfo(tag, ID, infoName, info){
 			}
 			storeArrStr += ']';
 			localStorage.setItem(storeName, storeArrStr);
-			//console.log('Cached item with name: ' + storeName + ', Data: ' + storeArrStr);
 		}
 	}
 	else{
 		localStorage.setItem(storeName, info);
-		//console.log('Cached item with name: ' + storeName + ', Data: ' + info);
 	}
 }
 
 function removeEntry(ID){
 	if((typeof(document) !== "undefined") && (document != null)){
+		index = pageBooks[currentPage].indexOf(ID);
+		badID.push(ID);
+		skipCache.push(ID);
+		if(index > -1){
+				pageBooks[currentPage].splice(index, 1);
+		}
 		entry = document.getElementsByName(ID.toString())[0];
 		if(entry != undefined){
-			index = pageBooks[currentPage].indexOf(ID);
-			if(index > -1){
-				badID.push(ID);
-				skipCache.push(ID);
-				pageBooks[currentPage].splice(index, 1);
-			}
 			entry.remove()
 			if(currentPage != null && currentPageType == 'r'){
 				addRandomEntry();
@@ -712,7 +723,6 @@ function calculateStorageCost(size, gasPrice) {
 function searchBooks(){
 	pageBooks = [[]];
 	currentPage = 0;
-	displayNextButton(true);
 	
 	//clear page indicators here
 	
@@ -764,17 +774,27 @@ function addRandomEntry(){
 	var randomNumber = Math.floor(Math.random()*maxIndex);
 	var i = 0;
 	while(i < pageBooks.length){
-		if(pageBooks[i].indexOf(randomNumber) != -1){
-			i = 0;
+		if(pageBooks[i].indexOf(randomNumber) != -1 || badID.indexOf(randomNumber) != -1){
+			i = -1;
 			randomNumber = Math.floor(Math.random()*maxIndex);
+			if(badID.length >= maxIndex){
+				i = pageBooks.length + maxEntries;
+			}
 		}
 		i++;
 	}
-	populateList = document.getElementById("booksList");
-	pageBooks[currentPage].push(randomNumber);
-	populateList.innerHTML += '<li class="bookInfo" name="' + randomNumber + '"></li>';
-	loadInfoBox('b', randomNumber);
+	if(i == pageBooks.length){
+		populateList = document.getElementById("booksList");
+		pageBooks[currentPage].push(randomNumber);
+		populateList.innerHTML += '<li class="bookInfo" name="' + randomNumber + '"></li>';
+		loadInfoBox('b', randomNumber);
+	}
+	else if (pageBooks[currentPage].length == 0){
+		booksList.innerHTML = '<p class="center">No results found!</p>';
+	}
 }
+
+var clearBooksSection = false;
 
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
@@ -793,7 +813,7 @@ function insertParameter(key, value, state=null){
 	window.history.pushState(state, document.title, url);
 }
 
-function searchLocalStorage(searchString, booksList, start=0, clearSection=false, retries=0){
+function searchLocalStorage(searchString, booksList, start=0, retries=0){
 	//currently only searches for books
 	localStorageString = JSON.stringify(localStorage).toLowerCase();
 	nextIndex = localStorageString.indexOf(searchString, start);
@@ -811,10 +831,6 @@ function searchLocalStorage(searchString, booksList, start=0, clearSection=false
 			}
 			if(j == pageBooks.length){
 				var endOfBookTag = localStorageString.indexOf('>', lastBookTag);
-				if(clearSection){
-					booksList.innerHTML = '';
-					clearSection = false;
-				}
 				booksList.innerHTML += '<li class="bookInfo" name="' + ID + '"></li>';
 				pageBooks[currentPage].push(ID);
 				loadInfoBox('b', ID);
@@ -831,10 +847,11 @@ function searchLocalStorage(searchString, booksList, start=0, clearSection=false
 			}
 			if(pageBooks[currentPage].length == 0){
 				booksList.innerHTML = '<p class="center">No results found!<br>We\'ll try checking again in a few seconds!</p>';
-				setTimeout(function(){searchLocalStorage(searchString, booksList, 0, true, retries+1);}, 250);
+				clearSection = true;
+				setTimeout(function(){searchLocalStorage(searchString, booksList, 0, retries+1);}, 250);
 			}	
 			else{
-				setTimeout(function(){searchLocalStorage(searchString, booksList, 0, clearSection, retries+1);}, 250);
+				setTimeout(function(){searchLocalStorage(searchString, booksList, 0, retries+1);}, 250);
 			}
 		}
 		else{
@@ -904,6 +921,7 @@ function workerCacheBooks(existingWorker=null){
 		}
 		else{
 			console.log('Cached all books...');
+			existingWorker.terminate();
 		}
 	}
 }
@@ -952,20 +970,20 @@ function getPageName(){
 function displayNextButton(yeaOrNo){
 	var nextButton = document.getElementById("nextButton");
 	if(yeaOrNo){
-		nextButton.style.display = "inline-block";
+		nextButton.style.visibility = "visible";
 	}
 	else{
-		nextButton.style.display = "none";
+		nextButton.style.visibility = "hidden";
 	}
 }
 
 function displayBackButton(yeaOrNo){
 	var backButton = document.getElementById("backButton");
 	if(yeaOrNo){
-		backButton.style.display = "inline-block";
+		backButton.style.visibility = "hidden";
 	}
 	else{
-		backButton.style.display = "none";
+		backButton.style.display = "visible";
 	}
 }
 
@@ -977,6 +995,7 @@ function goToPage(page){
 	else{
 		displayBackButton(true);
 	}
+	displayNextButton(false);
 	
 	currentPageNumber = document.getElementById('pageNumber' + currentPage);
 	currentPageNumber.innerHTML = '<a href="javascript:goToPage(' + (currentPage).toString() + ');" title="' + (currentPage+1).toString() + '"> ' + (currentPage+1).toString() +' </a>'
@@ -996,8 +1015,6 @@ function goToPage(page){
 		newPageNumber = document.getElementById('pageNumber' + page);
 		newPageNumber.innerHTML = page+1;
 	}
-	
-	displayNextButton(true);
 	
 	currentPage = page;
 	populateList = document.getElementById("booksList");
@@ -1021,9 +1038,12 @@ function setStorageFilter(){
 }
 
 function reloadPage(){
+	resetPageNumber();
 	populateList = document.getElementById("booksList");
 	populateList.innerHTML = '';
 	pageBooks = [[]];
+	badID = [];
+	skipCache = [];
 	currentPage = 0;
 	if(currentPageType == 'r'){
 		populateRandomContent();
@@ -1034,4 +1054,9 @@ function reloadPage(){
 	else if(currentPageType == 'a'){
 		loadAuthorBooks(getParameterByName('authorID'));
 	}
+}
+
+function resetPageNumber(){
+	document.getElementById('pageNavigation').innerHTML = 
+	'<div id="backButton" style="visibility: hidden;"><form action="javascript:goToPage(currentPage-1);" class="center"><button type="submit">Last Page</button></form></div><div id="pageNumber0">1</div><div id="nextButton" style="visibility: hidden;"><form action="javascript:goToPage(currentPage+1);" class="center"><button type="submit">Next Page</button></form></div>';
 }

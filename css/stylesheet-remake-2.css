@@ -63,6 +63,12 @@ Darkest
 	margin-right: .25vw;
 }
 
+/* Puts page navigation at the bottom */
+
+#pageNavigation {
+	
+}
+
 /* Displays search settings on a line */
 
 #searchSettings div {
@@ -136,7 +142,7 @@ li.bookInfo.loaded {
 }
 
 li.bookInfo.sample {
-	border-bottom: 2px groove rgb(71, 166, 255);
+	border-bottom: 5px groove burlywood;
 }
 
 section {

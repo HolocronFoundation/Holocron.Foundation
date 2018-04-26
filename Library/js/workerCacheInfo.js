@@ -8,7 +8,9 @@ if( 'function' === typeof importScripts) {
 	window = self;
 	importScripts("../../js/holocron.js");
 	importScripts("../../js/min/web3.min.js");
-	web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+	if(web3 == null){
+		web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+	}
 	libraryContract = new web3.eth.Contract(loadLibraryContractABI(), libraryAddress);
 	self.addEventListener('message', function(e){
 		var bookID = e.data;
@@ -39,6 +41,7 @@ function loadInfo(tag, ID){
 			workerTimeOut = 5000;
 			mainTimeOut = 500;
 			loadInfo(tag, ID);
+			console.log(web3);
 		}
 		else{
 			self.postMessage([error.toString(), ID]);

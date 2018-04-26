@@ -15,7 +15,7 @@
 				<li class="navbar holocron"><a href="../home.html">Home</a></li>
 				<li class="navbar library"><a href="./library.html">Library</a></li>
 				<li class="navbar phoenix"><a href="../phoenix/phoenix.html">Phoenix</a></li>
-				<li class="navbar reincarnationline"><a href="../reincarnati.online/reincarnationline.html">Reincarnati.online</a></li>
+				<li class="navbar reincarnationline"><a href="../reincarnati.online/launch.html">Reincarnati.online</a></li>
 			</ul>
 			<div id="smallTitle" class="center">
 				<h2 class="name"><a href="./library.html"><img class="logosmall" src="../img/LibraryBG.png" alt="♢"/> Library</a></h2>
@@ -37,13 +37,13 @@
 			<ul id="booksList">
 			</ul>
 			<div id="pageNavigation" class="center">
-				<div id="backButton" style="display: none;">
+				<div id="backButton" style="visibility: hidden;">
 					<form action="javascript:goToPage(currentPage-1);" class="center">
 						<button type="submit">Last Page</button>
 					</form>
 				</div>
 				<div id="pageNumber0">1</div>
-				<div id="nextButton">
+				<div id="nextButton" style="visibility: hidden;">
 					<form action="javascript:goToPage(currentPage+1);" class="center">
 						<button type="submit">Next Page</button>
 					</form>
@@ -66,7 +66,7 @@
 		else{
 			loadBooksByPage();
 		}
-		cacheBooks(4);
+		cacheBooks(1);
 	}
 </script>
 </html>
