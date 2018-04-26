@@ -8,6 +8,9 @@ if( 'function' === typeof importScripts) {
 	importScripts("../../js/holocron.js");
 	importScripts("../../js/min/web3.min.js");
 	web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+	
+	//need to try adding local provider, then switch to default and use higher timer.
+	
 	libraryContract = new web3.eth.Contract(loadLibraryContractABI(), libraryAddress);
 	self.addEventListener('message', function(e){
 		var bookID = e.data;

@@ -24,6 +24,10 @@ var searchValue;
 
 var web3;
 
+var workerTimeOut = 3000;
+
+var mainTimeOut = 500;
+
 //Consider adding maxIndex to library contract?
 
 var maxIndex = 50;
@@ -165,12 +169,12 @@ function setupWeb3() {
 		thirdPartyProvider = true;
 		console.log('Using users web3!')
 		result = new Web3(web3.currentProvider); //If you already have a web3 provider (e.g. metamask) uses that
+		mainTimeOut = 0;
 	}
 	else {
 		thirdPartyProvider = false;
-		console.log('Using our web3. :( Check out Metamask or Mist.')
+		console.log('Using external web3. :( Check out Metamask or Mist.')
 		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //sets us as the provider
-		//To do: Disable donation without an external provider
 	}
 	libraryContract = new result.eth.Contract(loadLibraryContractABI(), libraryAddress);
 	return result;
@@ -751,7 +755,7 @@ function workerCacheBooks(existingWorker=null){
 					skipCache.push(logData[1]);
 				}
 				if(logData[0] != 'Error: Invalid JSON RPC response: ""'){
-					setTimeout(new function{workerCacheBooks(existingWorker);}, 3000);
+					setTimeout(function(){workerCacheBooks(existingWorker);}, workerTimeOut);
 				}
 				else{
 					console.log("Error connecting workers to a web3 endpoint. Stopping cacheing now...");
@@ -769,7 +773,7 @@ function workerCacheBooks(existingWorker=null){
 				if(Array.isArray(logData)){
 					storeInfo('b', logData[0][0], 'basicInfo', true);
 				}
-				setTimeout(new function{workerCacheBooks(existingWorker);}, 3000);
+				setTimeout(function(){workerCacheBooks(existingWorker);}, workerTimeOut);
 			}
 		}
 	}
@@ -786,7 +790,7 @@ function workerCacheBooks(existingWorker=null){
 	}
 	else{
 		if(skipCache.length < maxIndex){
-			setTimeout(new function{workerCacheBooks(existingWorker);}, 3000);
+			setTimeout(function(){workerCacheBooks(existingWorker);}, workerTimeOut);
 		}
 		else{
 			console.log('Cached all books...');
@@ -805,16 +809,16 @@ function mainCacheBooks(){
 			loadData('b', randomnumber)
 			.then(function(res){
 				storeInfo('b', randmnumber, 'basicInfo', true);
-				setTimeout(mainCacheBooks(), 500);
+				setTimeout(function(){mainCacheBooks()}, mainTimeOut);
 			}).catch(function(error){
 				skipCache.push(randomnumber);
-				setTimeout(mainCacheBooks(), 500);
+				setTimeout(function(){mainCacheBooks()}, mainTimeOut);
 			});
 		}
 	}
 	else{
 		if(skipCache.length < maxIndex){
-			setTimeout(mainCacheBooks(), 100);
+			mainCacheBooks();
 		}
 		else{
 			console.log('Cached all books...');
