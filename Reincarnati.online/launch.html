@@ -10,14 +10,53 @@
 		<h1 style="font-size: 5em; margin: 0;">♢</h1>
 		<h2 style="margin: 0;">reincarnati.online</h2>
 		<form style="margin-top: 5vh;" "action=""">
-			web3(); <input type="text" id="commandBar" placeholder="js(jszip.min.js); js(unzip(holocron.foundation))" style="width: 33vw;"> <button type="submit" id='launch'>Launch</button>
+			web3(); <input type="text" id="commandBar" placeholder="js(jszip.min.js_address); js(zippedHolocronFoundation);" style="width: 33vw;"> <button type="submit" id='launch'>Launch</button>
 		</form>
 		<div style="width: 66vw; margin-left:auto; margin-right:auto; margin-top:5vh;">
-			<p>Welcome to <b>reincarnati.online</b>. We aim to provide the foundation for the web of tommorrow, today.<br>We have a very basic set of commands right now, but these should be more than enough to get going.
-			<br><br>js(eth_address or returned javascript_file)
-			<br><br>unzip(eth_address) - requires jszip to be loaded.
-			<br><br>reincarnation.online is experimental and may not work in all browsers yet.<br>reincarnation.online is a holocron.foundation project.<br>The default command will take you to the holocron.foundation too!</p>
+			<p>Welcome to <b>reincarnati.online</b>. We aim to provide the foundation for the web of tommorrow, today.
+			<br>We have a very set of commands right now, but these should be more than enough to get going.
+			<br>Commands are executed in order.
+			<br><br>js(eth_address) - loads a script stored at eth_address into the page
+			<br><br>web3() - Checks for injected web 3, otherwise initializes web3.min.js
+			<br><br>reincarnation.online is experimental and may not work in all browsers yet.<br>reincarnation.online is a holocron.foundation project.<br>The default command will take you to the holocron.foundation too!
+			<br><br><br>p.s. jszip.min.js is at address</p>
 		</div>
 	</div>
 </body>
+<script>
+	var web3;
+	
+	function parseCommands(commandString){
+		var commands = commandString.split(';');
+		
+		for(var i = 0; i < commands.length; i++){
+			var currentCommand = commands[i];
+			if(currentCommand == 'web3()'){
+				loadWeb3();
+			}
+			else if(currentCommand.substring(0,2)=='js'){
+				loadJS(currentCommand.substring(3, currentCommand.length-1));
+			}
+		}
+	}
+	
+	async function loadJS(address){	
+		var jsContract = new web3.eth.Contract(JSjson, address);
+		var newScript = await jsContract.methods.getScript().call();
+		document.createElement('script').appendChild(document.createTextNode(newScript));
+	}
+	
+	function loadWeb3() {
+		if (typeof web3 !== 'undefined') {
+			web3 = new Web3(web3.currentProvider);
+		}
+		else {
+			var web3Script = document.createElement('script');
+			web3Script.setAttribute('src','./js/min/web3.min.js');
+			document.head.appendChild(web3Script);
+			web3 = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //CHANGE TO PROPER END POINT
+		}
+	}
+}
+</script>
 </html>
