@@ -15,7 +15,7 @@ var _parentABI = [{"name": "Donation", "inputs": [{"type": "address", "name": "_
 var libraryContract = new web3.eth.Contract(_parentABI, _parentAddress);
 
 //CHANGE BOOK ID HERE |							<--------
-var bookID = 12;//<----/        <------
+var bookID = 11;//<----/        <------
 //DON'T FORGET MOTHERFUCKER				<-----
 
 var fileLoc = '/Users/us.tropers/Desktop/gutenbergNoSubs/' + bookID.toString() + '/';
@@ -209,8 +209,6 @@ function processZB(index){
 		fs.readFile(fileLoc + zbFiles[index], function(err, data){
 			var result = '0x' + data.toString('hex');
 			processedFiles.push(result);
-			console.log(typeof result);
-			console.log(result);
 			processZB(index+1);
 		});
 	}
