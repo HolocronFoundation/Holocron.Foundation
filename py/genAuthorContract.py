@@ -64,11 +64,10 @@ def generateStorage(dataType, data):
         if len(dataArr) == 0:
             return 'None'
         else:
-            result = '"'
+            result = '"['
             first = True
             for entry in dataArr:
                 if first:
-                    result += '"['
                     first = False
                 else:
                     result += '|'

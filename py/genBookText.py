@@ -37,10 +37,7 @@ def __init__(_listingAddress: address):
 
     else:
         vyperFileString += '''
-modifierAddress: public(address)'''
-        count = 0
-
-        vyperFileString += ('''
+modifierAddress: public(address)
 zipBytes: public(bytes[8192][''' + str(int(len(zipBytes)/8192)) + '''])'''
 
         if len(zipBytes) % 8192 != 0:
