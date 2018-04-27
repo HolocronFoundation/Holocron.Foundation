@@ -415,7 +415,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 					//Title
 					var newHTML = '<p class="title">';
 					if(getPageName() != 'book.html'){
-						newHTML += '<a href="./book.html?bookID=' + ID.toString() + '">';
+						newHTML += '<a href="' + modifiedURL + '/book.html?bookID=' + ID.toString() + '">';
 					}
 					newHTML += '<b>' + titleClean + '</b>';
 					if(getPageName() != 'book.html'){
@@ -452,7 +452,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 							else if(k!=0){
 								newHTML += ' & ';
 							}
-							newHTML += '<a href="./author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + authorNameArray[k] + '</a>';
+							newHTML += '<a href="' + modifiedURL + '/author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + decodeURIComponent(escape(authorNameArray[k])) + '</a>';
 						}
 						newHTML += '</p>';
 					}
@@ -460,7 +460,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 					newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
 
 					//View text
-					newHTML += '<p class="textLink"><a href="./text.html?bookID=' + ID.toString() + '">View the text</a></p>';
+					newHTML += '<p class="textLink"><a href="' + modifiedURL + '/text.html?bookID=' + ID.toString() + '">View the text</a></p>';
 
 					if(uploaded){
 						newHTML += '<p>This text has been uploaded to the blockchain. Donations may still be made in the name of the text.</p>';
@@ -685,7 +685,9 @@ function removeEntry(ID){
 	if((typeof(document) !== "undefined") && (document != null)){
 		index = pageBooks[currentPage].indexOf(ID);
 		badID.push(ID);
-		skipCache.push(ID);
+		if(!skipCache.includes(ID)){
+			skipCache.push(ID);
+		}
 		if(index > -1){
 				pageBooks[currentPage].splice(index, 1);
 		}
@@ -971,30 +973,58 @@ function workerCacheBooks(existingWorker=null){
 	}
 }
 
-function mainCacheBooks(){
-	var randomnumber = Math.floor(Math.random()*maxIndex+1);
-	if(!skipCache.includes(randomnumber)){
-		if(checkIfCached('b', randomnumber)){
-			skipCache.push(randomnumber);
-			mainCacheBooks();
+function mainCacheBooks(index=-1){
+	if(index == -1){
+		var randomnumber = Math.floor(Math.random()*maxIndex+1);
+		if(!skipCache.includes(randomnumber)){
+			if(checkIfCached('b', randomnumber)){
+				skipCache.push(randomnumber);
+				mainCacheBooks();
+			}
+			else{
+				loadData('b', randomnumber)
+				.then(function(res){
+					storeInfo('b', randomnumber, 'basicInfo', true);
+					setTimeout(function(){mainCacheBooks()}, mainTimeOut);
+				}).catch(function(error){
+					skipCache.push(randomnumber);
+					setTimeout(function(){mainCacheBooks()}, mainTimeOut);
+				});
+			}
 		}
 		else{
-			loadData('b', randomnumber)
-			.then(function(res){
-				storeInfo('b', randmnumber, 'basicInfo', true);
-				setTimeout(function(){mainCacheBooks()}, mainTimeOut);
-			}).catch(function(error){
-				skipCache.push(randomnumber);
-				setTimeout(function(){mainCacheBooks()}, mainTimeOut);
-			});
+			if(skipCache.length < maxIndex){
+				mainCacheBooks();
+			}
+			else{
+				console.log('Cached all books...');
+			}
 		}
 	}
 	else{
-		if(skipCache.length < maxIndex){
-			mainCacheBooks();
+		if(!skipCache.includes(index)){
+			if(checkIfCached('b', index)){
+				skipCache.push(index);
+				mainCacheBooks();
+			}
+			else{
+				loadData('b', index)
+				.then(function(res){
+					storeInfo('b', randmnumber, 'basicInfo', true);
+					setTimeout(function(){mainCacheBooks(index+1)}, mainTimeOut);
+				}).catch(function(error){
+					skipCache.push(randomnumber);
+					setTimeout(function(){mainCacheBooks(index+1)}, mainTimeOut);
+				});
+			}
 		}
 		else{
-			console.log('Cached all books...');
+			if(index < maxIndex){
+				setTimeout(function(){mainCacheBooks(index+1);}, 25);
+			}
+			else{
+				console.log('Cached all books...');
+			}
 		}
 	}
 }
@@ -1006,6 +1036,7 @@ function cacheBooks(workerThreads) {
 		}
 	}
 	mainCacheBooks();
+	mainCacheBooks(1);
 }
 
 function getPageName(){
