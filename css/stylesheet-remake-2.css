@@ -55,6 +55,10 @@ Darkest
 	flex: 2;
 }
 
+#fullAuthorInfo {
+	border-bottom: 5px groove burlywood;
+}
+
 /* Displays next page stuff on a line */
 
 #pageNavigation div {
@@ -66,7 +70,7 @@ Darkest
 /* Puts page navigation at the bottom */
 
 #pageNavigation {
-	
+	padding-top: 1vh;
 }
 
 /* Displays search settings on a line */
@@ -126,7 +130,7 @@ li.bookInfo {
 	opacity: 0;
 	padding-bottom: 1.5vh;
 	text-align: center;
-	border-bottom: 2px groove rgb(229, 190, 151);
+	border-bottom: 5px groove burlywood;
 	transition-timing-function: ease-out;
 }
 
@@ -142,7 +146,7 @@ li.bookInfo.loaded {
 }
 
 li.bookInfo.sample {
-	border-bottom: 5px groove burlywood;
+	border-bottom: 2px groove rgb(104, 185, 255);
 }
 
 section {
