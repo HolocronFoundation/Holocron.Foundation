@@ -20,8 +20,8 @@ def splitZipFile(fileName, filePath):
     with open(filePath + fileName, 'rb') as readFile:
         zipBytes = readFile.read()
 
-    numberOfSplits = int(len(zipBytes)/8192)
-    if len(zipBytes) % 8192 != 0:
+    numberOfSplits = int(len(zipBytes)/4096)
+    if len(zipBytes) % 4096 != 0:
         numberOfSplits += 1
     
     pathlib.Path(filePath + '/' + fileName[:-4]).mkdir(parents=True, exist_ok=True)
@@ -29,6 +29,6 @@ def splitZipFile(fileName, filePath):
     for i in range(numberOfSplits):
         with open(filePath + fileName[:-4] + '/zipBytes' + str(i) + '.zb', 'wb') as writeFile:
             if i == numberOfSplits-1:
-                writeFile.write(zipBytes[i*8192:])
+                writeFile.write(zipBytes[i*4096:])
             else:
-                writeFile.write(zipBytes[i*8192:(i+1)*8192])
+                writeFile.write(zipBytes[i*4096:(i+1)*4096])

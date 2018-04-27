@@ -26,7 +26,7 @@ def generateVyperFile(fileName, filePath, directory):
     vyperFileString = '''
 listingAddress: public(address)'''
 
-    if len(zipBytes) <= 8192:
+    if len(zipBytes) <= 4096:
         vyperFileString += '''
 zipBytesFinal: public(bytes[''' + str(len(zipBytes)) + '''])
 
@@ -38,23 +38,23 @@ def __init__(_listingAddress: address):
     else:
         vyperFileString += '''
 modifierAddress: public(address)
-zipBytes: public(bytes[8192][''' + str(int(len(zipBytes)/8192)) + '''])'''
+zipBytes: public(bytes[4096][''' + str(int(len(zipBytes)/4096)) + '''])'''
 
-        if len(zipBytes) % 8192 != 0:
+        if len(zipBytes) % 4096 != 0:
             vyperFileString += '''
-zipBytesFinal: public(bytes[''' + str(len(zipBytes) % 8192) + '''])'''
+zipBytesFinal: public(bytes[''' + str(len(zipBytes) % 4096) + '''])'''
 
         vyperFileString += '''
 @public
 def __init__(_listingAddress: address, _modifierAddress: address):
     self.listingAddress = _listingAddress
     self.modifierAddress = _modifierAddress
-    self.zipBytesFinal = ''' + str(zipBytes[-(len(zipBytes) % 8192):])[1:]
+    self.zipBytesFinal = ''' + str(zipBytes[-(len(zipBytes) % 4096):])[1:]
 
         vyperFileString += '''
 
 @public
-def setZipBytes(_index: int128, newZip: bytes[8192]):
+def setZipBytes(_index: int128, newZip: bytes[4096]):
     assert msg.sender == self.modifierAddress
     self.zipBytes[_index] = newZip'''
 
