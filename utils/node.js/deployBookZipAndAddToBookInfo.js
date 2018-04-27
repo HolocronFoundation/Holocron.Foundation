@@ -185,7 +185,7 @@ function waitThenAddZips(){
 
 function waitThenUpdateLibrary(){
 	web3.eth.personal.unlockAccount(_senderAddress, _password);
-	if (zipsStored == zbFile.length){
+	if (zipsStored == zbFiles.length){
 		updateLibrary();
 	} else {
 		setTimeout(function(){waitThenUpdateLibrary();}, 100);
