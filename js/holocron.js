@@ -77,12 +77,17 @@ function loadBookTextChunk(bookID, chunk){
 	});
 }
 
-function loadFinalBookTextChunk(bookID, chunk){
+function loadFinalBookTextChunk(bookID){
+
+	alert(bookID)
+	
 	return loadInfoAddress('b', bookID).then(function(res){
+		alert(res);
 		currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__textAddress().call().then(function(res2){
+			alert(res2);
 			textContract= new web3.eth.Contract(loadZipABI(), res2);
-			return textContract.methods.zipBytesFinal().call().then(function(success){return success;})
+			return textContract.methods.zipBytesFinal().call().then(function(success){alert('ssss');return success;})
 		});
 	});
 }
@@ -99,15 +104,18 @@ async function getBookTextBlockchain(bookID) {
 	
 	for(var i = 0; i<numByteArrays; i++){
 		if(i!=numByteArrays-1){
-			bytePromises.push(loadBookTextChunk(bookID, i));
+			bytePromises.push(await loadBookTextChunk(bookID, i));
 		}
 		else{
-			bytePromises.push(loadFinalBookTextChunk(bookID));
+			bytePromises.push(await loadFinalBookTextChunk(bookID));
 		}
 	}
 	
-	Promise.all(bytePromises).then(function(values){
+	await Promise.all(bytePromises).then(function(values){
+		alert(aaa);
 		for(var i = 0; i < bytePromises.length; i++){
+			alert(typeof bytePromises[0]);
+			alert(bytePromises[0]);
 			//merge then return here
 		}
 	});
