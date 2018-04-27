@@ -78,16 +78,12 @@ function loadBookTextChunk(bookID, chunk){
 }
 
 function loadFinalBookTextChunk(bookID){
-
-	alert(bookID)
 	
 	return loadInfoAddress('b', bookID).then(function(res){
-		alert(res);
 		var currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__textAddress().call().then(function(res2){
-			alert(res2);
 			textContract= new web3.eth.Contract(loadZipABI(), res2);
-			return textContract.methods.zipBytesFinal().call().then(function(success){alert('ssss');return success;})
+			return textContract.methods.zipBytesFinal().call().then(function(success){return success;})
 		});
 	});
 }
@@ -111,14 +107,28 @@ async function getBookTextBlockchain(bookID) {
 		}
 	}
 	
-	await Promise.all(bytePromises).then(function(values){
-		alert(aaa);
-		for(var i = 0; i < bytePromises.length; i++){
-			alert(typeof bytePromises[0]);
-			alert(bytePromises[0]);
-			//merge then return here
-		}
-	});
+	var promises = await Promise.all(bytePromises);
+	
+	var arrays = []
+	
+	for(var i = 0; i<promises.length; i++){
+		var newArray = hexStringToByte(promises[i].substring(2));
+		arrays.push(newArray);
+	}
+	
+	var returnArray = new Uint8Array([].concat.apply([], arrays));
+	
+	return returnArray;
+}
+
+function hexStringToByte(str) {
+  
+  var a = [];
+  for (var i = 0, len = str.length; i < len; i+=2) {
+    a.push(parseInt(str.substr(i,2),16));
+  }
+  
+  return a;
 }
 
 function getBookTextServer(bookID) {
@@ -129,6 +139,7 @@ function getBookTextServer(bookID) {
 			}
 
 			else {
+				alert(data);
 				resolve(data);
 			}
 		});
