@@ -211,7 +211,7 @@ function setupWeb3() {
 		thirdPartyProvider = false;
 		console.log('Using external web3. :( Check out Metamask or Mist.')
 		mainTimeOut = 500;
-		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //sets us as the provider
+		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //sets an api for use
 	}
 	libraryContract = new result.eth.Contract(loadLibraryContractABI(), libraryAddress);
 	return result;
@@ -308,7 +308,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 				var size = values[2];
 				var donationsETH = web3.utils.fromWei(values[4].toString(), "ether");
 				var authorRolesIDArray = values[5];
-				var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
+				var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("2", "gwei"));
 				var uploaded = values[7];
 				
 				if(currentFilters.get('blockchain') && uploaded){
