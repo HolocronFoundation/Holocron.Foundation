@@ -13,7 +13,7 @@ var _parentABI = [{"name": "Donation", "inputs": [{"type": "address", "name": "_
 
 var parentContract = new web3.eth.Contract(_parentABI, _parentAddress);
 
-var fileLoc = '/Users/us.tropers/Desktop/Formatted for Upload/AuthorInfo/0/';
+var fileLoc = '/Users/us.tropers/Desktop/Formatted for Upload/Authors/0/';
 
 //need to create files var
 var files = fs.readdirSync(fileLoc);
@@ -31,13 +31,14 @@ var abiFiles = files.filter(function(file) {
 });
 
 var deploymentArr = [];
-var searchStr = 'vyperOutput.v.py';
+var searchStr = 'bookInfoContract';
 
 function prepFile(index){
 	if (index != byteFiles.length){
 		var entry = [];
-	
-		entry.push(byteFiles[index].slice(0, byteFiles[index].search(searchStr)));
+		console.log(byteFiles[index]);
+		console.log((byteFiles[index].slice(0, -10)).slice(14));
+		entry.push((byteFiles[index].slice(0, -10)).slice(14));
 		fs.readFile(fileLoc + byteFiles[index], 'utf-8', function(err, data){
 			entry.push(data.slice(0, data.length-1));
 			fs.readFile(fileLoc + abiFiles[index], 'utf-8', function(err, data2){

@@ -31,13 +31,14 @@ var abiFiles = files.filter(function(file) {
 });
 
 var deploymentArr = [];
-var searchStr = 'vyperOutput.v.py';
+var searchStr = 'bookInfoContract';
 
 function prepFile(index){
 	if (index != byteFiles.length){
 		var entry = [];
-	
-		entry.push(byteFiles[index].slice(0, byteFiles[index].search(searchStr)));
+		console.log(byteFiles[index]);
+		console.log((byteFiles[index].slice(0, -10)).slice(16));
+		entry.push((byteFiles[index].slice(0, -10)).slice(16));
 		fs.readFile(fileLoc + byteFiles[index], 'utf-8', function(err, data){
 			entry.push(data.slice(0, data.length-1));
 			fs.readFile(fileLoc + abiFiles[index], 'utf-8', function(err, data2){
