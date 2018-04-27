@@ -32,11 +32,12 @@
 		</div>
 	</body>
 	<script>
-		var web3 = setupWeb3();
-		var activeID = getParameterByName('bookID');
-		if(activeID == null || activeID ==''){
-			document.location.href = "./browse.html";
+		function start(){
+			var activeID = getParameterByName('bookID');
+			if(activeID == null || activeID ==''){
+				document.location.href = "./browse.html";
+			}
+			loadTextPage(activeID);
 		}
-		loadTextPage(activeID);
 	</script>
 </html>

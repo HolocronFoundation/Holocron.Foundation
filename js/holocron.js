@@ -32,7 +32,7 @@ var mainTimeOut = 0;
 
 //Consider adding maxIndex to library contract?
 
-var maxIndex = 50;
+var maxIndex = 100;
 
 //Add to option page later
 
@@ -723,8 +723,7 @@ function calculateStorageCost(size, gasPrice) {
 function searchBooks(){
 	pageBooks = [[]];
 	currentPage = 0;
-	
-	//clear page indicators here
+	resetPageNumber()
 	
 	currentPageType = 's';
 	booksList = document.getElementById("booksList");
