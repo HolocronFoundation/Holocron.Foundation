@@ -15,7 +15,7 @@ var _parentABI = [{"name": "Donation", "inputs": [{"type": "address", "name": "_
 var libraryContract = new web3.eth.Contract(_parentABI, _parentAddress);
 
 //CHANGE BOOK ID HERE |							<--------
-var bookID = 1;//<----/        <------
+var bookID = 12;//<----/        <------
 //DON'T FORGET MOTHERFUCKER				<-----
 
 var fileLoc = '/Users/us.tropers/Desktop/gutenbergNoSubs/' + bookID.toString() + '/';
@@ -99,6 +99,7 @@ function deployBookContract(){
 	}
 	else{
 		currentContract.deploy({
+			data: byteFile,
 			arguments: [_parentAddress, _senderAddress]
 		})
 		.estimateGas(function(err, gas){
@@ -106,7 +107,7 @@ function deployBookContract(){
 			gasEstimate = gas;
 		}).then(function(){
 			currentContract.deploy({
-				data: byteFiles[0],
+				data: byteFile,
 				arguments: [_parentAddress, _senderAddress]
 			})
 			.send({
@@ -129,9 +130,9 @@ function deployBookContract(){
 var zipsStored = 0;
 
 function addZips(address, fileIndex){
-	if (index+1 != zbFiles.length) {
+	if (fileIndex+1 != zbFiles.length) {
 		web3.eth.personal.unlockAccount(_senderAddress, _password);
-		var currentCall = bookContract.methods.setZipBytes(fileIndex, zbFiles[fileIndex]);
+		var currentCall = bookContract.methods.setZipBytes(fileIndex, processedFiles[fileIndex]);
 		var gasEstimate;
 		currentCall.estimateGas({from: _senderAddress}, function(err, gas){
 			console.log('Gas Estimate: ' + gas);
@@ -157,7 +158,9 @@ var updatedLib = false;
 
 function updateLibrary(){
 	web3.eth.personal.unlockAccount(_senderAddress, _password);
-	var currentCall = libraryContract.methods.setTextAddress(bookID, bookContract.address);
+	console.log(bookContract.options.address);
+	console.log(bookContract.address);
+	var currentCall = libraryContract.methods.setTextAddress(bookID, bookContract.options.address);
 	var gasEstimate;
 	currentCall.estimateGas({from: _senderAddress}, function(err, gas){
 		console.log('Gas Estimate: ' + gas);
@@ -199,11 +202,31 @@ function waitThenDone(){
 
 var _password
 var byteFile;
+var processedFiles = [];
 
-fs.readFile(fileLoc + byteFiles[0], 'utf-8', function(err, data){
-	byteFile = data.trim();
-	fs.readFile(fileLoc + abiFiles[0], 'utf-8', function(err, data2){
-		abiFile = JSON.parse(data2);
-		prepFile();
+function processZB(index){
+	if(index < zbFiles.length){
+		fs.readFile(fileLoc + zbFiles[index], function(err, data){
+			var result = '0x' + data.toString('hex');
+			processedFiles.push(result);
+			console.log(typeof result);
+			console.log(result);
+			processZB(index+1);
+		});
+	}
+	else{
+		proceed();
+	}
+}
+
+function proceed(){
+	fs.readFile(fileLoc + byteFiles[0], 'utf-8', function(err, data){
+		byteFile = data.trim();
+		fs.readFile(fileLoc + abiFiles[0], 'utf-8', function(err, data2){
+			abiFile = JSON.parse(data2);
+			prepFile();
+		});
 	});
-});
+}
+
+processZB(0);
