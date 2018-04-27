@@ -106,7 +106,7 @@ function waitThenUpdate(){
     console.log(deployedArr);
 	updateLibrary(0);
   } else {
-    setTimeout(function(){waitThenUpdate}, 100);
+    setTimeout(function(){waitThenUpdate()}, 100);
   }
 }
 
@@ -148,7 +148,7 @@ function waitThenDone(){
   if (updated == deployedArr.length){
     console.log('Well we did it....');
   } else {
-    setTimeout(function(){waitThenDone}, 100);
+    setTimeout(function(){waitThenDone()}, 100);
   }
 }
 
