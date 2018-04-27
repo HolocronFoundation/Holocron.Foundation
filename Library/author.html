@@ -17,8 +17,8 @@
 <body class="library">
 	<section>
 		<header class="library">
-			<ul class="navbar">
-				<li class="navbar"><a href="../home.html">Home</a></li>
+			<ul class="navbar library">
+				<li class="navbar holocron"><a href="../home.html">Home</a></li>
 				<li class="navbar library"><a href="./library.html">Library</a></li>
 				<li class="navbar phoenix"><a href="../phoenix/phoenix.html">Phoenix</a></li>
 				<li class="navbar reincarnationline"><a href="../reincarnati.online/reincarnationline.html">Reincarnati.online</a></li>
@@ -44,6 +44,19 @@
 			</div>
 			<ul id="booksList">
 			</ul>
+			<div id="pageNavigation" class="center">
+				<div id="backButton" style="visibility: hidden;">
+					<form action="javascript:goToPage(currentPage-1);" class="center">
+						<button type="submit">Last Page</button>
+					</form>
+				</div>
+				<div id="pageNumber0">1</div>
+				<div id="nextButton" style="visibility: hidden;">
+					<form action="javascript:goToPage(currentPage+1);" class="center">
+						<button type="submit">Next Page</button>
+					</form>
+				</div>
+			</div>
 		</div>
 		<footer class="center library">
 			<p>♢ <a href="../about.html">About</a> ♢ <a href="../home.html">Holocron.Foundation</a> ♢ <a href="../donate.html">Donate</a> ♢</p>
@@ -52,7 +65,7 @@
 </body>
 <script>
 	function start(){
-		document.getElementById("fullAuthorInfo").innerHTML = '<div id="fullAuthorInfo" name="' + activeID + '"></div>';
+		document.getElementById("fullAuthorInfo").setAttribute("name", activeID);
 		loadInfoBox('a', activeID);
 		loadAuthorBooks(activeID);
 	}

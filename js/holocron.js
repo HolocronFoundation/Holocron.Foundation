@@ -148,7 +148,7 @@ function getBookTextServer(bookID) {
 
 async function loadTextPage(bookID) {
 	
-	document.getElementById('Holocron Info').innerHTML = '<p>Welcome to the Holocron Foundation.</p>';
+	document.getElementById('Holocron Info').innerHTML = '<p>Welcome to the <a href="./library.html">holocron.foundation library</a>.</p>';
 	
 	document.getElementById('bookText').innerHTML = '<p></p>';
 	
@@ -162,7 +162,7 @@ async function loadTextPage(bookID) {
 	
 	document.title = 'Holocron.Foundation ♢ ' + bookName;
 	
-	var holocronInfoText = 'Welcome to the Holocron Foundation. You are reading ' + bookName + '. This text is Public Domain within the United States, so feel free to use the text however you would like.';
+	var holocronInfoText = 'Welcome to the <a href="./library.html">holocron.foundation library</a>. You are reading <a href="./book.html?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
 	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '</p>';
 	
@@ -172,7 +172,7 @@ async function loadTextPage(bookID) {
 		holocronInfoText += ' This text has been uploaded to the Ethereum Blockchain. You are viewing the copy stored there. Enjoy!';
 	}
 	else {
-		holocronInfoText += ' This text has <b>NOT</b> been uploaded to the Ethereum Blockchain. You are viewing a copy stored on our server. If you would like to contribute Ethereum click here to send a donation. If you would like to give Bitcoin, Litecoin, or USD please see our donations page.';
+		holocronInfoText += ' This text has <b>NOT</b> been uploaded to the Ethereum Blockchain. You are viewing a copy stored on our server. If you would like to contribute Ethereum <a href="#" onclick="donate(' + bookID + ', false, true)">click here</a> to immeadiately send a donation with our default fee, or head to <a href="./book.html?bookID=' + bookID + '">this books page</a> to change it. If you would like to give Bitcoin, Litecoin, or USD please see our <a href="../donate.html">donations page</a>.';
 	}
 	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '<p>';
@@ -297,7 +297,7 @@ function loadData(tag, ID, useCache=true){
 	return Promise.all(promiseData);
 }
 
-function loadInfoBox(tag, ID){
+function loadInfoBox(tag, ID, modifiedURL='.'){
 	loadInfoAddress(tag, ID)
 	.then(function(res){
 		promisedInfo = loadData(tag, ID);
@@ -320,7 +320,7 @@ function loadInfoBox(tag, ID){
 					//Title
 					var newHTML = '<p class="title">';
 					if(getPageName() != 'book.html'){
-						newHTML += '<a href="./book.html?bookID=' + ID.toString() + '">';
+						newHTML += '<a href="' + modifiedURL + '/book.html?bookID=' + ID.toString() + '">';
 					}
 					newHTML += '<b>' + titleClean + '</b>';
 					if(getPageName() != 'book.html'){
@@ -357,7 +357,7 @@ function loadInfoBox(tag, ID){
 							else if(k!=0){
 								newHTML += ' & ';
 							}
-							newHTML += '<a href="./author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + authorNameArray[k] + '</a>';
+							newHTML += '<a href="' + modifiedURL + '/author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + decodeURIComponent(escape(authorNameArray[k])) + '</a>';
 						}
 						newHTML += '</p>';
 					}
@@ -365,7 +365,7 @@ function loadInfoBox(tag, ID){
 					newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
 
 					//View text
-					newHTML += '<p class="textLink"><a href="./text.html?bookID=' + ID.toString() + '">View the text</a></p>';
+					newHTML += '<p class="textLink"><a href="' + modifiedURL + '/text.html?bookID=' + ID.toString() + '">View the text</a></p>';
 
 					if(uploaded){
 						newHTML += '<p>This text has been uploaded to the blockchain. Donations may still be made in the name of the text.</p>';
@@ -392,7 +392,7 @@ function loadInfoBox(tag, ID){
 					}
 
 					//Donation slider
-					newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
+					newHTML += '<div class="splitSlider" style="display: flex;"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
 
 					//ETH donate
 					newHTML += '<p><a href="javascript:donate(' + ID + ');">Donate with Ξ</a></p>';
@@ -487,7 +487,7 @@ function loadInfoBox(tag, ID){
 					}
 
 					//Donation slider
-					newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
+					newHTML += '<div class="splitSlider" style="display: flex;"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
 
 					//ETH donate
 					newHTML += '<p><a href="javascript:donate(' + ID + ');">Donate with Ξ</a></p>';
@@ -520,20 +520,41 @@ function loadInfoBox(tag, ID){
 				if(getPageName() != 'author.html'){
 					newHTML += '<a href="./author.html?authorID=' + ID.toString() + '">';
 				}
-				newHTML += '<b>' + name + '</b>';
+				newHTML += '<b>' + decodeURIComponent(escape(name)) + '</b>';
 				if(getPageName() != 'author.html'){
 					newHTML += '</a>';
 				}
 				newHTML += '</p> ';
 				
 				//Birthdate
-				newHTML += '<p class="birthYear">Birth Year: ' + birthdate + '</p>';
+				if(birthdate != null){
+					newHTML += '<p class="birthYear">Birth Year: ' + birthdate + '</p>';
+				}
 				
 				//Deathdate
-				newHTML += '<p class="deathYear">Death Year: ' + deathdate + '</p>';
+				if(deathdate != null){
+					newHTML += '<p class="deathYear">Death Year: ' + deathdate + '</p>';
+				}
 				
 				//Aliases
-				newHTML += '<p class="alias">Alias(es): ' + alias + '</p>';
+				if(alias != null){
+					var aliases;
+					if(typeof alias == 'string'){
+						aliases = decodeURIComponent(escape(alias.substring(1, alias.length-1))).replace('|', ', ');
+					}
+					else{
+						aliases = '';
+						first = true;
+						for(var q = 0; q < alias.length; q++){
+							if(!first){
+								aliases += ', '
+							}
+							first = false;
+							aliases += decodeURIComponent(escape(alias[q]));
+						}	
+					}
+					newHTML += '<p class="alias">Alias(es): ' + aliases + '</p>';
+				}
 
 				infoItem = document.getElementsByName(ID.toString())[0];
 				infoItem.innerHTML = newHTML;
@@ -678,7 +699,7 @@ function removeEntry(ID){
 	}
 }
 
-function donate(bookID, invalidNumber=false){
+function donate(bookID, invalidNumber=false, defaultSplit=false){
 	//need bookID, foundationSplitNumerator, foundationSplitDenominator, donationvalue
 	var donationValueString;
 	if(invalidNumber){
@@ -694,8 +715,14 @@ function donate(bookID, invalidNumber=false){
 		donate(bookID, true);
 	}
 	else {
-		var foundationSplitNumerator = document.getElementById('slider'+bookID).value;
+		var foundationSplitNumerator;
 		var foundationSplitDenominator = 100;
+		if(!defaultSplit){
+			foundationSplitNumerator = document.getElementById('slider'+bookID).value;
+		}
+		else{
+			foundationSplitNumerator = 30;
+		}
 		web3.eth.getAccounts(function(error, accounts) {
 			if(!error){
 				libraryContract.methods.donate(bookID, foundationSplitNumerator, foundationSplitDenominator).send({
