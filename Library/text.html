@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+
+		<title>Holocron.Foundation ♢</title>
+		
+		<link rel="stylesheet" type="text/css" href="../css/stylesheet-remake-2.css">
+
+		<script type="text/javascript" src="../js/min/web3.min.js"></script>
+
+		<script type="text/javascript" src="../js/min/jszip.min.js"></script>
+
+		<script type="text/javascript" src="../js/min/jszip-utils.min.js"></script>
+		<!--
+		Mandatory in IE 6, 7, 8 and 9.
+		-->
+		<!--[if IE]>
+		<script type="text/javascript" src="../js/min/jszip-utils-ie.min.js"></script>
+		<![endif]-->
+		
+		<script type="text/javascript" src="../js/holocron.js"></script>
+	</head>
+
+	<body id="textBody">
+		<div id="Holocron Info">
+			<p>Welcome to the <a href="./library.html">holocron.foundation library</a>.</p>
+		</div>
+
+		<div id="bookText">
+
+		</div>
+	</body>
+	<script>
+		function start(){
+			var activeID = getParameterByName('bookID');
+			if(activeID == null || activeID ==''){
+				document.location.href = "./browse.html";
+			}
+			loadTextPage(activeID);
+		}
+	</script>
+</html>

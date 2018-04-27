@@ -7,11 +7,36 @@ if (typeof window !== 'undefined'){
 	});
 }
 
+var currentPage = null;
+
+//r = random, a = author, s = search
+var currentPageType = null;
+
+var pageBooks = [[]];
+
+var skipCache = [];
+
+var badID = [];
+
+var searchValue;
+
+var currentFilters = new Map([['server', true], ['blockchain', true]]);
+
 //Need to add account refreshing
 
 var web3;
 
-var activeBookIDs = [];
+var workerTimeOut = 100;
+
+var mainTimeOut = 0;
+
+//Consider adding maxIndex to library contract?
+
+var maxIndex = 100;
+
+//Add to option page later
+
+var maxEntries = 5;
 
 function loadLibraryContractABI() {
 	return [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "getBookAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 672}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 21976}, {"name": "getAuthorAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "authorID"}], "constant": true, "payable": false, "type": "function", "gas": 732}, {"name": "addAuthor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "authorAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22036}, {"name": "getSubjectAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "subjectID"}], "constant": true, "payable": false, "type": "function", "gas": 792}, {"name": "getLoCAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "LoCID"}], "constant": true, "payable": false, "type": "function", "gas": 822}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22280}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41411}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41386}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22039}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 6101}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4781}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1060}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 873}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 903}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1122}, {"name": "authors", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1152}, {"name": "subjects", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1182}, {"name": "LoC", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1212}];
@@ -27,7 +52,7 @@ function loadAuthorABI(){
 }
 
 function loadZipABI(){
-	return [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_listingAddress"}, {"type": "address", "name": "_modifierAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "setText1", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187288}, {"name": "setText2", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187318}, {"name": "setText3", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187348}, {"name": "setText4", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187378}, {"name": "setText5", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187408}, {"name": "setText6", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187438}, {"name": "setText7", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187468}, {"name": "setText8", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187498}, {"name": "setText9", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187528}, {"name": "setText10", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187558}, {"name": "setText11", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187588}, {"name": "setText12", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187618}, {"name": "setText13", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187648}, {"name": "setText14", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187678}, {"name": "setText15", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187708}, {"name": "setText16", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187738}, {"name": "setText17", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187768}, {"name": "setText18", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187798}, {"name": "setText19", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187828}, {"name": "setText20", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187858}, {"name": "setText21", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187888}, {"name": "setText22", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187918}, {"name": "setText23", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187948}, {"name": "setText24", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5187978}, {"name": "setText25", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188008}, {"name": "setText26", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188038}, {"name": "setText27", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188068}, {"name": "setText28", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188098}, {"name": "setText29", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188128}, {"name": "setText30", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188158}, {"name": "setText31", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188188}, {"name": "setText32", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188218}, {"name": "setText33", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188248}, {"name": "setText34", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188278}, {"name": "setText35", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188308}, {"name": "setText36", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188338}, {"name": "setText37", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188368}, {"name": "setText38", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188398}, {"name": "setText39", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188428}, {"name": "setText40", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188458}, {"name": "setText41", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188488}, {"name": "setText42", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188518}, {"name": "setText43", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188548}, {"name": "setText44", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188578}, {"name": "setText45", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188608}, {"name": "setText46", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188638}, {"name": "setText47", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188668}, {"name": "setText48", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188698}, {"name": "setText49", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188728}, {"name": "setText50", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188758}, {"name": "setText51", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188788}, {"name": "setText52", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188818}, {"name": "setText53", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188848}, {"name": "setText54", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188878}, {"name": "setText55", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188908}, {"name": "setText56", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188938}, {"name": "setText57", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188968}, {"name": "setText58", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5188998}, {"name": "setText59", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189028}, {"name": "setText60", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189058}, {"name": "setText61", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189088}, {"name": "setText62", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189118}, {"name": "setText63", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189148}, {"name": "setText64", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189178}, {"name": "setText65", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189208}, {"name": "setText66", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189238}, {"name": "setText67", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189268}, {"name": "setText68", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189298}, {"name": "setText69", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189328}, {"name": "setText70", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189358}, {"name": "setText71", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189388}, {"name": "setText72", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189418}, {"name": "setText73", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189448}, {"name": "setText74", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189478}, {"name": "setText75", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189508}, {"name": "setText76", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189538}, {"name": "setText77", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189568}, {"name": "setText78", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189598}, {"name": "setText79", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189628}, {"name": "setText80", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189658}, {"name": "setText81", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189688}, {"name": "setText82", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189718}, {"name": "setText83", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189748}, {"name": "setText84", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189778}, {"name": "setText85", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189808}, {"name": "setText86", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189838}, {"name": "setText87", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189868}, {"name": "setText88", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189898}, {"name": "setText89", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189928}, {"name": "setText90", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189958}, {"name": "setText91", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5189988}, {"name": "setText92", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190018}, {"name": "setText93", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190048}, {"name": "setText94", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190078}, {"name": "setText95", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190108}, {"name": "setText96", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190138}, {"name": "setText97", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190168}, {"name": "setText98", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190198}, {"name": "setText99", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190228}, {"name": "setText100", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190258}, {"name": "setText101", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190288}, {"name": "setText102", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190318}, {"name": "setText103", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190348}, {"name": "setText104", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190378}, {"name": "setText105", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190408}, {"name": "setText106", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190438}, {"name": "setText107", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190468}, {"name": "setText108", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190498}, {"name": "setText109", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190528}, {"name": "setText110", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190558}, {"name": "setText111", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190588}, {"name": "setText112", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190618}, {"name": "setText113", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190648}, {"name": "setText114", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190678}, {"name": "setText115", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190708}, {"name": "setText116", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190738}, {"name": "setText117", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190768}, {"name": "setText118", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190798}, {"name": "setText119", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190828}, {"name": "setText120", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190858}, {"name": "setText121", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190888}, {"name": "setText122", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190918}, {"name": "setText123", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190948}, {"name": "setText124", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5190978}, {"name": "setText125", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191008}, {"name": "setText126", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191038}, {"name": "setText127", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191068}, {"name": "setText128", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191098}, {"name": "setText129", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191128}, {"name": "setText130", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191158}, {"name": "setText131", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191188}, {"name": "setText132", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191218}, {"name": "setText133", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191248}, {"name": "setText134", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191278}, {"name": "setText135", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191308}, {"name": "setText136", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191338}, {"name": "setText137", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191368}, {"name": "setText138", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191398}, {"name": "setText139", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191428}, {"name": "setText140", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191458}, {"name": "setText141", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191488}, {"name": "setText142", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191518}, {"name": "setText143", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191548}, {"name": "setText144", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191578}, {"name": "setText145", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191608}, {"name": "setText146", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191638}, {"name": "setText147", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191668}, {"name": "setText148", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191698}, {"name": "setText149", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191728}, {"name": "setText150", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191758}, {"name": "setText151", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191788}, {"name": "setText152", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191818}, {"name": "setText153", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191848}, {"name": "setText154", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191878}, {"name": "setText155", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191908}, {"name": "setText156", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191938}, {"name": "setText157", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191968}, {"name": "setText158", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5191998}, {"name": "setText159", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5192028}, {"name": "setText160", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 5192058}, {"name": "setText161", "outputs": [], "inputs": [{"type": "bytes", "name": "newText"}], "constant": false, "payable": false, "type": "function", "gas": 86407}, {"name": "listingAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 5313}, {"name": "modifierAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 5343}, {"name": "zipBytes0", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 101688}, {"name": "zipBytes1", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 101718}, {"name": "zipBytes2", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 101748}, {"name": "zipBytes3", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 101778}, {"name": "zipBytes4", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 101808}, {"name": "zipBytes5", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 101838}, {"name": "zipBytes6", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 101868}, {"name": "zipBytes7", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 101898}, {"name": "zipBytes8", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 101928}, {"name": "zipBytes9", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 101958}, {"name": "zipBytes10", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 101988}, {"name": "zipBytes11", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102018}, {"name": "zipBytes12", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102048}, {"name": "zipBytes13", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102078}, {"name": "zipBytes14", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102108}, {"name": "zipBytes15", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102138}, {"name": "zipBytes16", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102168}, {"name": "zipBytes17", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102198}, {"name": "zipBytes18", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102228}, {"name": "zipBytes19", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102258}, {"name": "zipBytes20", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102288}, {"name": "zipBytes21", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102318}, {"name": "zipBytes22", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102348}, {"name": "zipBytes23", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102378}, {"name": "zipBytes24", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102408}, {"name": "zipBytes25", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102438}, {"name": "zipBytes26", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102468}, {"name": "zipBytes27", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102498}, {"name": "zipBytes28", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102528}, {"name": "zipBytes29", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102558}, {"name": "zipBytes30", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102588}, {"name": "zipBytes31", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102618}, {"name": "zipBytes32", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102648}, {"name": "zipBytes33", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102678}, {"name": "zipBytes34", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102708}, {"name": "zipBytes35", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102738}, {"name": "zipBytes36", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102768}, {"name": "zipBytes37", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102798}, {"name": "zipBytes38", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102828}, {"name": "zipBytes39", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102858}, {"name": "zipBytes40", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102888}, {"name": "zipBytes41", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102918}, {"name": "zipBytes42", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102948}, {"name": "zipBytes43", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 102978}, {"name": "zipBytes44", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103008}, {"name": "zipBytes45", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103038}, {"name": "zipBytes46", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103068}, {"name": "zipBytes47", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103098}, {"name": "zipBytes48", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103128}, {"name": "zipBytes49", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103158}, {"name": "zipBytes50", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103188}, {"name": "zipBytes51", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103218}, {"name": "zipBytes52", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103248}, {"name": "zipBytes53", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103278}, {"name": "zipBytes54", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103308}, {"name": "zipBytes55", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103338}, {"name": "zipBytes56", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103368}, {"name": "zipBytes57", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103398}, {"name": "zipBytes58", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103428}, {"name": "zipBytes59", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103458}, {"name": "zipBytes60", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103488}, {"name": "zipBytes61", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103518}, {"name": "zipBytes62", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103548}, {"name": "zipBytes63", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103578}, {"name": "zipBytes64", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103608}, {"name": "zipBytes65", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103638}, {"name": "zipBytes66", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103668}, {"name": "zipBytes67", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103698}, {"name": "zipBytes68", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103728}, {"name": "zipBytes69", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103758}, {"name": "zipBytes70", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103788}, {"name": "zipBytes71", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103818}, {"name": "zipBytes72", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103848}, {"name": "zipBytes73", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103878}, {"name": "zipBytes74", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103908}, {"name": "zipBytes75", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103938}, {"name": "zipBytes76", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103968}, {"name": "zipBytes77", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 103998}, {"name": "zipBytes78", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104028}, {"name": "zipBytes79", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104058}, {"name": "zipBytes80", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104088}, {"name": "zipBytes81", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104118}, {"name": "zipBytes82", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104148}, {"name": "zipBytes83", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104178}, {"name": "zipBytes84", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104208}, {"name": "zipBytes85", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104238}, {"name": "zipBytes86", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104268}, {"name": "zipBytes87", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104298}, {"name": "zipBytes88", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104328}, {"name": "zipBytes89", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104358}, {"name": "zipBytes90", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104388}, {"name": "zipBytes91", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104418}, {"name": "zipBytes92", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104448}, {"name": "zipBytes93", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104478}, {"name": "zipBytes94", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104508}, {"name": "zipBytes95", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104538}, {"name": "zipBytes96", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104568}, {"name": "zipBytes97", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104598}, {"name": "zipBytes98", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104628}, {"name": "zipBytes99", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104658}, {"name": "zipBytes100", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104688}, {"name": "zipBytes101", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104718}, {"name": "zipBytes102", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104748}, {"name": "zipBytes103", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104778}, {"name": "zipBytes104", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104808}, {"name": "zipBytes105", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104838}, {"name": "zipBytes106", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104868}, {"name": "zipBytes107", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104898}, {"name": "zipBytes108", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104928}, {"name": "zipBytes109", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104958}, {"name": "zipBytes110", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 104988}, {"name": "zipBytes111", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105018}, {"name": "zipBytes112", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105048}, {"name": "zipBytes113", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105078}, {"name": "zipBytes114", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105108}, {"name": "zipBytes115", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105138}, {"name": "zipBytes116", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105168}, {"name": "zipBytes117", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105198}, {"name": "zipBytes118", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105228}, {"name": "zipBytes119", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105258}, {"name": "zipBytes120", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105288}, {"name": "zipBytes121", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105318}, {"name": "zipBytes122", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105348}, {"name": "zipBytes123", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105378}, {"name": "zipBytes124", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105408}, {"name": "zipBytes125", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105438}, {"name": "zipBytes126", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105468}, {"name": "zipBytes127", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105498}, {"name": "zipBytes128", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105528}, {"name": "zipBytes129", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105558}, {"name": "zipBytes130", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105588}, {"name": "zipBytes131", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105618}, {"name": "zipBytes132", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105648}, {"name": "zipBytes133", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105678}, {"name": "zipBytes134", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105708}, {"name": "zipBytes135", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105738}, {"name": "zipBytes136", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105768}, {"name": "zipBytes137", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105798}, {"name": "zipBytes138", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105828}, {"name": "zipBytes139", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105858}, {"name": "zipBytes140", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105888}, {"name": "zipBytes141", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105918}, {"name": "zipBytes142", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105948}, {"name": "zipBytes143", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 105978}, {"name": "zipBytes144", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106008}, {"name": "zipBytes145", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106038}, {"name": "zipBytes146", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106068}, {"name": "zipBytes147", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106098}, {"name": "zipBytes148", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106128}, {"name": "zipBytes149", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106158}, {"name": "zipBytes150", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106188}, {"name": "zipBytes151", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106218}, {"name": "zipBytes152", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106248}, {"name": "zipBytes153", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106278}, {"name": "zipBytes154", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106308}, {"name": "zipBytes155", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106338}, {"name": "zipBytes156", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106368}, {"name": "zipBytes157", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106398}, {"name": "zipBytes158", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106428}, {"name": "zipBytes159", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106458}, {"name": "zipBytes160", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 106488}, {"name": "zipBytes161", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 11896}];
+	return [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_listingAddress"}, {"type": "address", "name": "_modifierAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "setZipBytes", "outputs": [], "inputs": [{"type": "int128", "name": "_index"}, {"type": "bytes", "name": "newZip"}], "constant": false, "payable": false, "type": "function", "gas": 5187494}, {"name": "listingAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 513}, {"name": "modifierAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 543}, {"name": "zipBytes", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 97105}, {"name": "zipBytesFinal", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 28850}];
 }
 
 var bookABI = loadBookABI();
@@ -36,7 +61,7 @@ var authorABI = loadAuthorABI();
 
 var zipABI;
 
-var libraryAddress = '0x41Ea336a5b7Dd1b4Fc71E837c23349C17A87f6E6';
+var libraryAddress = '0x7c42F6386E2693F413dd8F09AF1e34D7b5De104B';
 
 var thirdPartyProvider;
 
@@ -44,11 +69,21 @@ var libraryContract; //This loads the library ABI, responsible for most function
 
 function loadBookTextChunk(bookID, chunk){
 	return loadInfoAddress('b', bookID).then(function(res){
-		currentContract = new web3.eth.Contract(bookABI, res);
+		var currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__textAddress().call().then(function(res2){
 			textContract= new web3.eth.Contract(loadZipABI(), res2);
-			var tempFunction = new Function("contract", "return contract.methods.zipBytes" + chunk + "().call().catch(function(error){console.log(error);});");
-			return tempFunction(textContract);
+			return textContract.methods.zipBytes(chunk).call().then(function(success){return success;})
+		});
+	});
+}
+
+function loadFinalBookTextChunk(bookID){
+	
+	return loadInfoAddress('b', bookID).then(function(res){
+		var currentContract = new web3.eth.Contract(bookABI, res);
+		return currentContract.methods.book__textAddress().call().then(function(res2){
+			textContract= new web3.eth.Contract(loadZipABI(), res2);
+			return textContract.methods.zipBytesFinal().call().then(function(success){return success;})
 		});
 	});
 }
@@ -64,12 +99,36 @@ async function getBookTextBlockchain(bookID) {
 	bytePromises = [];
 	
 	for(var i = 0; i<numByteArrays; i++){
-		bytePromises.push(loadBookTextChunk(bookID, i));
+		if(i!=numByteArrays-1){
+			bytePromises.push(await loadBookTextChunk(bookID, i));
+		}
+		else{
+			bytePromises.push(await loadFinalBookTextChunk(bookID));
+		}
 	}
 	
-	Promise.all(bytePromises).then(function(values){
-		console.log(values[0]);
-	});
+	var promises = await Promise.all(bytePromises);
+	
+	var arrays = []
+	
+	for(var i = 0; i<promises.length; i++){
+		var newArray = hexStringToByte(promises[i].substring(2));
+		arrays.push(newArray);
+	}
+	
+	var returnArray = new Uint8Array([].concat.apply([], arrays));
+	
+	return returnArray;
+}
+
+function hexStringToByte(str) {
+  
+  var a = [];
+  for (var i = 0, len = str.length; i < len; i+=2) {
+    a.push(parseInt(str.substr(i,2),16));
+  }
+  
+  return a;
 }
 
 function getBookTextServer(bookID) {
@@ -80,6 +139,7 @@ function getBookTextServer(bookID) {
 			}
 
 			else {
+				alert(data);
 				resolve(data);
 			}
 		});
@@ -88,7 +148,7 @@ function getBookTextServer(bookID) {
 
 async function loadTextPage(bookID) {
 	
-	document.getElementById('Holocron Info').innerHTML = '<p>Welcome to the Holocron Foundation.</p>';
+	document.getElementById('Holocron Info').innerHTML = '<p>Welcome to the <a href="./library.html">holocron.foundation library</a>.</p>';
 	
 	document.getElementById('bookText').innerHTML = '<p></p>';
 	
@@ -102,7 +162,7 @@ async function loadTextPage(bookID) {
 	
 	document.title = 'Holocron.Foundation ♢ ' + bookName;
 	
-	var holocronInfoText = 'Welcome to the Holocron Foundation. You are reading ' + bookName + '. This text is Public Domain within the United States, so feel free to use the text however you would like.';
+	var holocronInfoText = 'Welcome to the <a href="./library.html">holocron.foundation library</a>. You are reading <a href="./book.html?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
 	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '</p>';
 	
@@ -112,7 +172,7 @@ async function loadTextPage(bookID) {
 		holocronInfoText += ' This text has been uploaded to the Ethereum Blockchain. You are viewing the copy stored there. Enjoy!';
 	}
 	else {
-		holocronInfoText += ' This text has <b>NOT</b> been uploaded to the Ethereum Blockchain. You are viewing a copy stored on our server. If you would like to contribute Ethereum click here to send a donation. If you would like to give Bitcoin, Litecoin, or USD please see our donations page.';
+		holocronInfoText += ' This text has <b>NOT</b> been uploaded to the Ethereum Blockchain. You are viewing a copy stored on our server. If you would like to contribute Ethereum <a href="#" onclick="donate(' + bookID + ', false, true)">click here</a> to immeadiately send a donation with our default fee, or head to <a href="./book.html?bookID=' + bookID + '">this books page</a> to change it. If you would like to give Bitcoin, Litecoin, or USD please see our <a href="../donate.html">donations page</a>.';
 	}
 	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '<p>';
@@ -144,22 +204,17 @@ function setupWeb3() {
 	
 	if (typeof web3 !== 'undefined') {
 		thirdPartyProvider = true;
+		console.log('Using users web3!')
 		result = new Web3(web3.currentProvider); //If you already have a web3 provider (e.g. metamask) uses that
 	}
 	else {
 		thirdPartyProvider = false;
+		console.log('Using external web3. :( Check out Metamask or Mist.')
+		mainTimeOut = 500;
 		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //sets us as the provider
-		//To do: Disable donation without an external provider
 	}
 	libraryContract = new result.eth.Contract(loadLibraryContractABI(), libraryAddress);
 	return result;
-}
-
-function loadBookInfoBoxes(){
-	var elements = document.getElementsByClassName("bookInfo");
-	for (var i = 0; i < elements.length; i++){
-		loadInfoBox('b', parseInt(elements[i].getAttribute("name")));
-	}
 }
 
 function getAuthors(bookID, localStorageAccess=true){
@@ -230,6 +285,7 @@ function loadData(tag, ID, useCache=true){
 		promiseData.push(loadVariable(tag, ID, 'donations', false));
 		promiseData.push(getAuthorRoles(ID, useCache));
 		promiseData.push(loadVariable(tag, ID, 'authorIDs', useCache));
+		promiseData.push(loadVariable(tag, ID, 'uploaded', false))
 	}
 	else if(tag == 'a'){
 		promiseData.push(loadVariable(tag, ID, 'name', useCache, true));
@@ -241,7 +297,7 @@ function loadData(tag, ID, useCache=true){
 	return Promise.all(promiseData);
 }
 
-function loadInfoBox(tag, ID){
+function loadInfoBox(tag, ID, modifiedURL='.'){
 	loadInfoAddress(tag, ID)
 	.then(function(res){
 		promisedInfo = loadData(tag, ID);
@@ -253,76 +309,205 @@ function loadInfoBox(tag, ID){
 				var donationsETH = web3.utils.fromWei(values[4].toString(), "ether");
 				var authorRolesIDArray = values[5];
 				var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
+				var uploaded = values[7];
 				
-				
-				//Title
-				var newHTML = '<p class="title">';
-				if(getPageName() != 'book.html'){
-					newHTML += '<a href="./book.html?bookID=' + ID.toString() + '">';
-				}
-				newHTML += '<b>' + titleClean + '</b>';
-				if(getPageName() != 'book.html'){
-					newHTML += '</a>';
-				}
-				newHTML += '</p> ';
-				
-				if(authorRolesIDArray != 'None'){
-					var authorNameArray = values[3];
-					var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
-
-					newHTML += '<p class="author">';
-					var lastRole = -1;
-					for (var k = 0; k<authorNameArray.length; k++){
-						var currentRoleID = authorRolesIDArray[k];
-						if(currentRoleID != lastRole){
-							if (k!=0){
-								newHTML += ', ';
-							}
-							if(currentRoleID == 0){
-								newHTML += 'Authored by: ';
-							}
-							else if (currentRoleID == 1){
-								newHTML += 'Translated by: ';
-							}
-							else if (currentRoleID == 2){
-								newHTML += 'Edited by: ';
-							}
-							else if (currentRoleID == 3){
-								newHTML += 'Illustrated by: ';
-							}
-							lastRole = currentRoleID;
-						}
-						else if(k!=0){
-							newHTML += ' & ';
-						}
-						newHTML += '<a href="./author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + authorNameArray[k] + '</a>';
+				if(currentFilters.get('blockchain') && uploaded){
+					if(clearBooksSection){
+						booksList.innerHTML = '';
+						clearBooksSection = false;
 					}
-					newHTML += '</p>';
+					
+					//Title
+					var newHTML = '<p class="title">';
+					if(getPageName() != 'book.html'){
+						newHTML += '<a href="' + modifiedURL + '/book.html?bookID=' + ID.toString() + '">';
+					}
+					newHTML += '<b>' + titleClean + '</b>';
+					if(getPageName() != 'book.html'){
+						newHTML += '</a>';
+					}
+					newHTML += '</p> ';
+
+					if(authorRolesIDArray != 'None'){
+						var authorNameArray = values[3];
+						var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
+
+						newHTML += '<p class="author">';
+						var lastRole = -1;
+						for (var k = 0; k<authorNameArray.length; k++){
+							var currentRoleID = authorRolesIDArray[k];
+							if(currentRoleID != lastRole){
+								if (k!=0){
+									newHTML += ', ';
+								}
+								if(currentRoleID == 0){
+									newHTML += 'Authored by: ';
+								}
+								else if (currentRoleID == 1){
+									newHTML += 'Translated by: ';
+								}
+								else if (currentRoleID == 2){
+									newHTML += 'Edited by: ';
+								}
+								else if (currentRoleID == 3){
+									newHTML += 'Illustrated by: ';
+								}
+								lastRole = currentRoleID;
+							}
+							else if(k!=0){
+								newHTML += ' & ';
+							}
+							newHTML += '<a href="' + modifiedURL + '/author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + decodeURIComponent(escape(authorNameArray[k])) + '</a>';
+						}
+						newHTML += '</p>';
+					}
+					//Language Info
+					newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
+
+					//View text
+					newHTML += '<p class="textLink"><a href="' + modifiedURL + '/text.html?bookID=' + ID.toString() + '">View the text</a></p>';
+
+					if(uploaded){
+						newHTML += '<p>This text has been uploaded to the blockchain. Donations may still be made in the name of the text.</p>';
+
+						//Donation stats
+						newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
+
+					}
+					else{
+						newHTML += '<p>This text is <b>not</b> yet uploaded to the blockchain.</p>';
+
+						if(donationsETH > web3.utils.fromWei(gweiStorageCost.toString(), "ether")){
+							newHTML += '<p>Enough donations have been recieved to upload the text to the blockchain!<br>It will be available shortly. Donations may still be made in the name of the text.</p>'
+
+							newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
+						}
+						else{
+							//Donation meter
+							newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
+
+							//Donation stats
+							newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
+						}
+					}
+
+					//Donation slider
+					newHTML += '<div class="splitSlider" style="display: flex;"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
+
+					//ETH donate
+					newHTML += '<p><a href="javascript:donate(' + ID + ');">Donate with Ξ</a></p>';
+
+					//Other donate
+					newHTML += '<p><a href="../donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
+
+					infoItem = document.getElementsByName(ID.toString())[0];
+					infoItem.innerHTML = newHTML;
+					infoItem.className = infoItem.className + ' loaded';
+
+					storeInfo(tag, ID, 'basicInfo', true);
 				}
-				//Language Info
-				newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
+				else if (currentFilters.get('server') && !uploaded){
+					if(clearBooksSection){
+						booksList.innerHTML = '';
+						clearBooksSection = false;
+					}
+					
+					//Title
+					var newHTML = '<p class="title">';
+					if(getPageName() != 'book.html'){
+						newHTML += '<a href="./book.html?bookID=' + ID.toString() + '">';
+					}
+					newHTML += '<b>' + titleClean + '</b>';
+					if(getPageName() != 'book.html'){
+						newHTML += '</a>';
+					}
+					newHTML += '</p> ';
 
-				//View text
-				newHTML += '<p class="textLink"><a href="./text.html?bookID=' + ID.toString() + '">View the text</a></p>';
+					if(authorRolesIDArray != 'None'){
+						var authorNameArray = values[3];
+						var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
 
-				//Donation meter
-				newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
+						newHTML += '<p class="author">';
+						var lastRole = -1;
+						for (var k = 0; k<authorNameArray.length; k++){
+							var currentRoleID = authorRolesIDArray[k];
+							if(currentRoleID != lastRole){
+								if (k!=0){
+									newHTML += ', ';
+								}
+								if(currentRoleID == 0){
+									newHTML += 'Authored by: ';
+								}
+								else if (currentRoleID == 1){
+									newHTML += 'Translated by: ';
+								}
+								else if (currentRoleID == 2){
+									newHTML += 'Edited by: ';
+								}
+								else if (currentRoleID == 3){
+									newHTML += 'Illustrated by: ';
+								}
+								lastRole = currentRoleID;
+							}
+							else if(k!=0){
+								newHTML += ' & ';
+							}
+							newHTML += '<a href="./author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + authorNameArray[k] + '</a>';
+						}
+						newHTML += '</p>';
+					}
+					//Language Info
+					newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
 
-				//Donation stats
-				newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
+					//View text
+					newHTML += '<p class="textLink"><a href="./text.html?bookID=' + ID.toString() + '">View the text</a></p>';
 
-				//Donation slider
-				newHTML += '<div class="splitSlider"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
+					if(uploaded){
+						newHTML += '<p>This text has been uploaded to the blockchain. Donations may still be made in the name of the text.</p>';
 
-				//ETH donate
-				newHTML += '<p><a href="javascript:donate(' + ID + ');">Donate with Ξ</a></p>';
+						//Donation stats
+						newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
 
-				//Other donate
-				newHTML += '<p><a href="./donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
+					}
+					else{
+						newHTML += '<p>This text is <b>not</b> yet uploaded to the blockchain.</p>';
 
-				infoItem = document.getElementsByName(ID.toString())[0];
-				infoItem.innerHTML = newHTML;
-				storeInfo(tag, ID, 'basicInfo', true);
+						if(donationsETH > web3.utils.fromWei(gweiStorageCost.toString(), "ether")){
+							newHTML += '<p>Enough donations have been recieved to upload the text to the blockchain!<br>It will be available shortly. Donations may still be made in the name of the text.</p>'
+
+							newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
+						}
+						else{
+							//Donation meter
+							newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
+
+							//Donation stats
+							newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
+						}
+					}
+
+					//Donation slider
+					newHTML += '<div class="splitSlider" style="display: flex;"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
+
+					//ETH donate
+					newHTML += '<p><a href="javascript:donate(' + ID + ');">Donate with Ξ</a></p>';
+
+					//Other donate
+					newHTML += '<p><a href="../donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
+
+					infoItem = document.getElementsByName(ID.toString())[0];
+					infoItem.innerHTML = newHTML;
+					infoItem.className = infoItem.className + ' loaded';
+					
+					if(pageBooks[currentPage].length == maxEntries){
+						displayNextButton(true);
+					}
+					
+					storeInfo(tag, ID, 'basicInfo', true);
+				}
+				else {
+					removeEntry(ID);
+				}
 			}
 			else if(tag =='a'){
 				var name = values[0];
@@ -335,20 +520,41 @@ function loadInfoBox(tag, ID){
 				if(getPageName() != 'author.html'){
 					newHTML += '<a href="./author.html?authorID=' + ID.toString() + '">';
 				}
-				newHTML += '<b>' + name + '</b>';
+				newHTML += '<b>' + decodeURIComponent(escape(name)) + '</b>';
 				if(getPageName() != 'author.html'){
 					newHTML += '</a>';
 				}
 				newHTML += '</p> ';
 				
 				//Birthdate
-				newHTML += '<p class="birthYear">Birth Year: ' + birthdate + '</p>';
+				if(birthdate != null){
+					newHTML += '<p class="birthYear">Birth Year: ' + birthdate + '</p>';
+				}
 				
 				//Deathdate
-				newHTML += '<p class="deathYear">Death Year: ' + deathdate + '</p>';
+				if(deathdate != null){
+					newHTML += '<p class="deathYear">Death Year: ' + deathdate + '</p>';
+				}
 				
 				//Aliases
-				newHTML += '<p class="alias">Alias(es): ' + alias + '</p>';
+				if(alias != null){
+					var aliases;
+					if(typeof alias == 'string'){
+						aliases = decodeURIComponent(escape(alias.substring(1, alias.length-1))).replace('|', ', ');
+					}
+					else{
+						aliases = '';
+						first = true;
+						for(var q = 0; q < alias.length; q++){
+							if(!first){
+								aliases += ', '
+							}
+							first = false;
+							aliases += decodeURIComponent(escape(alias[q]));
+						}	
+					}
+					newHTML += '<p class="alias">Alias(es): ' + aliases + '</p>';
+				}
 
 				infoItem = document.getElementsByName(ID.toString())[0];
 				infoItem.innerHTML = newHTML;
@@ -428,7 +634,7 @@ function loadVariable(typeLetter, ID, infoName, useCache=true, hexEncodedInContr
 			contractString += "storeInfo('" + typeLetter + "', " + ID + ", '" + infoName + "', success);"
 		}
 		
-		contractString += "return success;}).catch(function(error){if((error.toString() != \"Error: Couldn't decode bytes from ABI: 0x\") && (error.toString() != \"ReferenceError: name is not defined\") && (error.toString() != \"Error: Couldn't decode  from ABI: 0x\")){ console.log(error); } else{removeEntry(" + ID + ");}});";
+		contractString += "return success;}).catch(function(error){if((error.toString() != \"Error: Couldn't decode bytes from ABI: 0x\") && (error.toString() != \"ReferenceError: name is not defined\") && (error.toString() != \"Error: Couldn't decode  from ABI: 0x\") && (error.toString() != \"Error: Couldn't decode bool from ABI: 0x\")){ console.log(error); } else{removeEntry(" + ID + ");}});";
 		
 		var tempFunction = new Function("contract", contractString);
 		
@@ -457,7 +663,6 @@ function storeInfo(tag, ID, infoName, info){
 	if(Array.isArray(info)){
 		if(info.length == 0){
 			localStorage.setItem(storeName, 'None');
-			//console.log('Cached item with name: ' + storeName + ', Data: None');
 		}
 		else {
 			storeArrStr = '[';
@@ -469,25 +674,32 @@ function storeInfo(tag, ID, infoName, info){
 			}
 			storeArrStr += ']';
 			localStorage.setItem(storeName, storeArrStr);
-			//console.log('Cached item with name: ' + storeName + ', Data: ' + storeArrStr);
 		}
 	}
 	else{
 		localStorage.setItem(storeName, info);
-		//console.log('Cached item with name: ' + storeName + ', Data: ' + info);
 	}
 }
 
 function removeEntry(ID){
 	if((typeof(document) !== "undefined") && (document != null)){
+		index = pageBooks[currentPage].indexOf(ID);
+		badID.push(ID);
+		skipCache.push(ID);
+		if(index > -1){
+				pageBooks[currentPage].splice(index, 1);
+		}
 		entry = document.getElementsByName(ID.toString())[0];
 		if(entry != undefined){
 			entry.remove()
+			if(currentPage != null && currentPageType == 'r'){
+				addRandomEntry();
+			}
 		}
 	}
 }
 
-function donate(bookID, invalidNumber=false){
+function donate(bookID, invalidNumber=false, defaultSplit=false){
 	//need bookID, foundationSplitNumerator, foundationSplitDenominator, donationvalue
 	var donationValueString;
 	if(invalidNumber){
@@ -503,8 +715,14 @@ function donate(bookID, invalidNumber=false){
 		donate(bookID, true);
 	}
 	else {
-		var foundationSplitNumerator = document.getElementById('slider'+bookID).value;
+		var foundationSplitNumerator;
 		var foundationSplitDenominator = 100;
+		if(!defaultSplit){
+			foundationSplitNumerator = document.getElementById('slider'+bookID).value;
+		}
+		else{
+			foundationSplitNumerator = 30;
+		}
 		web3.eth.getAccounts(function(error, accounts) {
 			if(!error){
 				libraryContract.methods.donate(bookID, foundationSplitNumerator, foundationSplitDenominator).send({
@@ -549,27 +767,41 @@ function calculateStorageCost(size, gasPrice) {
 }
 
 function searchBooks(){
-	activeBookIDs = []
+	pageBooks = [[]];
+	currentPage = 0;
+	resetPageNumber()
+	
+	currentPageType = 's';
 	booksList = document.getElementById("booksList");
 	booksList.innerHTML = '';
-	var searchValue = document.getElementById("searchBar").value.toLowerCase();
+	searchValue = document.getElementById("searchBar").value.toLowerCase();
 	searchLocalStorage(searchValue, booksList);
 }
 
 async function loadAuthorBooks(ID){
-	activeBookIDs = []
+	pageBooks = [[]];
+	currentPage = 0;
+	currentPageType = 'a';
 	booksList = document.getElementById("booksList");
 	searchLocalStorage((await loadVariable('a', ID, 'name', true, true)).toLowerCase(), booksList);
 }
 
-function populateRandomContent(loadItems, maxIndex) {
-	populateList = document.getElementById("booksList");
-	var randomArray = genUniqueRandomNumberArray(loadItems, maxIndex);
-	for (var i = 0; i < randomArray.length; i++){
-		activeBookIDs.push(randomArray[i]);
-		populateList.innerHTML += '<li class="bookInfo" name="' + randomArray[i] + '"></li>';
+function populateRandomContent() {
+	for(var i = 0; i < maxEntries; i++){
+		addRandomEntry()
 	}
-	loadBookInfoBoxes();
+}
+
+function loadBooksByPage(){
+	populateList = document.getElementById("booksList");
+	var pageArray = pageBooks[currentPage];
+	if(pageArray.length < maxEntries){
+		displayNextButton(false);
+	}
+	for (var i = 0; i < pageArray.length; i++){
+		populateList.innerHTML += '<li class="bookInfo" name="' + pageArray[i] + '"></li>';
+		loadInfoBox('b', pageArray[i]);
+	}
 }
 
 function genUniqueRandomNumberArray(arrayLength, max){
@@ -583,6 +815,32 @@ function genUniqueRandomNumberArray(arrayLength, max){
 	return arr;
 }
 
+function addRandomEntry(){
+	var randomNumber = Math.floor(Math.random()*maxIndex);
+	var i = 0;
+	while(i < pageBooks.length){
+		if(pageBooks[i].indexOf(randomNumber) != -1 || badID.indexOf(randomNumber) != -1){
+			i = -1;
+			randomNumber = Math.floor(Math.random()*maxIndex);
+			if(badID.length >= maxIndex){
+				i = pageBooks.length + maxEntries;
+			}
+		}
+		i++;
+	}
+	if(i == pageBooks.length){
+		populateList = document.getElementById("booksList");
+		pageBooks[currentPage].push(randomNumber);
+		populateList.innerHTML += '<li class="bookInfo" name="' + randomNumber + '"></li>';
+		loadInfoBox('b', randomNumber);
+	}
+	else if (pageBooks[currentPage].length == 0){
+		booksList.innerHTML = '<p class="center">No results found!</p>';
+	}
+}
+
+var clearBooksSection = false;
+
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
     name = name.replace(/[\[\]]/g, "\\$&");
@@ -593,31 +851,59 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
-function searchLocalStorage(searchString, booksList, start=0){
+function insertParameter(key, value, state=null){
+	var searchParams = new URLSearchParams(window.location.search);
+    searchParams.set(key, value);
+	var url = window.location.pathname + '?' + searchParams.toString();
+	window.history.pushState(state, document.title, url);
+}
+
+function searchLocalStorage(searchString, booksList, start=0, retries=0){
 	//currently only searches for books
 	localStorageString = JSON.stringify(localStorage).toLowerCase();
 	nextIndex = localStorageString.indexOf(searchString, start);
-	if(nextIndex != -1){
+	if(nextIndex != -1 && pageBooks[currentPage].length < maxEntries){
 		//Add item to result box
 		var lastAuthorTag = localStorageString.lastIndexOf('<a', nextIndex);
 		var lastBookTag = localStorageString.lastIndexOf('<b', nextIndex);
 		
 		if(lastBookTag > lastAuthorTag){
 			var endOfBookTag = localStorageString.indexOf('>', lastBookTag);
-			var ID = localStorageString.slice(lastBookTag+2,endOfBookTag);
-			if(!activeBookIDs.includes(ID)){
+			var ID = parseInt(localStorageString.slice(lastBookTag+2,endOfBookTag));
+			var j = 0;
+			while(j < pageBooks.length && !pageBooks[j].includes(ID) && !badID.includes(ID)){
+				j++;
+			}
+			if(j == pageBooks.length){
 				var endOfBookTag = localStorageString.indexOf('>', lastBookTag);
 				booksList.innerHTML += '<li class="bookInfo" name="' + ID + '"></li>';
-				activeBookIDs.push(ID);
-				loadInfoBox('b', parseInt(ID));
+				pageBooks[currentPage].push(ID);
+				loadInfoBox('b', ID);
 			}
 		}
 		
 		searchLocalStorage(searchString, booksList, nextIndex+1);
 	}
 	else{
-		if(activeBookIDs.length == 0){
-			booksList.innerHTML = '<p class="center">No results found!</p>'; 
+		if(retries < 10){
+			//Hides the next button if there are not enough entries on this page
+			if(pageBooks[currentPage].length < maxEntries){
+				displayNextButton(false);
+			}
+			if(pageBooks[currentPage].length == 0){
+				booksList.innerHTML = '<p class="center">No results found!<br>We\'ll try checking again in a few seconds!</p>';
+				clearSection = true;
+				setTimeout(function(){searchLocalStorage(searchString, booksList, 0, retries+1);}, 250);
+			}	
+			else{
+				setTimeout(function(){searchLocalStorage(searchString, booksList, 0, retries+1);}, 250);
+			}
+		}
+		else{
+			if(booksList.innerHTML == '<p class="center">No results found!<br>We\'ll try checking again in a few seconds!</p>'){
+				booksList.innerHTML = '<p class="center">No results found!</p>';
+			}
+			console.log("Done searching!");
 		}
 	}
 }
@@ -632,16 +918,18 @@ function checkIfCached(tag, ID){
 	return false;
 }
 
-function workerCacheBooks(maxIndexNumber, existingWorker=null, skipCache = []){
+function workerCacheBooks(existingWorker=null){
 	if(existingWorker==null){
 		existingWorker = new Worker('./js/workerCacheInfo.js');
 		existingWorker.onmessage = function(e){
 			logData = e.data;
 			if(typeof logData[0] == 'string'){
 				removeEntry(logData[1]);
-				skipCache.push(logData[1]);
+				if(!skipCache.includes(logData[1])){
+					skipCache.push(logData[1]);
+				}
 				if(logData[0] != 'Error: Invalid JSON RPC response: ""'){
-					setTimeout(workerCacheBooks(maxIndexNumber, existingWorker, skipCache), 3000);
+					setTimeout(function(){workerCacheBooks(existingWorker);}, workerTimeOut);
 				}
 				else{
 					console.log("Error connecting workers to a web3 endpoint. Stopping cacheing now...");
@@ -650,8 +938,6 @@ function workerCacheBooks(maxIndexNumber, existingWorker=null, skipCache = []){
 			}
 			else{
 				for(var i = 0; i<logData.length; i++){
-					//console.log("loc2")
-					//console.log(logData);
 					if(typeof(logData[i][1]) !== 'undefined'){
 						storeInfo('b', logData[i][0], logData[i][1], logData[i][2]);
 					}
@@ -659,60 +945,163 @@ function workerCacheBooks(maxIndexNumber, existingWorker=null, skipCache = []){
 				if(Array.isArray(logData)){
 					storeInfo('b', logData[0][0], 'basicInfo', true);
 				}
-				setTimeout(workerCacheBooks(maxIndexNumber, existingWorker, skipCache), 3000);
+				setTimeout(function(){workerCacheBooks(existingWorker);}, workerTimeOut);
 			}
 		}
 	}
-	var randomnumber = Math.floor(Math.random()*maxIndexNumber+1);
-	if(!checkIfCached('b', randomnumber) && !skipCache.includes(randomnumber)){
-		existingWorker.postMessage(randomnumber);
-	}
-	else{
-		// need to stop worker here if everything has been cached
-		workerCacheBooks(maxIndexNumber, existingWorker, skipCache);
-	}
-}
-
-function mainCacheBooks(maxIndexNumber){
-	var randomnumber = Math.floor(Math.random()*maxIndexNumber+1);
-	loadInfoAddress('b', bookID)
-	.then(function(res){
-		var titlePromise = loadVariable('b', bookID, 'title', true, true);
-		var langPromise = loadVariable('b', bookID, 'language', true, true);
-		var sizePromise = loadVariable('b', bookID, 'size');
-		var authorPromise = getAuthors(bookID);
-		var weiPromise = loadVariable('b', bookID, 'donations', false);
-		var authorRolePromise = getAuthorRoles(bookID);
-		var authorIDsPromise = loadVariable('b', bookID, 'authorIDs');
-		Promise.all([titlePromise, authorPromise, langPromise, sizePromise, weiPromise, authorRolePromise, authorIDsPromise])
-		.then(function(){
-			storeInfo('b', bookID, 'basicInfo', true);
-			mainCacheBooks(maxIndexNumber);
-		}).catch(function(error){
-			console.log('Fick');
-			console.log(error);
-			mainCacheBooks(maxIndexNumber);
-		});
-	})
-	.catch(function(error){
-		console.log('Fuck');
-		console.log(error);
-		mainCacheBooks(maxIndexNumber);
-	});
-}
-
-//Consider adding maxIndex to library contract?
-function cacheBooks(maxIndexNumber, workerThreads) {
-	if (window.Worker) {
-		for(var i = 0; i < workerThreads; i++){
-			workerCacheBooks(maxIndexNumber);
+	
+	var randomnumber = Math.floor(Math.random()*maxIndex+1);
+	if(!skipCache.includes(randomnumber)){
+		if(checkIfCached('b', randomnumber)){
+			skipCache.push(randomnumber);
+			workerCacheBooks(existingWorker);
+		}
+		else{
+			existingWorker.postMessage(randomnumber);
 		}
 	}
-	else {
-		mainCacheBooks(maxIndexNumber)
+	else{
+		if(skipCache.length < maxIndex){
+			setTimeout(function(){workerCacheBooks(existingWorker);}, workerTimeOut);
+		}
+		else{
+			console.log('Cached all books...');
+			existingWorker.terminate();
+		}
 	}
+}
+
+function mainCacheBooks(){
+	var randomnumber = Math.floor(Math.random()*maxIndex+1);
+	if(!skipCache.includes(randomnumber)){
+		if(checkIfCached('b', randomnumber)){
+			skipCache.push(randomnumber);
+			mainCacheBooks();
+		}
+		else{
+			loadData('b', randomnumber)
+			.then(function(res){
+				storeInfo('b', randmnumber, 'basicInfo', true);
+				setTimeout(function(){mainCacheBooks()}, mainTimeOut);
+			}).catch(function(error){
+				skipCache.push(randomnumber);
+				setTimeout(function(){mainCacheBooks()}, mainTimeOut);
+			});
+		}
+	}
+	else{
+		if(skipCache.length < maxIndex){
+			mainCacheBooks();
+		}
+		else{
+			console.log('Cached all books...');
+		}
+	}
+}
+
+function cacheBooks(workerThreads) {
+	if (window.Worker) {
+		for(var i = 0; i < workerThreads; i++){
+			workerCacheBooks();
+		}
+	}
+	mainCacheBooks();
 }
 
 function getPageName(){
 	return window.location.pathname.split("/").pop();
+}
+
+function displayNextButton(yeaOrNo){
+	var nextButton = document.getElementById("nextButton");
+	if(yeaOrNo){
+		nextButton.style.visibility = "visible";
+	}
+	else{
+		nextButton.style.visibility = "hidden";
+	}
+}
+
+function displayBackButton(yeaOrNo){
+	var backButton = document.getElementById("backButton");
+	if(yeaOrNo){
+		backButton.style.visibility = "hidden";
+	}
+	else{
+		backButton.style.display = "visible";
+	}
+}
+
+function goToPage(page){
+	if(page == 0){
+		//Removes back button
+		displayBackButton(false);
+	}
+	else{
+		displayBackButton(true);
+	}
+	displayNextButton(false);
+	
+	currentPageNumber = document.getElementById('pageNumber' + currentPage);
+	currentPageNumber.innerHTML = '<a href="javascript:goToPage(' + (currentPage).toString() + ');" title="' + (currentPage+1).toString() + '"> ' + (currentPage+1).toString() +' </a>'
+	
+
+	if(page > pageBooks.length-1){
+		//Adds a link to generated pages
+		var nextButton = document.getElementById("nextButton");
+		var newPageNum = document.createElement("div");
+		var nextPage = page + 1;
+		newPageNum.appendChild(document.createTextNode(' ' + nextPage.toString() + ' '));
+		newPageNum.id = 'pageNumber' + page.toString();
+		nextButton.parentNode.insertBefore(newPageNum, nextButton);
+		pageBooks.push([]);
+	}
+	else{
+		newPageNumber = document.getElementById('pageNumber' + page);
+		newPageNumber.innerHTML = page+1;
+	}
+	
+	currentPage = page;
+	populateList = document.getElementById("booksList");
+	populateList.innerHTML = '';
+	
+	if(pageBooks[page].length > 0){
+		loadBooksByPage();
+	}
+	else if(currentPageType == 'r'){
+		populateRandomContent();
+	}
+	else if(currentPageType == 's'){
+		searchLocalStorage(searchValue, populateList);
+	}
+}
+
+function setStorageFilter(){
+	currentFilters.set('blockchain', document.getElementById('uploaded').checked);
+	currentFilters.set('server', document.getElementById('notUploaded').checked);
+	reloadPage();
+}
+
+function reloadPage(){
+	resetPageNumber();
+	populateList = document.getElementById("booksList");
+	populateList.innerHTML = '';
+	pageBooks = [[]];
+	badID = [];
+	skipCache = [];
+	currentPage = 0;
+	if(currentPageType == 'r'){
+		populateRandomContent();
+	}
+	else if(currentPageType == 's'){
+		searchBooks();
+	}
+	else if(currentPageType == 'a'){
+		loadAuthorBooks(getParameterByName('authorID'));
+	}
+}
+
+function resetPageNumber(){
+	document.getElementById('pageNavigation').innerHTML = 
+	'<div id="backButton" style="visibility: hidden;"><form action="javascript:goToPage(currentPage-1);" class="center"><button type="submit">Last Page</button></form></div><div id="pageNumber0">1</div><div id="nextButton" style="visibility: hidden;"><form action="javascript:goToPage(currentPage+1);" class="center"><button type="submit">Next Page</button></form></div>';
 }

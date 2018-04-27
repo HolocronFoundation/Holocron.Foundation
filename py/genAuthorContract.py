@@ -7,7 +7,7 @@
 
 ################################################################################
 
-import csv, ast
+import csv, ast, math, os
 
 #Imports the database as a CSV.
 def importDBCSV(defaultFile='CSV Authors.csv'):
@@ -23,9 +23,14 @@ def outputVyperFile():
     collection = importDBCSV()
     first = True
     header = collection[0]
+    i = 0
     for row in collection:
         if not first:
-            genVyperFile(row, '/Volumes/Troper/vyperAuthorFilesGenerated/' + str(row[4]) + 'vyperOutput.v.py', header, dataTypes, 'author')
+            i += 1
+            folderNum = math.floor(i/100)
+            if not os.path.exists('/Users/us.tropers/Desktop/Formatted for Upload/Authors/' + str(folderNum)):
+                os.makedirs('/Users/us.tropers/Desktop/Formatted for Upload/Authors/' + str(folderNum))
+            genVyperFile(row, '/Users/us.tropers/Desktop/Formatted for Upload/Authors/' + str(folderNum) + '/authorContract' + str(row[4]) + '.v.py', header, dataTypes, 'author')
         else:
             first = False
 
@@ -59,11 +64,10 @@ def generateStorage(dataType, data):
         if len(dataArr) == 0:
             return 'None'
         else:
-            result = '"'
+            result = '"['
             first = True
             for entry in dataArr:
                 if first:
-                    result += '"['
                     first = False
                 else:
                     result += '|'

@@ -1,4 +1,4 @@
-@charset "utf-8";
+#@charset "utf-8";
 /* CSS Document */
 
 /* Holocron Blue Color Codes!
@@ -55,6 +55,39 @@ Darkest
 	flex: 2;
 }
 
+#fullAuthorInfo {
+	border-bottom: 5px groove burlywood;
+}
+
+/* Displays next page stuff on a line */
+
+#pageNavigation div {
+	display: inline-block;
+	margin-left: .25vw;
+	margin-right: .25vw;
+}
+
+/* Puts page navigation at the bottom */
+
+#pageNavigation {
+	padding-top: 1vh;
+}
+
+/* Displays search settings on a line */
+
+#searchSettings div {
+	display: inline-block;
+}
+
+/* Sets width of search box and button */
+
+#searchBar {
+	width: 50em;
+}
+#searchButton {
+	width: 10em;
+}
+
 /* Adds original line breaks to titles */
 
 .title {
@@ -89,12 +122,22 @@ ul.bullet{
     height: auto;
 }
 
-/* Centers items, adds a horizontal line below, and pads the bottom of each book */
+/* Centers items, adds a horizontal line below, and pads the bottom of each book and loads as well */
 
 li.bookInfo {
+	max-height: 0;
+	overflow: hidden;
+	opacity: 0;
 	padding-bottom: 1.5vh;
 	text-align: center;
-	border-bottom: 2px groove rgb(229, 190, 151);
+	border-bottom: 5px groove burlywood;
+	transition-timing-function: ease-out;
+}
+
+li.bookInfo.loaded {
+	max-height: 500px;
+	opacity: 1;
+	transition: opacity 1.5s, max-height 4s;
 }
 
 #fullBookInfo {
@@ -103,7 +146,7 @@ li.bookInfo {
 }
 
 li.bookInfo.sample {
-	border-bottom: 2px groove rgb(71, 166, 255);
+	border-bottom: 2px groove rgb(104, 185, 255);
 }
 
 section {
@@ -119,10 +162,10 @@ header {
 }
 
 header.library {
-	background: rgb(233, 200, 171);
+	background: navajowhite;
 }
 
-/* Sets color:brightness:1, adds vertical scroll bar, hides horizontal scroll bar, limits width, adds margins */
+/* Sets color:brightness:1, adds vertical scroll bar, hides horizontal scroll bar, limits width, adds margins , fills vertically */
 
 #content {
 	background: rgb(156, 217, 255);
@@ -135,10 +178,16 @@ header.library {
 	padding-top: 1vh;
 	padding-bottom: 1vh;
 	max-width: 666px;
+	flex-direction: column;
+	flex: 1;
 }
 
 #content.library {
-	background: rgb(240, 215, 201);
+	background: bisque;
+}
+
+#content.phoenix {
+	background: mistyrose;
 }
 
 /* Colors footer to color:brightness:4  */
@@ -148,7 +197,25 @@ footer {
 }
 
 footer.library{
-	background: rgb(227, 186, 143);
+	background: navajowhite;
+}
+
+footer.library p{
+	color: black;
+}
+
+footer.library p a{
+	color: black;
+}
+
+footer.phoenix{
+	background-color: rgb(232, 85, 74);
+}
+
+/* Pads the search section */
+
+#search div{
+	padding-bottom: .5vh;
 }
 
 /* Center class centers items */
@@ -165,6 +232,7 @@ footer.library{
     height: 3em;
 	width: auto;
 	vertical-align: middle;
+	padding-bottom: .4em;
 }
 
 /* navbar items */
@@ -175,6 +243,14 @@ ul.navbar {
     top: 0;
 	left: 0;
     width: 100vw;
+}
+
+ul.navbar.library {
+	background-color: rgb(227, 186, 143);
+}
+
+ul.navbar.phoenix {
+	background-color: rgb(232, 85, 74);
 }
 
 li.navbar.phoenix {
@@ -217,7 +293,11 @@ li.navbar a {
 	color: white;
 }
 
-li.navbar a:hover {
+li.navbar.holocron {
+	background-color: rgb(57, 157, 255);
+}
+
+li.navbar.holocron a:hover {
     background-color: rgb(71, 166, 255);
 }
 
@@ -237,7 +317,11 @@ body {
 }
 
 body.library {
-	background-color: rgb(233, 200, 171);
+	background-color: maroon;
+}
+
+body.phoenix {
+	background-color: firebrick;
 }
 
 /* Adds a margin to the text body */
