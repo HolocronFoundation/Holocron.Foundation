@@ -133,7 +133,8 @@ function hexStringToByte(str) {
 
 function getBookTextServer(bookID) {
 	return new JSZip.external.Promise(function(resolve, reject) {
-		JSZipUtils.getBinaryContent('/library/zip/' + bookID +'.zip', function(err, data) {
+		var folderID = Math.floor(bookID/100)
+		JSZipUtils.getBinaryContent('/library/zip/' + folderID + '/' + bookID +'.zip', function(err, data) {
 			if(err) {
 				reject(err);
 			}
