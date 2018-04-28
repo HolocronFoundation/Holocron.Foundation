@@ -123,6 +123,7 @@ function deployBookContract(){
 			.on('error', function(error){ console.log('Error: ' + error); })
 			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
 			.on('receipt', function(receipt){
+				bookAddress = receipt.contractAddress;
 				console.log('Stored book at address: ' + receipt.contractAddress);
 				deployed = true;
 				web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
@@ -180,6 +181,7 @@ var updatedLib = false;
 
 function updateLibrary(){
 	var libraryContract = new web3.eth.Contract(_parentABI, _parentAddress);
+	console.log(bookAddress);
 	var currentCall = libraryContract.methods.setTextAddress(bookID, bookAddress);
 	var gasEstimate;
 	currentCall.estimateGas({from: _senderAddress}, function(err, gas){
