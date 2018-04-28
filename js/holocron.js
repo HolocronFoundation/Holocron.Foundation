@@ -133,13 +133,12 @@ function hexStringToByte(str) {
 
 function getBookTextServer(bookID) {
 	return new JSZip.external.Promise(function(resolve, reject) {
-		JSZipUtils.getBinaryContent('/zips/' + bookID +'.zip', function(err, data) {
+		JSZipUtils.getBinaryContent('/library/zip/' + bookID +'.zip', function(err, data) {
 			if(err) {
 				reject(err);
 			}
 
 			else {
-				alert(data);
 				resolve(data);
 			}
 		});
