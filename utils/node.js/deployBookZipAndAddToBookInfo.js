@@ -6,13 +6,12 @@ var fs = require('fs');
 const readline = require('readline');
 var Web3 = require('web3');
 var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-var bookContract;
+
+var bookAddress;
 
 var _parentAddress = '0x7c42F6386E2693F413dd8F09AF1e34D7b5De104B';
 var _senderAddress = '0x96164079bf312E80e061b226ccF27f143cf3f3ff';
 var _parentABI = [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "getBookAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 672}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 21976}, {"name": "getAuthorAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "authorID"}], "constant": true, "payable": false, "type": "function", "gas": 732}, {"name": "addAuthor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "authorAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22036}, {"name": "getSubjectAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "subjectID"}], "constant": true, "payable": false, "type": "function", "gas": 792}, {"name": "getLoCAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "LoCID"}], "constant": true, "payable": false, "type": "function", "gas": 822}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22280}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41411}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41386}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22039}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 6101}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4781}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1060}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 873}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 903}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1122}, {"name": "authors", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1152}, {"name": "subjects", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1182}, {"name": "LoC", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1212}];
-
-var libraryContract = new web3.eth.Contract(_parentABI, _parentAddress);
 
 //CHANGE BOOK ID HERE |							<--------
 var bookID = 11;//<----/        <------
@@ -42,6 +41,7 @@ var zbFiles = files.filter(function(file) {
 });
 
 var abiFile;
+
 
 
 function prepFile(){
@@ -91,9 +91,12 @@ function deployBookContract(){
 			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
 			.on('receipt', function(receipt){
 				console.log('Stored book at address: ' + receipt.contractAddress);
-				bookContract = new web3.eth.Contract(abiFile, receipt.contractAddress);
+				bookAddress = receipt.contractAddress;
 				deployed = true;
-				updateLibrary(receipt.contractAddress);
+				web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+				web3.eth.personal.unlockAccount(_senderAddress, _password).then(function(){
+					updateLibrary(bookAddress);
+				});
 			});
 		});
 	}
@@ -119,9 +122,11 @@ function deployBookContract(){
 			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
 			.on('receipt', function(receipt){
 				console.log('Stored book at address: ' + receipt.contractAddress);
-				bookContract = new web3.eth.Contract(abiFile, receipt.contractAddress);
 				deployed = true;
-				addZips(receipt.contractAddress, 0);
+				web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+				web3.eth.personal.unlockAccount(_senderAddress, _password).then(function(){
+					addZips(receipt.contractAddress, 0);
+				});
 			});
 		});
 	}
@@ -132,7 +137,8 @@ var zipsStored = 0;
 function addZips(address, fileIndex){
 	if (fileIndex+1 != zbFiles.length) {
 		web3.eth.personal.unlockAccount(_senderAddress, _password);
-		var currentCall = bookContract.methods.setZipBytes(fileIndex, processedFiles[fileIndex]);
+		var currContract = new web3.eth.Contract(abiFile, address);
+		var currentCall = currContract.methods.setZipBytes(fileIndex, processedFiles[fileIndex]);
 		var gasEstimate;
 		currentCall.estimateGas({from: _senderAddress}, function(err, gas){
 			console.log('Gas Estimate: ' + gas);
@@ -145,11 +151,25 @@ function addZips(address, fileIndex){
 				console.log('Stored zb file ' + fileIndex);
 				zipsStored++;
 			})
-			addZips(address, fileIndex+1);
+			waitThenStoreMore(address, fileIndex+1)
 		});
 	}
 	else {
-		waitThenUpdateLibrary();
+		web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+		web3.eth.personal.unlockAccount(_senderAddress, _password).then(function(){
+			updateLibrary();
+		});
+	}
+}
+
+function waitThenStoreMore(address, nextIndex){
+	if (zipsStored == nextIndex){
+		web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+		web3.eth.personal.unlockAccount(_senderAddress, _password).then(function(){
+			addZips(address, nextIndex);
+		});
+	} else {
+		setTimeout(function(){waitThenStoreMore(address, nextIndex);}, 100);
 	}
 }
 
@@ -157,10 +177,8 @@ var updated = false;
 var updatedLib = false;
 
 function updateLibrary(){
-	web3.eth.personal.unlockAccount(_senderAddress, _password);
-	console.log(bookContract.options.address);
-	console.log(bookContract.address);
-	var currentCall = libraryContract.methods.setTextAddress(bookID, bookContract.options.address);
+	var libraryContract = new web3.eth.Contract(_parentABI, _parentAddress);
+	var currentCall = libraryContract.methods.setTextAddress(bookID, bookAddress);
 	var gasEstimate;
 	currentCall.estimateGas({from: _senderAddress}, function(err, gas){
 		console.log('Gas Estimate: ' + gas);
@@ -186,7 +204,10 @@ function waitThenAddZips(){
 function waitThenUpdateLibrary(){
 	web3.eth.personal.unlockAccount(_senderAddress, _password);
 	if (zipsStored == zbFiles.length){
-		updateLibrary();
+		web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+		web3.eth.personal.unlockAccount(_senderAddress, _password).then(function(){
+			updateLibrary();
+		});
 	} else {
 		setTimeout(function(){waitThenUpdateLibrary();}, 100);
 	}
