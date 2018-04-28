@@ -61,7 +61,7 @@ var authorABI = loadAuthorABI();
 
 var zipABI;
 
-var libraryAddress = '0x7c42F6386E2693F413dd8F09AF1e34D7b5De104B';
+var libraryAddress = '0x5048105C9fd262d1417FDD9AbAf6476c68827bbb';
 
 var thirdPartyProvider;
 
