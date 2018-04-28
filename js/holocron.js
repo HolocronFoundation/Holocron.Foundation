@@ -219,7 +219,7 @@ async function loadTextPage(bookID) {
 		downloadLink.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
 		downloadLink.setAttribute('download', bookName + '.txt');
 		downloadLink.appendChild(document.createTextNode('Download this text'));
-		downloadDiv.appendChild(element);
+		downloadDiv.appendChild(downloadLink);
 		
 		document.getElementById('bookText').innerHTML = '<p>' + text + '</p>';
 	},    function error(e) {
