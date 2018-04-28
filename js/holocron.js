@@ -212,6 +212,15 @@ async function loadTextPage(bookID) {
 		return zip.file(bookID + '.txt').async('string');
 	})
 	.then(function success(text) {
+		
+		var downloadDiv = document.getElementById('download');
+		
+		var downloadLink = document.createElement('a');
+		downloadLink.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+		downloadLink.setAttribute('download', bookName + '.txt');
+		downloadLink.appendChild(document.createTextNode('Download this text'));
+		downloadDiv.appendChild(element);
+		
 		document.getElementById('bookText').innerHTML = '<p>' + text + '</p>';
 	},    function error(e) {
    		document.getElementById('bookText').innerHTML = '<p> An error has occurred. Please refresh the page and check your connection. If this error persists please let us know about it at samuel.troper@holocron.founcation and note the following error: ' + e + '</p>';
