@@ -134,6 +134,11 @@ def addText(_textAddress: address):
 def recieveDonation(value: wei_value):
     assert msg.sender in self.modifierAddresses
     self.book.donations = self.book.donations + value
+
+@public
+@constant
+def getTextAddress() -> address:
+    return self.book.textAddress
 '''
     
     with open(writeFile, 'w', encoding = 'utf-8') as writeFile:
