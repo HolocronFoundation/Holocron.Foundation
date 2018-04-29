@@ -69,21 +69,14 @@ var thirdPartyProvider;
 var libraryContract; //This loads the library ABI, responsible for most functions on our site
 
 function loadBookTextChunk(bookID, chunk){
-	alert(bookID);
-	alert(typeof bookID);
-	alert(chunk);
-	return libraryContract.methods.getTextAddress(bookID).call.then(function(res){
-		alert(res2);
+	return libraryContract.methods.getTextAddress(bookID).call().then(function(res){
 		var textContract = new web3.eth.Contract(loadZipABI(), res);
 		return textContract.methods.zipBytes(chunk).call().then(function(success){return success;});
 	});
 }
 
 function loadFinalBookTextChunk(bookID){
-	alert(bookID);
-	alert(typeof bookID);
-	return libraryContract.methods.getTextAddress(bookID).call.then(function(res){
-		alert(res);
+	return libraryContract.methods.getTextAddress(bookID).call().then(function(res){
 		var textContract= new web3.eth.Contract(loadZipABI(), res);
 		return textContract.methods.zipBytesFinal().call().then(function(success){return success;})
 	});
@@ -92,25 +85,23 @@ function loadFinalBookTextChunk(bookID){
 async function getBookTextBlockchain(bookID) {
 	
 	var size = await loadVariable('b', bookID, 'size');
-	var numByteArrays = Math.floor(size/8192);
+	var numByteArrays = Math.floor(size/4096);
 	if (size%255 !== 0) {
 		numByteArrays++;
 	}
 	
 	bytePromises = [];
-	
-	alert(110);
-	
+
 	for(var i = 0; i<numByteArrays; i++){
 		if(i!=numByteArrays-1){
+			console.log('Chunk ' + i);
 			bytePromises.push(await loadBookTextChunk(bookID, i));
 		}
 		else{
+			console.log("Final chunk");
 			bytePromises.push(await loadFinalBookTextChunk(bookID));
 		}
 	}
-	
-	alert(11111);
 	
 	var promises = await Promise.all(bytePromises);
 	
@@ -118,8 +109,12 @@ async function getBookTextBlockchain(bookID) {
 	
 	for(var i = 0; i<promises.length; i++){
 		var newArray = hexStringToByte(promises[i].substring(2));
+		console.log(i);
+		console.log(newArray.length);
 		arrays.push(newArray);
 	}
+	
+	console.log(arrays.length)
 	
 	var returnArray = new Uint8Array([].concat.apply([], arrays));
 	
@@ -212,7 +207,7 @@ async function loadTextPage(bookID) {
 	});
 }
 
-async function setupWeb3() {
+function setupWeb3() {
 	
 	if (typeof web3 !== 'undefined') {
 		thirdPartyProvider = true;
@@ -226,6 +221,7 @@ async function setupWeb3() {
 		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //sets an api for use
 	}
 	libraryContract = new result.eth.Contract(loadLibraryContractABI(), libraryAddress);
+	alert('here!');
 	return result;
 }
 
@@ -273,7 +269,7 @@ function getAuthorRoles(bookID, localStorageAccess=true){
 		}
 	}
 	return loadInfoAddress('b', bookID, localStorageAccess).then(function(res){
-		currentContract = new web3.eth.Contract(bookABI, res);
+		currentContract = new web3.eth.Contract(loadBookABI(), res);
 		return currentContract.methods.book__authorRoles().call().then(function(res1){
 			if(res1 == null){
 				return 'None';
@@ -630,8 +626,8 @@ function loadVariable(typeLetter, ID, infoName, useCache=true, hexEncodedInContr
 		var contractString;
 		
 		if(typeLetter == 'b'){
-			console.lo
-			currentContract = new web3.eth.Contract(bookABI, res);
+			console.log(web3);
+			currentContract = new web3.eth.Contract(loadBookABI(), res);
 			contractString = "return contract.methods.book__" + infoName + "().call().then(function(success){"
 		}
 		else if(typeLetter == 'a'){
