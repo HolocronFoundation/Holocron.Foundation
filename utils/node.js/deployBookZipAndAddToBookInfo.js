@@ -40,6 +40,8 @@ var zbFiles = files.filter(function(file) {
 	return path.extname(file).toLowerCase() === zbExtension;
 });
 
+console.log(zbFiles);
+
 var abiFile;
 
 
