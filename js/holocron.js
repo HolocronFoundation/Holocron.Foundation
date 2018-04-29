@@ -61,7 +61,7 @@ var authorABI = loadAuthorABI();
 
 var zipABI = loadZipABI();
 
-var libraryAddress = '0x0214a66242ed16BEc0C2eeA1b2856888EFA481bB';
+var libraryAddress = '0xebcc4dfd86b56aaFE16B1B2fe4c466c61c61882b';
 
 var thirdPartyProvider;
 
@@ -71,29 +71,20 @@ function loadBookTextChunk(bookID, chunk){
 	alert(bookID);
 	alert(typeof bookID);
 	alert(chunk);
-	return loadInfoAddress('b', bookID).then(function(res){
-		var currentContract = new web3.eth.Contract(loadBookABI(), res);
-		alert(res);
-		console.log(currentContract);
-		return currentContract.methods.getTextAddress().call().then(function(res2){
-			alert(res2);
-			var textContract = new web3.eth.Contract(loadZipABI(), res2);
-			return textContract.methods.zipBytes(chunk).call().then(function(success){return success;});
-		});
+	return libraryContract.methods.getTextAddress(bookID).call.then(function(res){
+		alert(res2);
+		var textContract = new web3.eth.Contract(loadZipABI(), res);
+		return textContract.methods.zipBytes(chunk).call().then(function(success){return success;});
 	});
 }
 
 function loadFinalBookTextChunk(bookID){
 	alert(bookID);
 	alert(typeof bookID);
-	return loadInfoAddress('b', bookID).then(function(res){
+	return libraryContract.methods.getTextAddress(bookID).call.then(function(res){
 		alert(res);
-		var currentContract = new web3.eth.Contract(loadBookABI(), res);
-		console.log(currentContract);
-		return currentContract.methods.getTextAddress().call().then(function(res2){
-			alert(res2);
-			var textContract= new web3.eth.Contract(loadZipABI(), res2);
-			return textContract.methods.zipBytesFinal().call().then(function(success){return success;})
+		var textContract= new web3.eth.Contract(loadZipABI(), res);
+		return textContract.methods.zipBytesFinal().call().then(function(success){return success;})
 		});
 	});
 }
