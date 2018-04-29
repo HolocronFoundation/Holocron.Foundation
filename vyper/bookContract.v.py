@@ -35,7 +35,7 @@ class BookContract():
         self.usesExpansion = True
 
     @public
-    def addText(_textAddress: address):
+    def addText():
         assert msg.sender == self.parentAddress
         self.book.textAddress = _textAddress
         self.book.uploaded = True
@@ -63,6 +63,8 @@ updatedContract: public(bool)
 #Book mapping
 books: public(address[int128])
 
+textAddress: public(address[int128])
+
 #Authors mapping
 authors: public(address[int128])
 
@@ -71,6 +73,11 @@ subjects: public(address[int128])
 
 #Library of Congress mapping
 LoC: public(address[int128])
+
+@public
+@constant
+def getTextAddress(bookID: int128) -> address:
+    return self.textAddress[bookID]
 
 #Was running into issues, so I created a getter.
 @public
@@ -153,6 +160,7 @@ def setUpdateAddress(newUpdateAddress: address):
 @public
 def setTextAddress(id: int128, textAddress: address):
     assert msg.sender in self.foundationAddresses
+    self.textAddress[id] = textAddress
     BookContract(self.books[id]).addText(textAddress)
     log.TextUploaded(id)
 

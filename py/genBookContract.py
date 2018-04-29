@@ -125,20 +125,14 @@ def addExpansionAddress(_expansionAddress: address):
     self.usesExpansion = True
 
 @public
-def addText(_textAddress: address):
+def addText():
     assert msg.sender in self.modifierAddresses
-    self.book.textAddress = _textAddress
     self.book.uploaded = True
 
 @public
 def recieveDonation(value: wei_value):
     assert msg.sender in self.modifierAddresses
     self.book.donations = self.book.donations + value
-
-@public
-@constant
-def getTextAddress() -> address:
-    return self.book.textAddress
 '''
     
     with open(writeFile, 'w', encoding = 'utf-8') as writeFile:
