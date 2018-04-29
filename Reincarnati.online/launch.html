@@ -3,14 +3,15 @@
 <head>
 	<meta charset="utf-8">
 	<title>reincarnati.online</title>
+	<script src="../js/min/web3.min.js" type="text/javascript"></script>
 </head>
 
 <body>
 	<div style="text-align: center;">
 		<h1 style="font-size: 5em; margin: 0;">♢</h1>
 		<h2 style="margin: 0;">reincarnati.online</h2>
-		<form onsubmit="launch();" style="margin-top: 5vh;">
-			web3(); <input type="text" id="commandBar" placeholder="js(jszip.min.js_address); js(zippedHolocronFoundation);" style="width: 33vw;"> <button type="submit" id='launch'>Launch</button>
+		<form style="margin-top: 5vh;">
+			web3(); <input type="text" id="commandBar" placeholder="js(jszip.min.js_address); js(zippedHolocronFoundation);" style="width: 33vw;"> <button type="button" id='launch'>Launch</button>
 		</form>
 		<div style="width: 66vw; margin-left:auto; margin-right:auto; margin-top:5vh;">
 			<p>Welcome to <b>reincarnati.online</b>. We aim to provide the foundation for the web of tommorrow, today.
@@ -23,7 +24,7 @@
 		</div>
 	</div>
 </body>
-<script>
+<script type="text/javascript">
 	var web3;
 	var abi = [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_modifierAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "setjsBytes", "outputs": [], "inputs": [{"type": "int128", "name": "_index"}, {"type": "bytes", "name": "newZip"}], "constant": false, "payable": false, "type": "function", "gas": 2604351}, {"name": "modifierAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 513}, {"name": "jsBytes", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 49203}, {"name": "numFiles", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 573}, {"name": "jsBytesFinal", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 48298}];
 	
@@ -36,6 +37,7 @@
 				loadWeb3();
 			}
 			else if(currentCommand.substring(0,2)=='js'){
+				alert(currentCommand.substring(3, currentCommand.length-1));
 				loadJS(currentCommand.substring(3, currentCommand.length-1));
 			}
 		}
@@ -52,28 +54,23 @@
 			web3 = new Web3(web3.currentProvider);
 		}
 		else {
-			var web3Script = document.createElement('script');
-			web3Script.setAttribute('src','./js/min/web3.min.js');
-			document.head.appendChild(web3Script);
 			web3 = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop"));
 		}
 	}
 	
 	async function getFileBlockchain(address) {
-	
-		var numFiles = await web3.eth.contract.methods.numFiles().call();
-
+		var contract = new web3.eth.Contract(abi, address);
+		var numFiles = await contract.methods.numFiles().call();
 		bytePromises = [];
-
 		for(var i = 0; i<numFiles; i++){
-			if(i!=numFiles-1){
-				bytePromises.push(await web3.eth.contract.methods.jsBytesFinal().call());
+			if(i==numFiles-1){
+				bytePromises.push(contract.methods.jsBytesFinal().call());
 			}
 			else{
-				bytePromises.push(await web3.eth.contract.methods.jsBytes(i).call());
+				bytePromises.push(contract.methods.jsBytes(i).call());
 			}
 		}
-
+		
 		var promises = await Promise.all(bytePromises);
 
 		var arrays = []
@@ -103,6 +100,7 @@
 		alert(commands);
 		parseCommands(commands);
 	}
-}
+	
+	document.getElementById('launch').onclick = function(){ launch(); }
 </script>
 </html>
