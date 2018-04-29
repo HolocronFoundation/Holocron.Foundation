@@ -58,8 +58,6 @@ function loadZipABI(){
 	return [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_listingAddress"}, {"type": "address", "name": "_modifierAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "setZipBytes", "outputs": [], "inputs": [{"type": "int128", "name": "_index"}, {"type": "bytes", "name": "newZip"}], "constant": false, "payable": false, "type": "function", "gas": 5187494}, {"name": "listingAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 513}, {"name": "modifierAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 543}, {"name": "zipBytes", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 97105}, {"name": "zipBytesFinal", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 28850}];
 }
 
-var bookABI = loadBookABI();
-
 var authorABI = loadAuthorABI();
 
 var zipABI = loadZipABI();
@@ -240,7 +238,7 @@ function getAuthors(bookID, localStorageAccess=true){
 		}
 	}
 	return loadInfoAddress('b', bookID, localStorageAccess).then(function(res){
-		currentContract = new web3.eth.Contract(bookABI, res);
+		currentContract = new web3.eth.Contract(loadBookABI(), res);
 		return currentContract.methods.book__authorIDs().call().then(async function(res){
 			if(res == null){
 				if(localStorageAccess){
