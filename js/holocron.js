@@ -59,9 +59,9 @@ var bookABI = loadBookABI();
 
 var authorABI = loadAuthorABI();
 
-var zipABI;
+var zipABI = loadZipABI();
 
-var libraryAddress = '0x5048105C9fd262d1417FDD9AbAf6476c68827bbb';
+var libraryAddress = '0x0214a66242ed16BEc0C2eeA1b2856888EFA481bB';
 
 var thirdPartyProvider;
 
