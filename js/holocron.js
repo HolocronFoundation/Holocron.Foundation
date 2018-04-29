@@ -68,6 +68,8 @@ var thirdPartyProvider;
 var libraryContract; //This loads the library ABI, responsible for most functions on our site
 
 function loadBookTextChunk(bookID, chunk){
+	alert(bookID);
+	alert(chunk);
 	return loadInfoAddress('b', bookID).then(function(res){
 		var currentContract = new web3.eth.Contract(bookABI, res);
 		alert(res);
@@ -80,7 +82,7 @@ function loadBookTextChunk(bookID, chunk){
 }
 
 function loadFinalBookTextChunk(bookID){
-	
+	alert(bookID);
 	return loadInfoAddress('b', bookID).then(function(res){
 		alert(res);
 		var currentContract = new web3.eth.Contract(bookABI, res);
