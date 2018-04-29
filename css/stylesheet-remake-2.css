@@ -135,9 +135,9 @@ li.bookInfo {
 }
 
 li.bookInfo.loaded {
-	max-height: 500px;
+	max-height: 1000px;
 	opacity: 1;
-	transition: opacity 1.5s, max-height 4s;
+	transition: opacity 3s, max-height 4s;
 }
 
 #fullBookInfo {
