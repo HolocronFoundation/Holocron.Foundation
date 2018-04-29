@@ -157,10 +157,6 @@ async function loadTextPage(bookID) {
 	
 	document.getElementById('bookText').innerHTML = '<p></p>';
 	
-	bookABI = loadBookABI(bookID); //This loads the individual book ABI, responsible primarily for getters	
-	
-	zipABI = loadZipABI(bookID); //This loads the zip files ABI, responsible for downloading zip files
-	
 	var zip = new JSZip();
 	
 	var bookName = await loadVariable('b', bookID, 'title', true, true);
