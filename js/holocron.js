@@ -3,7 +3,10 @@
 if (typeof window !== 'undefined'){
 	window.addEventListener('load', function() {
 		web3 = setupWeb3();
-		start();
+		libraryContract.methods.maxIndex().call().then(function(res){
+			maxIndex = parseInt(res);
+			start();
+		})
 	});
 }
 
@@ -225,7 +228,6 @@ async function setupWeb3() {
 		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //sets an api for use
 	}
 	libraryContract = new result.eth.Contract(loadLibraryContractABI(), libraryAddress);
-	maxIndex = await libraryContract.methods.maxIndex().call();
 	return result;
 }
 
@@ -630,6 +632,7 @@ function loadVariable(typeLetter, ID, infoName, useCache=true, hexEncodedInContr
 		var contractString;
 		
 		if(typeLetter == 'b'){
+			console.lo
 			currentContract = new web3.eth.Contract(bookABI, res);
 			contractString = "return contract.methods.book__" + infoName + "().call().then(function(success){"
 		}
