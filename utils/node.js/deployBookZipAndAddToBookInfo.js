@@ -174,7 +174,7 @@ function waitThenStoreMore(address, nextIndex){
 	}
 }
 
-var updated = true;
+var updated = false;
 var updatedLib = false;
 
 function updateLibrary(){
