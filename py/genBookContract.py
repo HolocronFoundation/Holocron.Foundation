@@ -41,7 +41,7 @@ class SendDonation():
     def donateWithDifferentDonor(id: int128, foundationSplitNumerator: int128, foundationSplitDenominator: int128, donorAddress: address): pass
 
 version: public(bool)
-parentAddress: public(address)
+modifierAddresses: public(address[2])
 expansionAddress: public(address)
 usesExpansion: public(bool)
 
@@ -74,11 +74,13 @@ book: public({
 })
 
 @public
-def __init__(_parentAddress: address):
+def __init__(_parentAddress: address, _modifierAddress: address):
 
     self.version = True
 
-    self.parentAddress = _parentAddress
+    self.modifierAddresses[0] = _parentAddress
+
+    self.modifierAddresses[1] = _modifierAddress
 
     self.expansionAddress = None
 
@@ -109,28 +111,28 @@ def __init__(_parentAddress: address):
 @payable
 @public
 def donate(foundationSplitNumerator: int128, foundationSplitDenominator: int128):
-    SendDonation(self.parentAddress).donateWithDifferentDonor(self.book.id, foundationSplitNumerator, foundationSplitDenominator, msg.sender)
+    SendDonation(self.modifierAddresses[0]).donateWithDifferentDonor(self.book.id, foundationSplitNumerator, foundationSplitDenominator, msg.sender)
 
 @public
-def changeParentAddress(newAddress: address):
-    assert msg.sender == self.parentAddress
-    self.parentAddress = newAddress
+def changeParentAddress(newAddress: address, index: int128):
+    assert msg.sender in self.modifierAddresses
+    self.modifierAddresses[index] = newAddress
 
 @public
 def addExpansionAddress(_expansionAddress: address):
-    assert msg.sender == self.parentAddress
+    assert msg.sender in self.modifierAddresses
     self.expansionAddress = _expansionAddress
     self.usesExpansion = True
 
 @public
 def addText(_textAddress: address):
-    assert msg.sender == self.parentAddress
+    assert msg.sender in self.modifierAddresses
     self.book.textAddress = _textAddress
     self.book.uploaded = True
 
 @public
 def recieveDonation(value: wei_value):
-    assert msg.sender == self.parentAddress
+    assert msg.sender in self.modifierAddresses
     self.book.donations = self.book.donations + value
 '''
     

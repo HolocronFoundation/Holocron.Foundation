@@ -13,10 +13,8 @@ var _parentAddress = '0x5048105C9fd262d1417FDD9AbAf6476c68827bbb';
 var _senderAddress = '0x96164079bf312E80e061b226ccF27f143cf3f3ff';
 var _parentABI = [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "getBookAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 672}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 21976}, {"name": "getAuthorAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "authorID"}], "constant": true, "payable": false, "type": "function", "gas": 732}, {"name": "addAuthor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "authorAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22036}, {"name": "getSubjectAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "subjectID"}], "constant": true, "payable": false, "type": "function", "gas": 792}, {"name": "getLoCAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "LoCID"}], "constant": true, "payable": false, "type": "function", "gas": 822}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22280}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41411}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41386}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22039}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 6101}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4781}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1060}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 873}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 903}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1122}, {"name": "authors", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1152}, {"name": "subjects", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1182}, {"name": "LoC", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1212}];
 
-var zipABI = [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_listingAddress"}, {"type": "address", "name": "_modifierAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "setZipBytes", "outputs": [], "inputs": [{"type": "int128", "name": "_index"}, {"type": "bytes", "name": "newZip"}], "constant": false, "payable": false, "type": "function", "gas": 5187494}, {"name": "listingAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 513}, {"name": "modifierAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 543}, {"name": "zipBytes", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 97105}, {"name": "zipBytesFinal", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 28850}];
-
 //CHANGE BOOK ID HERE |							<--------
-var bookID = 11;//<----/        <------
+var bookID = 2;//<----/        <------
 //DON'T FORGET MOTHERFUCKER				<-----
 
 var fileLoc = '/Users/us.tropers/Desktop/gutenbergNoSubs/' + bookID.toString() + '/';
@@ -97,7 +95,7 @@ function deployBookContract(){
 				deployed = true;
 				web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 				web3.eth.personal.unlockAccount(_senderAddress, _password).then(function(){
-					updateLibrary(bookAddress);
+					updateLibrary();
 				});
 			});
 		});
@@ -128,7 +126,7 @@ function deployBookContract(){
 				deployed = true;
 				web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 				web3.eth.personal.unlockAccount(_senderAddress, _password).then(function(){
-					addZips(receipt.contractAddress, 0);
+					addZips(bookAddress, 0);
 				});
 			});
 		});
@@ -141,13 +139,13 @@ function addZips(address, fileIndex){
 	if (fileIndex+1 != zbFiles.length) {
 		web3.eth.personal.unlockAccount(_senderAddress, _password);
 		var currContract = new web3.eth.Contract(abiFile, address);
-		var currentCall = currContract.methods.setZipBytes(fileIndex, processedFiles[fileIndex]);
+		var currCall = currContract.methods.setZipBytes(fileIndex, processedFiles[fileIndex]);
 		var gasEstimate;
-		currentCall.estimateGas({from: _senderAddress}, function(err, gas){
+		currCall.estimateGas({from: _senderAddress}, function(err, gas){
 			console.log('Gas Estimate: ' + gas);
 			gasEstimate = gas;
 		}).then(function(){
-			currentCall.send({from: _senderAddress, gas: gasEstimate})
+			currCall.send({from: _senderAddress, gas: gasEstimate})
 			.on('error', function(error){ console.log('Error: ' + error); })
 			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
 			.on('receipt', function(receipt){
@@ -181,7 +179,6 @@ var updatedLib = false;
 
 function updateLibrary(){
 	var libraryContract = new web3.eth.Contract(_parentABI, _parentAddress);
-	console.log(bookAddress);
 	var currentCall = libraryContract.methods.setTextAddress(bookID, bookAddress);
 	var gasEstimate;
 	currentCall.estimateGas({from: _senderAddress}, function(err, gas){
@@ -220,6 +217,7 @@ function waitThenUpdateLibrary(){
 function waitThenDone(){
 	if (updated){
 		console.log('Done!!!')
+		console.log(bookAddress);
 	} else {
 		setTimeout(function(){waitThenDone();}, 100);
 	}

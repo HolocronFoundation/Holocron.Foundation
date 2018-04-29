@@ -69,14 +69,11 @@ var libraryContract; //This loads the library ABI, responsible for most function
 
 function loadBookTextChunk(bookID, chunk){
 	return loadInfoAddress('b', bookID).then(function(res){
-		alert('meep');
 		var currentContract = new web3.eth.Contract(bookABI, res);
 		alert(res);
-		alert('meep44');
 		return currentContract.methods.book__textAddress().call().then(function(res2){
-			alert('meess');
 			alert(res2);
-			textContract= new web3.eth.Contract(loadZipABI(), res2);
+			textContract = new web3.eth.Contract(loadZipABI(), res2);
 			return textContract.methods.zipBytes(chunk).call().then(function(success){return success;})
 		});
 	});
@@ -85,8 +82,10 @@ function loadBookTextChunk(bookID, chunk){
 function loadFinalBookTextChunk(bookID){
 	
 	return loadInfoAddress('b', bookID).then(function(res){
+		alert(res);
 		var currentContract = new web3.eth.Contract(bookABI, res);
 		return currentContract.methods.book__textAddress().call().then(function(res2){
+			alert(res2);
 			textContract= new web3.eth.Contract(loadZipABI(), res2);
 			return textContract.methods.zipBytesFinal().call().then(function(success){return success;})
 		});
@@ -95,15 +94,11 @@ function loadFinalBookTextChunk(bookID){
 
 async function getBookTextBlockchain(bookID) {
 	
-	alert(1);
-	
 	var size = await loadVariable('b', bookID, 'size');
 	var numByteArrays = Math.floor(size/8192);
 	if (size%255 !== 0) {
 		numByteArrays++;
 	}
-	
-	alert(2);
 	
 	bytePromises = [];
 	
@@ -117,20 +112,14 @@ async function getBookTextBlockchain(bookID) {
 		}
 	}
 	
-	alert(2.3);
-	
 	var promises = await Promise.all(bytePromises);
 	
 	var arrays = []
-	
-	alert(3);
 	
 	for(var i = 0; i<promises.length; i++){
 		var newArray = hexStringToByte(promises[i].substring(2));
 		arrays.push(newArray);
 	}
-	
-	alert(4);
 	
 	var returnArray = new Uint8Array([].concat.apply([], arrays));
 	

@@ -70,7 +70,7 @@ function deployContract(index){
 		var gasEstimate;
 		currentContract.deploy({
 			data: deploymentArr[index][1],
-			arguments: [_parentAddress]
+			arguments: [_parentAddress, _senderAddress]
 		})
 		.estimateGas(function(err, gas){
 			console.log('Gas Estimate: ' + gas);
@@ -78,7 +78,7 @@ function deployContract(index){
 		}).then(function(){
 			currentContract.deploy({
 				data: deploymentArr[index][1],
-				arguments: [_parentAddress]
+				arguments: [_parentAddress, _senderAddress]
 			})
 			.send({
 				from: _senderAddress,
