@@ -56,6 +56,8 @@ TextUploaded: event({_bookID: int128})
     #First address recieves ETH immeadiately
 foundationAddresses: public(address[3])
 
+maxIndex: public(int128)
+
 #Update address - Address for an updated contract, to allow for patches.
 updateAddress: public(address)
 updatedContract: public(bool)
@@ -158,10 +160,10 @@ def setUpdateAddress(newUpdateAddress: address):
     
 #Adds address for full book text. Also sets uploaded to True.
 @public
-def setTextAddress(id: int128, textAddress: address):
+def setTextAddress(id: int128, _textAddress: address):
     assert msg.sender in self.foundationAddresses
-    self.textAddress[id] = textAddress
-    BookContract(self.books[id]).addText(textAddress)
+    self.textAddress[id] = _textAddress
+    BookContract(self.books[id]).addText()
     log.TextUploaded(id)
 
 #Adds expansion address for a given entry.
@@ -177,3 +179,8 @@ def withdrawFunds(bookID: int128, withdrawalAddress: address, withdrawal: wei_va
     assert not self.updatedContract
     assert msg.sender in self.foundationAddresses
     send(withdrawalAddress, withdrawal)
+
+@public
+def setMaxIndex(_maxIndex: int128):
+    assert msg.sender in self.foundationAddresses
+    self.maxIndex = _maxIndex
