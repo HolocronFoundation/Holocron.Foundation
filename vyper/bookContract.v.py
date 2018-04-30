@@ -176,7 +176,6 @@ def setExpansionAddress(id: int128, expansionAddress: address):
                                             # Uploading method with a middleman contract is determined.
 @public
 def withdrawFunds(bookID: int128, withdrawalAddress: address, withdrawal: wei_value):
-    assert not self.updatedContract
     assert msg.sender in self.foundationAddresses
     send(withdrawalAddress, withdrawal)
 
