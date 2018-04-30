@@ -13,7 +13,7 @@ var _parentABI = [{"name": "Donation", "inputs": [{"type": "address", "name": "_
 
 var parentContract = new web3.eth.Contract(_parentABI, _parentAddress);
 
-var fileLoc = '/Users/us.tropers/Desktop/Prepped/Authors/0/';
+var fileLoc = '/Users/us.tropers/Desktop/Prepped/Authors/1/';
 
 //need to create files var
 var files = fs.readdirSync(fileLoc);

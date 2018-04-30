@@ -15,7 +15,7 @@ var parentContract = new web3.eth.Contract(_parentABI, _parentAddress);
 
 var totalGas = 0;
 
-var fileLoc = '/Users/us.tropers/Desktop/prepped/Books/1/';
+var fileLoc = '/Users/us.tropers/Desktop/prepped/Books/2/';
 
 //need to create files var
 var files = fs.readdirSync(fileLoc);

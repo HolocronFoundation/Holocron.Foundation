@@ -8,10 +8,10 @@ var Web3 = require('web3');
 var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
 var totalGas = 0;
 var bookAddress;
-var _senderAddress = '0x96164079bf312E80e061b226ccF27f143cf3f3ff';
+var _senderAddress = '0x8378C65a0c83675AcF509fF3F9f48DEC7898EEbA';
 
 
-var fileLoc = '/Users/us.tropers/Documents/GitHub/Library/py/main/';
+var fileLoc = '/Users/us.tropers/Desktop/prepped/jszip/';
 
 //need to create files var
 var files = fs.readdirSync(fileLoc);
