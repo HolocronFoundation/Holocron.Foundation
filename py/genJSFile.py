@@ -64,7 +64,7 @@ def setjsBytes(_index: int128, newZip: bytes[4096]):
 '''
 
     
-    with open('/Users/us.tropers/Documents/GitHub/Library/py/jszip/' + fileName[:-3] + '.v.py', 'w') as writeFile:
+    with open('/Users/us.tropers/Documents/GitHub/Library/py/main/' + fileName[:-3] + '.v.py', 'w') as writeFile:
         writeFile.write(vyperFileString)
 
 def splitFile(fileName):
@@ -80,7 +80,7 @@ def splitFile(fileName):
         numString = str(i)
         while len(numString) < 6:
             numString = '0' + numString
-        with open('/Users/us.tropers/Documents/GitHub/Library/py/jszip/JSbytes' + numString + '.jsb', 'wb') as writeFile:
+        with open('/Users/us.tropers/Documents/GitHub/Library/py/main/JSbytes' + numString + '.jsb', 'wb') as writeFile:
             if i == numberOfSplits-1:
                 writeFile.write(JSbytes[i*4096:])
             else:

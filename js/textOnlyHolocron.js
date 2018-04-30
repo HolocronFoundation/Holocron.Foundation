@@ -1,17 +1,4 @@
-var id = prompt('Please enter a book ID');
-
-document.body.id = 'textBody';
-document.body.innerHTML = '<div id="Holocron Info"><p>Welcome to the <a href="./">holocron.foundation library</a>.</p></div><div id="download" class="center"></div><div id="bookText"></div>';
-loadCSS();
-loadJS();
-start();
-
-function loadCSS(){
-	var style = document.createElement('style');
-	style.type = 'text/css';
-	style.innerHTML = `#@charset "utf-8";.splitSlider{justify-content:center;display:flex}.blankFlex1{flex:1}.splitSlider .left{flex:2}.splitSlider .slider{flex:3}.splitSlider .right{flex:2}#fullAuthorInfo{border-bottom:5px groove burlywood}#pageNavigation div{display:inline-block;margin-left:.25vw;margin-right:.25vw}#pageNavigation{padding-top:1vh}#searchSettings div{display:inline-block}#searchBar{width:50em}#searchButton{width:10em}.title{white-space:pre-wrap}.name a{text-decoration:none;color:black}ul.bullet{list-style-type:circle;margin:.75em;padding-top:.25em;padding-bottom:.25em;padding-right:2em;padding-left:2em}#logo{display:block;margin-left:auto;margin-right:auto;width:6em;height:auto}li.bookInfo{max-height:0;overflow:hidden;opacity:0;padding-bottom:1.5vh;text-align:center;border-bottom:5px groove burlywood;transition-timing-function:ease-out}li.bookInfo.loaded{max-height:1000px;opacity:1;transition:opacity 3s,max-height 4s}#fullBookInfo{padding-bottom:1.5vh;text-align:center}li.bookInfo.sample{border-bottom:2px groove rgb(104,185,255)}section{display:flex;flex-flow:column;height:100vh}header{background:rgb(104,185,255)}header.library{background:navajowhite}#content{background:rgb(156,217,255);overflow-y:auto;overflow-x:hidden;width:80vw;margin:auto;padding-left:3.75vw;padding-right:3.75vw;padding-top:1vh;padding-bottom:1vh;max-width:666px;flex-direction:column;flex:1}#content.library{background:bisque}#content.phoenix{background:mistyrose}footer{background:rgb(57,157,255)}footer.library{background:navajowhite}footer.library p{color:black}footer.library p a{color:black}footer.phoenix{background-color:rgb(232,85,74)}#search div{padding-bottom:.5vh}.center{text-align:center}.logosmall{margin-left:auto;margin-right:auto;height:3em;width:auto;vertical-align:middle;padding-bottom:.4em}ul.navbar{overflow:hidden;background-color:rgb(57,157,255);top:0;left:0;width:100vw}ul.navbar.library{background-color:rgb(227,186,143)}ul.navbar.phoenix{background-color:rgb(232,85,74)}li.navbar.phoenix{background-color:rgb(232,85,74)}li.navbar.phoenix a:hover{background-color:rgb(233,92,85)}li.navbar.reincarnationline{background-color:white}li.navbar.reincarnationline a{color:black}li.navbar.reincarnationline a:hover{background-color:whitesmoke}li.navbar.library{background-color:rgb(227,186,143)}li.navbar.library a:hover{background-color:rgb(229,190,151)}li.navbar{float:left}li.navbar a{display:block;text-align:center;padding:14px 16px;text-decoration:none;color:white}li.navbar.holocron{background-color:rgb(57,157,255)}li.navbar.holocron a:hover{background-color:rgb(71,166,255)}ul{list-style-type:none;margin:0;padding:0}body{margin:0;background-color:rgb(104,185,255)}body.library{background-color:maroon}body.phoenix{background-color:firebrick}body#textBody{margin-left:2.5vw;margin-right:2.5vw;margin-top:1.5vh;margin-bottom:1.5vh;background-color:beige}footer p{color:white}footer p a{text-decoration:none;color:white}footer p a:hover{color:silver}#bookText{text-align:center}#bookText p{white-space:pre-wrap;display:inline-block;text-align:left}`;
-	document.getElementsByTagName('head')[0].appendChild(style);
-}
+//Javascript for the holocron.foundation
 
 function loadLibraryContractABI() {
 	return [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "getTextAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 672}, {"name": "getBookAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 702}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22006}, {"name": "getAuthorAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "authorID"}], "constant": true, "payable": false, "type": "function", "gas": 762}, {"name": "addAuthor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "authorAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22066}, {"name": "getSubjectAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "subjectID"}], "constant": true, "payable": false, "type": "function", "gas": 822}, {"name": "getLoCAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "LoCID"}], "constant": true, "payable": false, "type": "function", "gas": 852}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22310}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41441}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41416}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22069}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "_textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 26206}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4811}, {"name": "withdrawFunds", "outputs": [], "inputs": [{"type": "int128", "name": "bookID"}, {"type": "address", "name": "withdrawalAddress"}, {"type": "int128", "name": "withdrawal"}], "constant": false, "payable": false, "type": "function", "gas": 37445}, {"name": "setMaxIndex", "outputs": [], "inputs": [{"type": "int128", "name": "_maxIndex"}], "constant": false, "payable": false, "type": "function", "gas": 22240}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1150}, {"name": "maxIndex", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 963}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 993}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1023}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1242}, {"name": "textAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1272}, {"name": "authors", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1302}, {"name": "subjects", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1332}, {"name": "LoC", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1362}];
@@ -38,7 +25,7 @@ var libraryAddress = '0x82cA8Ec684C10479f4Bd34A46927Ed1f95753011';
 
 var thirdPartyProvider;
 
-var libraryContract = new web3.eth.Contract(loadLibraryContractABI(), libraryAddress);
+var libraryContract = new result.eth.Contract(loadLibraryContractABI(), libraryAddress);
 
 function loadBookTextChunk(bookID, chunk){
 	return libraryContract.methods.getTextAddress(bookID).call().then(function(res){
@@ -124,7 +111,7 @@ async function loadTextPage(bookID) {
 	
 	document.title = 'Holocron.Foundation ♢ ' + bookName;
 	
-	var holocronInfoText = 'Welcome to the <a href="holocron.foundation/library/">holocron.foundation library</a>. You are reading <a href="holocron.foundation/library/book.html?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
+	var holocronInfoText = 'Welcome to the <a href="./">holocron.foundation library</a>. You are reading <a href="./book.html?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
 	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '</p>';
 	
@@ -134,7 +121,7 @@ async function loadTextPage(bookID) {
 		holocronInfoText += ' This text has been uploaded to the Ethereum Blockchain. You are viewing the copy stored there. Enjoy!';
 	}
 	else {
-		holocronInfoText += ' This text has <b>NOT</b> been uploaded to the Ethereum Blockchain. You are viewing a copy stored on our server. If you would like to contribute Ethereum <a href="#" onclick="donate(' + bookID + ', false, true)">click here</a> to immeadiately send a donation with our default fee, or head to <a href="holocron.foundation/library/book.html?bookID=' + bookID + '">this books page</a> to change it. If you would like to give Bitcoin, Litecoin, or USD please see our <a href="../donate.html">donations page</a>.';
+		holocronInfoText += ' This text has <b>NOT</b> been uploaded to the Ethereum Blockchain. You are viewing a copy stored on our server. If you would like to contribute Ethereum <a href="#" onclick="donate(' + bookID + ', false, true)">click here</a> to immeadiately send a donation with our default fee, or head to <a href="./book.html?bookID=' + bookID + '">this books page</a> to change it. If you would like to give Bitcoin, Litecoin, or USD please see our <a href="../donate.html">donations page</a>.';
 	}
 	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '<p>';
@@ -335,14 +322,5 @@ function loadInfoAddress(tag, ID, localStorageAccess=true){
 			}
 			return res;
 		});
-	}
-}
-
-function start(){
-	if(parseInt(id) == null || parseInt(id) == ''){
-		alert('That book ID does not exist!');
-	}
-	else{
-		loadTextPage(parseInt(id));
 	}
 }
