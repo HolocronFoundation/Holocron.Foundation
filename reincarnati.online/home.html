@@ -19,6 +19,7 @@
 			<br>Commands are executed in order.
 			<br><br>js(eth_address) - loads a script stored at eth_address into the page
 			<br><br>web3() - Checks for injected web 3, otherwise initializes web3.min.js
+			<br><br>un() - Unzips and executes a js file. Requires jszip.min.js to be loaded
 			<br><br>reincarnation.online is experimental and may not work in all browsers yet.<br>reincarnation.online is a holocron.foundation project.<br>The default command will take you to the holocron.foundation too!
 			<br><br><br>p.s. jszip.min.js is at address 0xA6257f49368309b8d14b17c1A5442c954333EEE3</p>
 		</div>
@@ -40,6 +41,10 @@
 				alert(currentCommand.substring(3, currentCommand.length-1));
 				loadJS(currentCommand.substring(3, currentCommand.length-1));
 			}
+			else if(currentCommand.substring(0,2)=='un'){
+				alert(currentCommand.substring(3, currentCommand.length-1));
+				unzip(currentCommand.substring(3, currentCommand.length-1));
+			}
 		}
 	}
 	
@@ -56,6 +61,16 @@
 		else {
 			web3 = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop"));
 		}
+	}
+	
+	async function unzip(address) {
+		var zippedScript = await getFileBlockchain(address);
+		var zip = new JSZip();
+		JSZip.loadAsync(zippedScript).then(function(zip){
+			return zip.file('main.js').async('string');
+		}).then(function success(file){
+			eval(file);
+		})
 	}
 	
 	async function getFileBlockchain(address) {

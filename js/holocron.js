@@ -142,7 +142,7 @@ function getBookTextServer(bookID) {
 
 async function loadTextPage(bookID) {
 	
-	document.getElementById('Holocron Info').innerHTML = '<p>Welcome to the <a href="./library.html">holocron.foundation library</a>.</p>';
+	document.getElementById('Holocron Info').innerHTML = '<p>Welcome to the <a href="./">holocron.foundation library</a>.</p>';
 	
 	document.getElementById('bookText').innerHTML = '<p></p>';
 	
@@ -152,7 +152,7 @@ async function loadTextPage(bookID) {
 	
 	document.title = 'Holocron.Foundation ♢ ' + bookName;
 	
-	var holocronInfoText = 'Welcome to the <a href="./library.html">holocron.foundation library</a>. You are reading <a href="./book.html?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
+	var holocronInfoText = 'Welcome to the <a href="./">holocron.foundation library</a>. You are reading <a href="./book.html?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
 	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '</p>';
 	
