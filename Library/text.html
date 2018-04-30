@@ -25,7 +25,7 @@
 
 	<body id="textBody">
 		<div id="Holocron Info">
-			<p>Welcome to the <a href="./library.html">holocron.foundation library</a>.</p>
+			<p>Welcome to the <a href="./">holocron.foundation library</a>.</p>
 		</div>
 		
 		<div id="download" class="center">
@@ -40,7 +40,7 @@
 		function start(){
 			var activeID = getParameterByName('bookID');
 			if(activeID == null || activeID ==''){
-				document.location.href = "./browse.html";
+				document.location.href = "./";
 			}
 			loadTextPage(activeID);
 		}

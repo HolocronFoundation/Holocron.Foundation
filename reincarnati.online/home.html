@@ -11,7 +11,7 @@
 		<h1 style="font-size: 5em; margin: 0;">♢</h1>
 		<h2 style="margin: 0;">reincarnati.online</h2>
 		<form style="margin-top: 5vh;">
-			web3(); <input type="text" id="commandBar" placeholder="js(jszip.min.js_address); js(zippedHolocronFoundation);" style="width: 33vw;"> <button type="button" id='launch'>Launch</button>
+			web3();  <textarea type="text" id="commandBar" style="width: 33vw;height: 10vh;">js(0xA6257f49368309b8d14b17c1A5442c954333EEE3); js(zippedHolocronFoundation);</textarea>  <button type="button" id='launch'>Launch</button>
 		</form>
 		<div style="width: 66vw; margin-left:auto; margin-right:auto; margin-top:5vh;">
 			<p>Welcome to <b>reincarnati.online</b>. We aim to provide the foundation for the web of tommorrow, today.
@@ -29,7 +29,7 @@
 	var abi = [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_modifierAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "setjsBytes", "outputs": [], "inputs": [{"type": "int128", "name": "_index"}, {"type": "bytes", "name": "newZip"}], "constant": false, "payable": false, "type": "function", "gas": 2604351}, {"name": "modifierAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 513}, {"name": "jsBytes", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 49203}, {"name": "numFiles", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 573}, {"name": "jsBytesFinal", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 48298}];
 	
 	function parseCommands(commandString){
-		var commands = commandString.split(';');
+		var commands = commandString.replace(' ', '').split(';');
 		
 		for(var i = 0; i < commands.length; i++){
 			var currentCommand = commands[i];
