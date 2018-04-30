@@ -12,3 +12,8 @@ py/vyperAuthorFilesGenerated/*
 /py/vyperAuthorFilesGenerated/*
 *.zip
 /zipsvyper/*
+*.jsb
+py/jszip.min.js
+py/jszip/jszip.min.v.py
+*.byte
+*.json

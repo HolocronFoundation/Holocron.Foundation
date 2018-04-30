@@ -35,7 +35,7 @@ class BookContract():
         self.usesExpansion = True
 
     @public
-    def addText(_textAddress: address):
+    def addText():
         assert msg.sender == self.parentAddress
         self.book.textAddress = _textAddress
         self.book.uploaded = True
@@ -56,12 +56,16 @@ TextUploaded: event({_bookID: int128})
     #First address recieves ETH immeadiately
 foundationAddresses: public(address[3])
 
+maxIndex: public(int128)
+
 #Update address - Address for an updated contract, to allow for patches.
 updateAddress: public(address)
 updatedContract: public(bool)
 
 #Book mapping
 books: public(address[int128])
+
+textAddress: public(address[int128])
 
 #Authors mapping
 authors: public(address[int128])
@@ -71,6 +75,11 @@ subjects: public(address[int128])
 
 #Library of Congress mapping
 LoC: public(address[int128])
+
+@public
+@constant
+def getTextAddress(bookID: int128) -> address:
+    return self.textAddress[bookID]
 
 #Was running into issues, so I created a getter.
 @public
@@ -151,9 +160,10 @@ def setUpdateAddress(newUpdateAddress: address):
     
 #Adds address for full book text. Also sets uploaded to True.
 @public
-def setTextAddress(id: int128, textAddress: address):
+def setTextAddress(id: int128, _textAddress: address):
     assert msg.sender in self.foundationAddresses
-    BookContract(self.books[id]).addText(textAddress)
+    self.textAddress[id] = _textAddress
+    BookContract(self.books[id]).addText()
     log.TextUploaded(id)
 
 #Adds expansion address for a given entry.
@@ -166,6 +176,10 @@ def setExpansionAddress(id: int128, expansionAddress: address):
                                             # Uploading method with a middleman contract is determined.
 @public
 def withdrawFunds(bookID: int128, withdrawalAddress: address, withdrawal: wei_value):
-    assert not self.updatedContract
     assert msg.sender in self.foundationAddresses
     send(withdrawalAddress, withdrawal)
+
+@public
+def setMaxIndex(_maxIndex: int128):
+    assert msg.sender in self.foundationAddresses
+    self.maxIndex = _maxIndex

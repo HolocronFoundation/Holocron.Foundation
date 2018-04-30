@@ -4,6 +4,7 @@
 		<meta charset="utf-8">
 
 		<title>Holocron.Foundation ♢</title>
+		<link rel="icon" type="image/png" href="../img/Libraryfavicon.png">
 		
 		<link rel="stylesheet" type="text/css" href="../css/stylesheet-remake-2.css">
 
@@ -24,7 +25,11 @@
 
 	<body id="textBody">
 		<div id="Holocron Info">
-			<p>Welcome to the <a href="./library.html">holocron.foundation library</a>.</p>
+			<p>Welcome to the <a href="./">holocron.foundation library</a>.</p>
+		</div>
+		
+		<div id="download" class="center">
+		
 		</div>
 
 		<div id="bookText">
@@ -35,7 +40,7 @@
 		function start(){
 			var activeID = getParameterByName('bookID');
 			if(activeID == null || activeID ==''){
-				document.location.href = "./browse.html";
+				document.location.href = "./";
 			}
 			loadTextPage(activeID);
 		}

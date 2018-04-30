@@ -3,7 +3,10 @@
 if (typeof window !== 'undefined'){
 	window.addEventListener('load', function() {
 		web3 = setupWeb3();
-		start();
+		libraryContract.methods.maxIndex().call().then(function(res){
+			maxIndex = parseInt(res);
+			start();
+		})
 	});
 }
 
@@ -32,18 +35,18 @@ var mainTimeOut = 0;
 
 //Consider adding maxIndex to library contract?
 
-var maxIndex = 100;
+var maxIndex;
 
 //Add to option page later
 
 var maxEntries = 5;
 
 function loadLibraryContractABI() {
-	return [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "getBookAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 672}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 21976}, {"name": "getAuthorAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "authorID"}], "constant": true, "payable": false, "type": "function", "gas": 732}, {"name": "addAuthor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "authorAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22036}, {"name": "getSubjectAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "subjectID"}], "constant": true, "payable": false, "type": "function", "gas": 792}, {"name": "getLoCAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "LoCID"}], "constant": true, "payable": false, "type": "function", "gas": 822}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22280}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41411}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41386}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22039}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 6101}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4781}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1060}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 873}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 903}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1122}, {"name": "authors", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1152}, {"name": "subjects", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1182}, {"name": "LoC", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1212}];
+	return [{"name": "Donation", "inputs": [{"type": "address", "name": "_from", "indexed": true}, {"type": "int128", "name": "_value", "indexed": false}, {"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "BookUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "TextUploaded", "inputs": [{"type": "int128", "name": "_bookID", "indexed": false}], "anonymous": false, "type": "event"}, {"name": "getTextAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 672}, {"name": "getBookAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "bookID"}], "constant": true, "payable": false, "type": "function", "gas": 702}, {"name": "addBook", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "bookAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22006}, {"name": "getAuthorAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "authorID"}], "constant": true, "payable": false, "type": "function", "gas": 762}, {"name": "addAuthor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "authorAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22066}, {"name": "getSubjectAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "subjectID"}], "constant": true, "payable": false, "type": "function", "gas": 822}, {"name": "getLoCAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "LoCID"}], "constant": true, "payable": false, "type": "function", "gas": 852}, {"name": "__init__", "outputs": [], "inputs": [{"type": "address[3]", "name": "_foundationAddresses"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "changeFoundationAddresses", "outputs": [], "inputs": [{"type": "int128", "name": "index"}, {"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22310}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 41441}, {"name": "donateWithDifferentDonor", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}, {"type": "address", "name": "donorAddress"}], "constant": false, "payable": true, "type": "function", "gas": 41416}, {"name": "setUpdateAddress", "outputs": [], "inputs": [{"type": "address", "name": "newUpdateAddress"}], "constant": false, "payable": false, "type": "function", "gas": 22069}, {"name": "setTextAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "_textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 26206}, {"name": "setExpansionAddress", "outputs": [], "inputs": [{"type": "int128", "name": "id"}, {"type": "address", "name": "expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 4811}, {"name": "withdrawFunds", "outputs": [], "inputs": [{"type": "int128", "name": "bookID"}, {"type": "address", "name": "withdrawalAddress"}, {"type": "int128", "name": "withdrawal"}], "constant": false, "payable": false, "type": "function", "gas": 37154}, {"name": "setMaxIndex", "outputs": [], "inputs": [{"type": "int128", "name": "_maxIndex"}], "constant": false, "payable": false, "type": "function", "gas": 22240}, {"name": "foundationAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1150}, {"name": "maxIndex", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 963}, {"name": "updateAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 993}, {"name": "updatedContract", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1023}, {"name": "books", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1242}, {"name": "textAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1272}, {"name": "authors", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1302}, {"name": "subjects", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1332}, {"name": "LoC", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 1362}];
 }
 
 function loadBookABI(){
-	return [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_parentAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 3050}, {"name": "changeParentAddress", "outputs": [], "inputs": [{"type": "address", "name": "newAddress"}], "constant": false, "payable": false, "type": "function", "gas": 20657}, {"name": "addExpansionAddress", "outputs": [], "inputs": [{"type": "address", "name": "_expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 40693}, {"name": "addText", "outputs": [], "inputs": [{"type": "address", "name": "_textAddress"}], "constant": false, "payable": false, "type": "function", "gas": 40879}, {"name": "recieveDonation", "outputs": [], "inputs": [{"type": "int128", "name": "value"}], "constant": false, "payable": false, "type": "function", "gas": 21242}, {"name": "version", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 633}, {"name": "parentAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 663}, {"name": "expansionAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 693}, {"name": "usesExpansion", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 723}, {"name": "book__id", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 831}, {"name": "book__title", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 2180}, {"name": "book__copyright", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 891}, {"name": "book__language", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1866}, {"name": "book__libraryOfCongress", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1896}, {"name": "book__subjects", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1926}, {"name": "book__authorIDs", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1950}, {"name": "book__authorRoles", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1986}, {"name": "book__size", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1071}, {"name": "book__donations", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1101}, {"name": "book__textAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1131}, {"name": "book__uploaded", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1161}];
+	return [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_parentAddress"}, {"type": "address", "name": "_modifierAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "donate", "outputs": [], "inputs": [{"type": "int128", "name": "foundationSplitNumerator"}, {"type": "int128", "name": "foundationSplitDenominator"}], "constant": false, "payable": true, "type": "function", "gas": 3368}, {"name": "changeParentAddress", "outputs": [], "inputs": [{"type": "address", "name": "newAddress"}, {"type": "int128", "name": "index"}], "constant": false, "payable": false, "type": "function", "gas": 21587}, {"name": "addExpansionAddress", "outputs": [], "inputs": [{"type": "address", "name": "_expansionAddress"}], "constant": false, "payable": false, "type": "function", "gas": 41418}, {"name": "addText", "outputs": [], "inputs": [], "constant": false, "payable": false, "type": "function", "gas": 21460}, {"name": "recieveDonation", "outputs": [], "inputs": [{"type": "int128", "name": "value"}], "constant": false, "payable": false, "type": "function", "gas": 21967}, {"name": "version", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 633}, {"name": "modifierAddresses", "outputs": [{"type": "address", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 880}, {"name": "expansionAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 693}, {"name": "usesExpansion", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 723}, {"name": "book__id", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 831}, {"name": "book__title", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 2180}, {"name": "book__copyright", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 891}, {"name": "book__language", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1866}, {"name": "book__libraryOfCongress", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1896}, {"name": "book__subjects", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1926}, {"name": "book__authorIDs", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1950}, {"name": "book__authorRoles", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1986}, {"name": "book__size", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1071}, {"name": "book__donations", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1101}, {"name": "book__textAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1131}, {"name": "book__uploaded", "outputs": [{"type": "bool", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 1161}];
 
 }
 
@@ -55,49 +58,40 @@ function loadZipABI(){
 	return [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_listingAddress"}, {"type": "address", "name": "_modifierAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "setZipBytes", "outputs": [], "inputs": [{"type": "int128", "name": "_index"}, {"type": "bytes", "name": "newZip"}], "constant": false, "payable": false, "type": "function", "gas": 5187494}, {"name": "listingAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 513}, {"name": "modifierAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 543}, {"name": "zipBytes", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 97105}, {"name": "zipBytesFinal", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 28850}];
 }
 
-var bookABI = loadBookABI();
-
 var authorABI = loadAuthorABI();
 
-var zipABI;
+var zipABI = loadZipABI();
 
-var libraryAddress = '0x7c42F6386E2693F413dd8F09AF1e34D7b5De104B';
+var libraryAddress = '0x240Ffc557848b5a28bB2df8370B35e7a1B35797D';
 
 var thirdPartyProvider;
 
 var libraryContract; //This loads the library ABI, responsible for most functions on our site
 
 function loadBookTextChunk(bookID, chunk){
-	return loadInfoAddress('b', bookID).then(function(res){
-		var currentContract = new web3.eth.Contract(bookABI, res);
-		return currentContract.methods.book__textAddress().call().then(function(res2){
-			textContract= new web3.eth.Contract(loadZipABI(), res2);
-			return textContract.methods.zipBytes(chunk).call().then(function(success){return success;})
-		});
+	return libraryContract.methods.getTextAddress(bookID).call().then(function(res){
+		var textContract = new web3.eth.Contract(loadZipABI(), res);
+		return textContract.methods.zipBytes(chunk).call().then(function(success){return success;});
 	});
 }
 
 function loadFinalBookTextChunk(bookID){
-	
-	return loadInfoAddress('b', bookID).then(function(res){
-		var currentContract = new web3.eth.Contract(bookABI, res);
-		return currentContract.methods.book__textAddress().call().then(function(res2){
-			textContract= new web3.eth.Contract(loadZipABI(), res2);
-			return textContract.methods.zipBytesFinal().call().then(function(success){return success;})
-		});
+	return libraryContract.methods.getTextAddress(bookID).call().then(function(res){
+		var textContract= new web3.eth.Contract(loadZipABI(), res);
+		return textContract.methods.zipBytesFinal().call().then(function(success){return success;})
 	});
 }
 
 async function getBookTextBlockchain(bookID) {
 	
 	var size = await loadVariable('b', bookID, 'size');
-	var numByteArrays = Math.floor(size/8192);
+	var numByteArrays = Math.floor(size/4096);
 	if (size%255 !== 0) {
 		numByteArrays++;
 	}
 	
 	bytePromises = [];
-	
+
 	for(var i = 0; i<numByteArrays; i++){
 		if(i!=numByteArrays-1){
 			bytePromises.push(await loadBookTextChunk(bookID, i));
@@ -133,13 +127,13 @@ function hexStringToByte(str) {
 
 function getBookTextServer(bookID) {
 	return new JSZip.external.Promise(function(resolve, reject) {
-		JSZipUtils.getBinaryContent('/zips/' + bookID +'.zip', function(err, data) {
+		var folderID = Math.floor(bookID/100)
+		JSZipUtils.getBinaryContent('/library/zip/' + folderID + '/' + bookID +'.zip', function(err, data) {
 			if(err) {
 				reject(err);
 			}
 
 			else {
-				alert(data);
 				resolve(data);
 			}
 		});
@@ -148,13 +142,9 @@ function getBookTextServer(bookID) {
 
 async function loadTextPage(bookID) {
 	
-	document.getElementById('Holocron Info').innerHTML = '<p>Welcome to the <a href="./library.html">holocron.foundation library</a>.</p>';
+	document.getElementById('Holocron Info').innerHTML = '<p>Welcome to the <a href="./">holocron.foundation library</a>.</p>';
 	
 	document.getElementById('bookText').innerHTML = '<p></p>';
-	
-	bookABI = loadBookABI(bookID); //This loads the individual book ABI, responsible primarily for getters	
-	
-	zipABI = loadZipABI(bookID); //This loads the zip files ABI, responsible for downloading zip files
 	
 	var zip = new JSZip();
 	
@@ -162,7 +152,7 @@ async function loadTextPage(bookID) {
 	
 	document.title = 'Holocron.Foundation ♢ ' + bookName;
 	
-	var holocronInfoText = 'Welcome to the <a href="./library.html">holocron.foundation library</a>. You are reading <a href="./book.html?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
+	var holocronInfoText = 'Welcome to the <a href="./">holocron.foundation library</a>. You are reading <a href="./book.html?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
 	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '</p>';
 	
@@ -194,6 +184,15 @@ async function loadTextPage(bookID) {
 		return zip.file(bookID + '.txt').async('string');
 	})
 	.then(function success(text) {
+		
+		var downloadDiv = document.getElementById('download');
+		
+		var downloadLink = document.createElement('a');
+		downloadLink.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+		downloadLink.setAttribute('download', bookName + '.txt');
+		downloadLink.appendChild(document.createTextNode('Download this text'));
+		downloadDiv.appendChild(downloadLink);
+		
 		document.getElementById('bookText').innerHTML = '<p>' + text + '</p>';
 	},    function error(e) {
    		document.getElementById('bookText').innerHTML = '<p> An error has occurred. Please refresh the page and check your connection. If this error persists please let us know about it at samuel.troper@holocron.founcation and note the following error: ' + e + '</p>';
@@ -211,7 +210,7 @@ function setupWeb3() {
 		thirdPartyProvider = false;
 		console.log('Using external web3. :( Check out Metamask or Mist.')
 		mainTimeOut = 500;
-		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop")); //sets us as the provider
+		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/eth")); //sets an api for use
 	}
 	libraryContract = new result.eth.Contract(loadLibraryContractABI(), libraryAddress);
 	return result;
@@ -226,7 +225,7 @@ function getAuthors(bookID, localStorageAccess=true){
 		}
 	}
 	return loadInfoAddress('b', bookID, localStorageAccess).then(function(res){
-		currentContract = new web3.eth.Contract(bookABI, res);
+		currentContract = new web3.eth.Contract(loadBookABI(), res);
 		return currentContract.methods.book__authorIDs().call().then(async function(res){
 			if(res == null){
 				if(localStorageAccess){
@@ -261,7 +260,7 @@ function getAuthorRoles(bookID, localStorageAccess=true){
 		}
 	}
 	return loadInfoAddress('b', bookID, localStorageAccess).then(function(res){
-		currentContract = new web3.eth.Contract(bookABI, res);
+		currentContract = new web3.eth.Contract(loadBookABI(), res);
 		return currentContract.methods.book__authorRoles().call().then(function(res1){
 			if(res1 == null){
 				return 'None';
@@ -308,7 +307,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 				var size = values[2];
 				var donationsETH = web3.utils.fromWei(values[4].toString(), "ether");
 				var authorRolesIDArray = values[5];
-				var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("9", "gwei"));
+				var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("4", "gwei"));
 				var uploaded = values[7];
 				
 				if(currentFilters.get('blockchain') && uploaded){
@@ -415,7 +414,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 					//Title
 					var newHTML = '<p class="title">';
 					if(getPageName() != 'book.html'){
-						newHTML += '<a href="./book.html?bookID=' + ID.toString() + '">';
+						newHTML += '<a href="' + modifiedURL + '/book.html?bookID=' + ID.toString() + '">';
 					}
 					newHTML += '<b>' + titleClean + '</b>';
 					if(getPageName() != 'book.html'){
@@ -452,7 +451,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 							else if(k!=0){
 								newHTML += ' & ';
 							}
-							newHTML += '<a href="./author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + authorNameArray[k] + '</a>';
+							newHTML += '<a href="' + modifiedURL + '/author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + decodeURIComponent(escape(authorNameArray[k])) + '</a>';
 						}
 						newHTML += '</p>';
 					}
@@ -460,7 +459,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 					newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
 
 					//View text
-					newHTML += '<p class="textLink"><a href="./text.html?bookID=' + ID.toString() + '">View the text</a></p>';
+					newHTML += '<p class="textLink"><a href="' + modifiedURL + '/text.html?bookID=' + ID.toString() + '">View the text</a></p>';
 
 					if(uploaded){
 						newHTML += '<p>This text has been uploaded to the blockchain. Donations may still be made in the name of the text.</p>';
@@ -618,7 +617,7 @@ function loadVariable(typeLetter, ID, infoName, useCache=true, hexEncodedInContr
 		var contractString;
 		
 		if(typeLetter == 'b'){
-			currentContract = new web3.eth.Contract(bookABI, res);
+			currentContract = new web3.eth.Contract(loadBookABI(), res);
 			contractString = "return contract.methods.book__" + infoName + "().call().then(function(success){"
 		}
 		else if(typeLetter == 'a'){
@@ -685,7 +684,9 @@ function removeEntry(ID){
 	if((typeof(document) !== "undefined") && (document != null)){
 		index = pageBooks[currentPage].indexOf(ID);
 		badID.push(ID);
-		skipCache.push(ID);
+		if(!skipCache.includes(ID)){
+			skipCache.push(ID);
+		}
 		if(index > -1){
 				pageBooks[currentPage].splice(index, 1);
 		}
@@ -971,30 +972,58 @@ function workerCacheBooks(existingWorker=null){
 	}
 }
 
-function mainCacheBooks(){
-	var randomnumber = Math.floor(Math.random()*maxIndex+1);
-	if(!skipCache.includes(randomnumber)){
-		if(checkIfCached('b', randomnumber)){
-			skipCache.push(randomnumber);
-			mainCacheBooks();
+function mainCacheBooks(index=-1){
+	if(index == -1){
+		var randomnumber = Math.floor(Math.random()*maxIndex+1);
+		if(!skipCache.includes(randomnumber)){
+			if(checkIfCached('b', randomnumber)){
+				skipCache.push(randomnumber);
+				mainCacheBooks();
+			}
+			else{
+				loadData('b', randomnumber)
+				.then(function(res){
+					storeInfo('b', randomnumber, 'basicInfo', true);
+					setTimeout(function(){mainCacheBooks()}, mainTimeOut);
+				}).catch(function(error){
+					skipCache.push(randomnumber);
+					setTimeout(function(){mainCacheBooks()}, mainTimeOut);
+				});
+			}
 		}
 		else{
-			loadData('b', randomnumber)
-			.then(function(res){
-				storeInfo('b', randmnumber, 'basicInfo', true);
-				setTimeout(function(){mainCacheBooks()}, mainTimeOut);
-			}).catch(function(error){
-				skipCache.push(randomnumber);
-				setTimeout(function(){mainCacheBooks()}, mainTimeOut);
-			});
+			if(skipCache.length < maxIndex){
+				mainCacheBooks();
+			}
+			else{
+				console.log('Cached all books...');
+			}
 		}
 	}
 	else{
-		if(skipCache.length < maxIndex){
-			mainCacheBooks();
+		if(!skipCache.includes(index)){
+			if(checkIfCached('b', index)){
+				skipCache.push(index);
+				mainCacheBooks();
+			}
+			else{
+				loadData('b', index)
+				.then(function(res){
+					storeInfo('b', randmnumber, 'basicInfo', true);
+					setTimeout(function(){mainCacheBooks(index+1)}, mainTimeOut);
+				}).catch(function(error){
+					skipCache.push(randomnumber);
+					setTimeout(function(){mainCacheBooks(index+1)}, mainTimeOut);
+				});
+			}
 		}
 		else{
-			console.log('Cached all books...');
+			if(index < maxIndex){
+				setTimeout(function(){mainCacheBooks(index+1);}, 25);
+			}
+			else{
+				console.log('Cached all books...');
+			}
 		}
 	}
 }
@@ -1006,6 +1035,7 @@ function cacheBooks(workerThreads) {
 		}
 	}
 	mainCacheBooks();
+	mainCacheBooks(1);
 }
 
 function getPageName(){
@@ -1025,10 +1055,10 @@ function displayNextButton(yeaOrNo){
 function displayBackButton(yeaOrNo){
 	var backButton = document.getElementById("backButton");
 	if(yeaOrNo){
-		backButton.style.visibility = "hidden";
+		backButton.style.visibility = "visible";
 	}
 	else{
-		backButton.style.display = "visible";
+		backButton.style.visibility = "hidden";
 	}
 }
 

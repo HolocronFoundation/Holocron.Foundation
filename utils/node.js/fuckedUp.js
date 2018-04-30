@@ -13,127 +13,22 @@ var _parentABI = [{"name": "Donation", "inputs": [{"type": "address", "name": "_
 
 var parentContract = new web3.eth.Contract(_parentABI, _parentAddress);
 
-var totalGas = 0;
-
-var fileLoc = '/Users/us.tropers/Desktop/prepped/Books/2/';
-
-//need to create files var
-var files = fs.readdirSync(fileLoc);
-
-//gets byte files
-var byteExtension = '.byte';
-var byteFiles = files.filter(function(file) {
-	return path.extname(file).toLowerCase() === byteExtension;
-});
-
-//gets abi files
-var abiExtension = '.json';
-var abiFiles = files.filter(function(file) {
-	return path.extname(file).toLowerCase() === abiExtension;
-});
-
-var deploymentArr = [];
-var searchStr = 'bookInfoContract';
-
-function prepFile(index){
-	if (index != byteFiles.length){
-		var entry = [];
-		console.log(byteFiles[index]);
-		console.log((byteFiles[index].slice(0, -10)).slice(16));
-		entry.push((byteFiles[index].slice(0, -10)).slice(16));
-		fs.readFile(fileLoc + byteFiles[index], 'utf-8', function(err, data){
-			entry.push(data.slice(0, data.length-1));
-			fs.readFile(fileLoc + abiFiles[index], 'utf-8', function(err, data2){
-				entry.push(JSON.parse(data2));
-				deploymentArr.push(entry);
-				prepFile(index + 1);
-			});
-		});
-	}
-	else {
-		const rl = readline.createInterface({
-			input: process.stdin,
-			output: process.stdout
-		});
-
-		rl.question('Input password: ', (answer) => {
-			deployContracts(answer);
-			rl.close();
-		});
-	}
-}
-
-deployedArr = [];
-
-function deployContract(index){
-	if (index != deploymentArr.length){
-		web3.eth.personal.unlockAccount(_senderAddress, _password);
-		var currentContract = new web3.eth.Contract(deploymentArr[index][2]);
-		var gasEstimate;
-		currentContract.deploy({
-			data: deploymentArr[index][1],
-			arguments: [_parentAddress, _senderAddress]
-		})
-		.estimateGas(function(err, gas){
-			totalGas += gas;
-			console.log('Gas Estimate: ' + gas);
-			gasEstimate = gas;
-		}).then(function(){
-			currentContract.deploy({
-				data: deploymentArr[index][1],
-				arguments: [_parentAddress, _senderAddress]
-			})
-			.send({
-				from: _senderAddress,
-				gas: gasEstimate,
-			},
-			function(error, transactionHash){})
-			.on('error', function(error){ console.log('Error: ' + error); })
-			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
-			.on('receipt', function(receipt){
-				console.log('Id: ' + deploymentArr[index][0] + ', Address: ' + receipt.contractAddress); // contains the new contract address
-				var done = [];
-				done.push(deploymentArr[index][0]);
-				done.push(receipt.contractAddress);
-				deployedArr.push(done);
-				deployContract(index + 1);
-			});
-		});
-	}
-	if (index == 0) {
-		waitThenUpdate();
-	}
-}
-
-function waitThenUpdate(){
-  if (deployedArr.length == deploymentArr.length){
-    console.log(deployedArr);
-	updateLibrary(0);
-  } else {
-    setTimeout(function(){waitThenUpdate()}, 100);
-  }
-}
+var deployedArr = [[18, "0x4BF3250b470d1a2Ad3fF9b78F8F6F02eCFe741f1"]];
+				   
+				   
+//,[18, "0x4BF3250b470d1a2Ad3fF9b78F8F6F02eCFe741f1"];
 
 var updated = 0;
 
-function getCallStackSize() {
-    var count = 0, fn = arguments.callee;
-    while ( (fn = fn.caller) ) {
-        count++;
-    }
-    return count;
-}
-
 function updateLibrary(index){
 	if (index != deployedArr.length) {
-		web3.eth.personal.unlockAccount(_senderAddress, _password);
-		var currentCall = parentContract.methods.addBook(deployedArr[index][0], deployedArr[index][1]);
-		var gasEstimate;
-		currentCall.estimateGas({from: _senderAddress}, function(err, gas){
-			console.log('Gas Estimate: ' + gas);
-			totalGas += gas;
-			gasEstimate = gas;
-		}).then(function(){
+		web3.eth.personal.unlockAccount(_senderAddress, _password).then(function(){
+			var currentCall = parentContract.methods.addBook(deployedArr[index][0], deployedArr[index][1]);
+			var gasEstimate;
+			currentCall.estimateGas({from: _senderAddress}, function(err, gas){
+				console.log('Gas Estimate: ' + gas);
+				gasEstimate = gas;
+			}).then(function(){
 			currentCall.send({from: _senderAddress, gas: gasEstimate})
 			.on('error', function(error){ console.log('Error: ' + error); })
 			.on('transactionHash', function(transactionHash){ console.log('Tx hash:' + transactionHash); })
@@ -144,6 +39,7 @@ function updateLibrary(index){
 			});
 
 		});
+		})
 	}
 	if(index == 0){
 		waitThenDone();
@@ -153,7 +49,6 @@ function updateLibrary(index){
 function waitThenDone(){
   if (updated == deployedArr.length){
     console.log('Well we did it....');
-	  console.log("total gas: " + totalGas);
   } else {
     setTimeout(function(){waitThenDone()}, 100);
   }
@@ -161,11 +56,13 @@ function waitThenDone(){
 
 var _password;
 
-function deployContracts(pw) {
-	_password = pw;
-	web3.eth.personal.unlockAccount(_senderAddress, _password).then(function(){
-		deployContract(0);
-	});
-}
+const rl = readline.createInterface({
+			input: process.stdin,
+			output: process.stdout
+});
 
-prepFile(0);
+rl.question('Input password: ', (answer) => {
+	_password = answer;
+	updateLibrary(0);
+	rl.close();
+});

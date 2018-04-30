@@ -27,7 +27,10 @@ def splitZipFile(fileName, filePath):
     pathlib.Path(filePath + '/' + fileName[:-4]).mkdir(parents=True, exist_ok=True)
 
     for i in range(numberOfSplits):
-        with open(filePath + fileName[:-4] + '/zipBytes' + str(i) + '.zb', 'wb') as writeFile:
+        numString = str(i)
+        while len(numString) < 6:
+            numString = '0' + numString
+        with open(filePath + fileName[:-4] + '/zipBytes' + numString + '.zb', 'wb') as writeFile:
             if i == numberOfSplits-1:
                 writeFile.write(zipBytes[i*4096:])
             else:
