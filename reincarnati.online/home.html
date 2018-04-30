@@ -29,21 +29,22 @@
 	var web3;
 	var abi = [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_modifierAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "setjsBytes", "outputs": [], "inputs": [{"type": "int128", "name": "_index"}, {"type": "bytes", "name": "newZip"}], "constant": false, "payable": false, "type": "function", "gas": 2604351}, {"name": "modifierAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 513}, {"name": "jsBytes", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 49203}, {"name": "numFiles", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 573}, {"name": "jsBytesFinal", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 48298}];
 	
-	function parseCommands(commandString){
+	async function parseCommands(commandString){
 		var commands = commandString.replace(' ', '').split(';');
 		
 		for(var i = 0; i < commands.length; i++){
 			var currentCommand = commands[i];
 			if(currentCommand == 'web3()'){
-				loadWeb3();
+				await loadWeb3();
 			}
 			else if(currentCommand.substring(0,2)=='js'){
 				alert(currentCommand.substring(3, currentCommand.length-1));
-				loadJS(currentCommand.substring(3, currentCommand.length-1));
+				await loadJS(currentCommand.substring(3, currentCommand.length-1));
 			}
 			else if(currentCommand.substring(0,2)=='un'){
 				alert(currentCommand.substring(3, currentCommand.length-1));
-				unzip(currentCommand.substring(3, currentCommand.length-1));
+				var unzipped = await unzip(currentCommand.substring(3, currentCommand.length-1));
+				eval(unzipped);
 			}
 		}
 	}
@@ -51,7 +52,7 @@
 	async function loadJS(address){	
 		var jsContract = new web3.eth.Contract(abi, address);
 		var newScript = await getFileBlockchain(address);
-		eval(new TextDecoder("utf-8").decode(newScript));
+		await eval(new TextDecoder("utf-8").decode(newScript));
 	}
 	
 	function loadWeb3() {
@@ -66,11 +67,13 @@
 	async function unzip(address) {
 		var zippedScript = await getFileBlockchain(address);
 		var zip = new JSZip();
-		JSZip.loadAsync(zippedScript).then(function(zip){
+		var script = await JSZip.loadAsync(zippedScript).then(function(zip){
 			return zip.file('main.js').async('string');
 		}).then(function success(file){
-			eval(file);
+			return file;
 		})
+		console.log(script);
+		return script;
 	}
 	
 	async function getFileBlockchain(address) {
