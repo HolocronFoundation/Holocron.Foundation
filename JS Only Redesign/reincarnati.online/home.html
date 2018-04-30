@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>reincarnati.online</title>
+	<script src="../js/min/web3.min.js" type="text/javascript"></script>
+</head>
+
+<body>
+	<div style="text-align: center;">
+		<h1 style="font-size: 5em; margin: 0;">♢</h1>
+		<h2 style="margin: 0;">reincarnati.online</h2>
+		<form style="margin-top: 5vh;">
+			web3();  <textarea type="text" id="commandBar" style="width: 33vw;height: 10vh;">js(0xA6257f49368309b8d14b17c1A5442c954333EEE3); js(zippedHolocronFoundation);</textarea>  <button type="button" id='launch'>Launch</button>
+		</form>
+		<div style="width: 66vw; margin-left:auto; margin-right:auto; margin-top:5vh;">
+			<p>Welcome to <b>reincarnati.online</b>. We aim to provide the foundation for the web of tommorrow, today.
+			<br>We have a very set of commands right now, but these should be more than enough to get going.
+			<br>Commands are executed in order.
+			<br><br>js(eth_address) - loads a script stored at eth_address into the page
+			<br><br>web3() - Checks for injected web 3, otherwise initializes web3.min.js
+			<br><br>reincarnation.online is experimental and may not work in all browsers yet.<br>reincarnation.online is a holocron.foundation project.<br>The default command will take you to the holocron.foundation too!
+			<br><br><br>p.s. jszip.min.js is at address 0xA6257f49368309b8d14b17c1A5442c954333EEE3</p>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	var web3;
+	var abi = [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_modifierAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "setjsBytes", "outputs": [], "inputs": [{"type": "int128", "name": "_index"}, {"type": "bytes", "name": "newZip"}], "constant": false, "payable": false, "type": "function", "gas": 2604351}, {"name": "modifierAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 513}, {"name": "jsBytes", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 49203}, {"name": "numFiles", "outputs": [{"type": "int128", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 573}, {"name": "jsBytesFinal", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 48298}];
+	
+	function parseCommands(commandString){
+		var commands = commandString.replace(' ', '').split(';');
+		
+		for(var i = 0; i < commands.length; i++){
+			var currentCommand = commands[i];
+			if(currentCommand == 'web3()'){
+				loadWeb3();
+			}
+			else if(currentCommand.substring(0,2)=='js'){
+				alert(currentCommand.substring(3, currentCommand.length-1));
+				loadJS(currentCommand.substring(3, currentCommand.length-1));
+			}
+		}
+	}
+	
+	async function loadJS(address){	
+		var jsContract = new web3.eth.Contract(abi, address);
+		var newScript = await getFileBlockchain(address);
+		eval(new TextDecoder("utf-8").decode(newScript));
+	}
+	
+	function loadWeb3() {
+		if (typeof web3 !== 'undefined') {
+			web3 = new Web3(web3.currentProvider);
+		}
+		else {
+			web3 = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop"));
+		}
+	}
+	
+	async function getFileBlockchain(address) {
+		var contract = new web3.eth.Contract(abi, address);
+		var numFiles = await contract.methods.numFiles().call();
+		bytePromises = [];
+		for(var i = 0; i<numFiles; i++){
+			if(i==numFiles-1){
+				bytePromises.push(contract.methods.jsBytesFinal().call());
+			}
+			else{
+				bytePromises.push(contract.methods.jsBytes(i).call());
+			}
+		}
+		
+		var promises = await Promise.all(bytePromises);
+
+		var arrays = []
+
+		for(var i = 0; i<promises.length; i++){
+			var newArray = hexStringToByte(promises[i].substring(2));
+			arrays.push(newArray);
+		}
+
+		var returnArray = new Uint8Array([].concat.apply([], arrays));
+
+		return returnArray;
+	}
+	
+	function hexStringToByte(str) {
+  
+	  var a = [];
+	  for (var i = 0, len = str.length; i < len; i+=2) {
+		a.push(parseInt(str.substr(i,2),16));
+	  }
+
+	  return a;
+	}
+	
+	function launch(){
+		var commands = 'web3();' + document.getElementById("commandBar").value;
+		alert(commands);
+		parseCommands(commands);
+	}
+	
+	document.getElementById('launch').onclick = function(){ launch(); }
+</script>
+</html>
