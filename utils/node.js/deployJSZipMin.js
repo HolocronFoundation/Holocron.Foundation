@@ -11,7 +11,7 @@ var bookAddress;
 var _senderAddress = '0x96164079bf312E80e061b226ccF27f143cf3f3ff';
 
 
-var fileLoc = '/Users/us.tropers/Documents/GitHub/Library/py/jszip/';
+var fileLoc = '/Users/us.tropers/Documents/GitHub/Library/py/main/';
 
 //need to create files var
 var files = fs.readdirSync(fileLoc);
