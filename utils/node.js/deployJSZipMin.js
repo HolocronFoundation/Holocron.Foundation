@@ -11,7 +11,7 @@ var bookAddress;
 var _senderAddress = '0x8378C65a0c83675AcF509fF3F9f48DEC7898EEbA';
 
 
-var fileLoc = '/Users/us.tropers/Desktop/prepped/jszip/';
+var fileLoc = '/Users/us.tropers/Desktop/prepped/main/';
 
 //need to create files var
 var files = fs.readdirSync(fileLoc);
