@@ -2,11 +2,17 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Library ♢ A Holocron.Foundation Project</title>
+	<title>Holocron.Foundation ♢ Browse</title>
 	<link rel="icon" type="image/png" href="../img/Libraryfavicon.png">
 	<link rel="stylesheet" type="text/css" href="../css/stylesheet-remake-2.css">
 	<script src="../js/min/web3.min.js"></script>
 	<script src="../js/holocron.js"></script>
+	<script>
+		var activeID = getParameterByName('authorID');
+		if(activeID == null || activeID ==''){
+			document.location.href = "./library.html";
+		}
+	</script>
 </head>
 
 <body class="library">
@@ -29,12 +35,14 @@
 					</form>
 				</div>
 				<div id="searchSettings">
-					<div>Available on the blockchain: <input type="checkbox" id="uploaded" onClick="setStorageFilter()" checked></div>
-					<div>Available on our server: <input type="checkbox" id="notUploaded" onClick="setStorageFilter()" checked></div>
+					<div>Available on the blockchain: <input type="checkbox" id="uploaded" checked></div>
+					<div>Available on our server: <input type="checkbox" id="notUploaded" checked></div>
 				</div>
 			</div>
 		</header>
 		<div id="content" class="library">
+			<div id="fullAuthorInfo">
+			</div>
 			<ul id="booksList">
 			</ul>
 			<div id="pageNavigation" class="center">
@@ -58,15 +66,9 @@
 </body>
 <script>
 	function start(){
-		if(currentPage == null){
-			currentPage = 0;
-			currentPageType = 'r';
-			populateRandomContent();
-		}
-		else{
-			loadBooksByPage();
-		}
-		cacheBooks(0);
+		document.getElementById("fullAuthorInfo").setAttribute("name", activeID);
+		loadInfoBox('a', activeID);
+		loadAuthorBooks(activeID);
 	}
 </script>
 </html>
