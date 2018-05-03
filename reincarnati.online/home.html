@@ -20,7 +20,7 @@
 			<br><br>js(eth_address) - loads a script stored at eth_address into the page
 			<br><br>web3() - Checks for injected web 3, otherwise initializes web3.min.js
 			<br><br>un() - Unzips and executes a js file. Requires jszip.min.js to be loaded
-			<br><br>reincarnation.online is experimental and may not work in all browsers yet.<br>reincarnation.online is a holocron.foundation project.<br>The default command will take you to the holocron.foundation too!
+			<br><br>reincarnation.online is experimental and may not work in all browsers yet.<br>reincarnation.online is a holocron.foundation project.<br>The default command will take you to a minimal holocron.foundation library browser too!<br>Currently the minimal browser only works with works on the blockchain, so check out books with ID 1, 4, or 11.
 			<br><br><br>p.s. jszip.min.js is at address 0xEb8B006Ee7ab4aB384C15DD8ceBaba9663B1e404</p>
 		</div>
 	</div>
@@ -38,11 +38,9 @@
 				await loadWeb3();
 			}
 			else if(currentCommand.substring(0,2)=='js'){
-				alert(currentCommand.substring(3, currentCommand.length-1));
 				await loadJS(currentCommand.substring(3, currentCommand.length-1));
 			}
 			else if(currentCommand.substring(0,2)=='un'){
-				alert(currentCommand.substring(3, currentCommand.length-1));
 				var unzipped = await unzip(currentCommand.substring(3, currentCommand.length-1));
 				eval(unzipped);
 			}
@@ -60,7 +58,7 @@
 			web3 = new Web3(web3.currentProvider);
 		}
 		else {
-			web3 = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/rop"));
+			web3 = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/eth"));
 		}
 	}
 	
@@ -115,7 +113,6 @@
 	
 	function launch(){
 		var commands = 'web3();' + document.getElementById("commandBar").value;
-		alert(commands);
 		parseCommands(commands);
 	}
 	
