@@ -39,6 +39,14 @@ phoenix is the open source and public domain generalized implementation of the t
 
 Phoenix is young and just beggining - curruntly it is a sparse project on Github. However, by generalizing the technology behind another Holocron.Foundation Project, the library, we'll be laying the foundation for what I envision being an easy to use utility. My end goal is to have desktop applications that anyone with or without any computing experience will be able to use. Though we're not there yet, we're off to a good start!
 
+## Minor projects
+
+### Holocron Reward Token (HRT)
+
+Current version: 0.0
+
+The HRT is designed to be rewarded at a 1:1 ratio for any Ethereum donated to the foundation. Most nonprofits currently give gifts and rewards to individuals who donate large amounts at once, but we want to change that! Donating $10 worth of Ethereum once a month for 12 months is a $120 donation over the year, but at a *lot* of nonprofits you wouldn't be entitled to the same rewards as someone who spends $120 in a single sitting. We want to change that. By creating a rewards system that functions more like an online store, users will be able to pool up their rewards and pick their prizes whenever they want, when they have their desired amount of reward points. Someone who donates $1000 over the course five years would be entitled to the same rewards as someone who gives $1000 just once. Additionally, using an ERC-20 token allows users to sell their rewards tokens for Ethereum or DAI or other cryptocurrencies! This means if you don't like our rewards you can sell your tokens and recoup some money! We do aim to provide some useful rewards though, for fair prices as well, including utilities like USB drives.
+
 # Github Branches
 
 * main: main contains any changes that have been published on the blockchain or online
