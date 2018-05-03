@@ -8,7 +8,7 @@ Please feel free to contribute! We need to build up documentation, fixes, and co
 
 # Full Projects
 
-**library**
+## library
 
 Current version: 1.0
 
@@ -18,7 +18,7 @@ The library turns **all** Ethereum Nodes into an **immutable** and **decentraliz
 
 * This project contributes storage methods, utilities, and examples to the Ethereum Blockchain.
 
-**reincarnati.online**
+## reincarnati.online
 
 Current version: 0.9 public beta
 
@@ -26,7 +26,7 @@ reincarnati.online provides web browsing over the blockchain instead of using tr
 
 To create your own page that runs on reincarnati.online, convert your html, css, and javascript into a single javascript file. Test it out an make sure it runs as expected! Then, take this file, compress it via zip (optionally, in order to save on storage costs), and upload it using our utilities! You can then load jszip.min.js from the chain, and then run your file too!
 
-**phoenix**
+## phoenix
 
 Current version: 0.0
 
