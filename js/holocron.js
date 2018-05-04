@@ -178,81 +178,99 @@ function getBookTextServer(bookID) {
 async function loadTextPage(bookID) {
 	//This function preps the HTML of the text page and loads the full text of a given book
 	
+	//Starts loading HTML
 	document.getElementById('Holocron Info').innerHTML = '<p>Welcome to the <a href="./">holocron.foundation library</a>.</p>';
 	
+	//Sets up a blank paragraph for the text
 	document.getElementById('bookText').innerHTML = '<p></p>';
 	
+	//Creates an instance of JSZip, an implementation of zip algorithms in JavaScript
+	//This is used both for texts on the web server and for texts on the blockchain.
 	var zip = new JSZip();
 	
+	//Loads the name of bookID
 	var bookName = await loadVariable('b', bookID, 'title', true, true);
 	
+	//Updates the tile with bookID's name
 	document.title = 'Holocron.Foundation ♢ ' + bookName;
 	
+	//Starts initializing the HTML with dynamic information
 	var holocronInfoText = 'Welcome to the <a href="./">holocron.foundation library</a>. You are reading <a href="./book.html?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
-	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '</p>';
 	
+	//Checks if the book is on the blockchain, then informs the user of that.
 	var uploaded = await loadVariable('b', bookID, 'uploaded', false);
-	
 	if (uploaded) {
 		holocronInfoText += ' This text has been uploaded to the Ethereum Blockchain. You are viewing the copy stored there. Enjoy!';
 	}
 	else {
 		holocronInfoText += ' This text has <b>NOT</b> been uploaded to the Ethereum Blockchain. You are viewing a copy stored on our server. If you would like to contribute Ethereum <a href="#" onclick="donate(' + bookID + ', false, true)">click here</a> to immeadiately send a donation with our default fee, or head to <a href="./book.html?bookID=' + bookID + '">this books page</a> to change it. If you would like to give Bitcoin, Litecoin, or USD please see our <a href="../donate.html">donations page</a>.';
 	}
-	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '<p>';
-	
+
+	//Informs the user the text is loading
 	document.getElementById('bookText').innerHTML = '<p>The text is loading...</p>';
 	
+	//Loads the text in zip format
 	var fullTextZip;
-	
 	if (uploaded) {
-		fullTextZip = await getBookTextBlockchain(bookID); //Loads the file from the blockchain
+		fullTextZip = await getBookTextBlockchain(bookID);
 	}
 	else {
-		fullTextZip = await getBookTextServer(bookID); //Loads the file from the server
+		fullTextZip = await getBookTextServer(bookID);
 	}
 	
-	//unzip file here
+	//Unzips the file and converts it to a string
 	JSZip.loadAsync(fullTextZip)
 	.then(function(zip){
 		return zip.file(bookID + '.txt').async('string');
 	})
 	.then(function success(text) {
 		
+		//Creates a download link
 		var downloadDiv = document.getElementById('download');
-		
 		var downloadLink = document.createElement('a');
 		downloadLink.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
 		downloadLink.setAttribute('download', bookName + '.txt');
 		downloadLink.appendChild(document.createTextNode('Download this text'));
 		downloadDiv.appendChild(downloadLink);
 		
+		//Loads the text on the page
 		document.getElementById('bookText').innerHTML = '<p>' + text + '</p>';
 	},    function error(e) {
+		//Error catch
    		document.getElementById('bookText').innerHTML = '<p> An error has occurred. Please refresh the page and check your connection. If this error persists please let us know about it at samuel.troper@holocron.founcation and note the following error: ' + e + '</p>';
 	});
 }
 
 function setupWeb3() {
+	//This function sets up web3 based upon whether the user is injecting it or not, as well as setting up key variables
+	//which require web3
 	
 	if (typeof web3 !== 'undefined') {
+		//Sets web3 if the user is injecting it
 		thirdPartyProvider = true;
 		console.log('Using users web3!')
 		result = new Web3(web3.currentProvider); //If you already have a web3 provider (e.g. metamask) uses that
 	}
 	else {
+		//Sets web3 if the user is not injecting it. Also increases timeout time for the main thread to be corteous.
 		thirdPartyProvider = false;
 		console.log('Using external web3. :( Check out Metamask or Mist.')
 		mainTimeOut = 500;
-		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/eth")); //sets an api for use
+		result = new Web3(new Web3.providers.HttpProvider("https://api.myetherapi.com/eth"));
 	}
+	//Initializes the library contract
 	libraryContract = new result.eth.Contract(loadLibraryContractABI(), libraryAddress);
+	
+	//Returns the proper web3 instance
 	return result;
 }
 
 function getAuthors(bookID, localStorageAccess=true){
+	//Gets authors of a given book.
+	
+	//Checks if there is access to localStorage. If so, this will search localstorage before checking the blockchain.
 	if(localStorageAccess){
 		var localStorageName = '<b' + bookID.toString() + '>authors';
 		var localItem = localStorage.getItem(localStorageName);
@@ -260,9 +278,15 @@ function getAuthors(bookID, localStorageAccess=true){
 			return Promise.resolve(parseLocalStorage(localItem));
 		}
 	}
+	//Otherwise, this function pulls the books address
 	return loadInfoAddress('b', bookID, localStorageAccess).then(function(res){
+		
+		//Creates a book contract for the current book.
 		currentContract = new web3.eth.Contract(loadBookABI(), res);
+		
+		//Searches a given book for its authors.
 		return currentContract.methods.book__authorIDs().call().then(async function(res){
+			//If there are no authors, records that in localstorage when possible, then returns None
 			if(res == null){
 				if(localStorageAccess){
 					storeInfo('b', bookID, 'authors', 'None');
@@ -270,17 +294,24 @@ function getAuthors(bookID, localStorageAccess=true){
 				return 'None';
 			}
 			else{
+				//Parsing through author IDs
 				var authorIDArray =  res.slice(2).match(/.{1,4}/g);
 				var authorNameArray = [];
+				
+				//Gets each authors name from the blockchain
 				for(var j = 0; j<authorIDArray.length; j++){
 					var addr = await libraryContract.methods.getAuthorAddress(parseInt(authorIDArray[j], 16)).call();
 					var authorContract = new web3.eth.Contract(authorABI, addr);
 					var name = await authorContract.methods.author__name().call();
 					authorNameArray.push(hex2a(name));
 				}
+				
+				//Stores authors if there is local storage access
 				if(localStorageAccess){
 					storeInfo('b', bookID, 'authors', authorNameArray);
 				}
+				
+				//Returns an array of author names.
 				return authorNameArray;
 			}
 		});
@@ -288,6 +319,8 @@ function getAuthors(bookID, localStorageAccess=true){
 }
 
 function getAuthorRoles(bookID, localStorageAccess=true){
+	//This functions in a nearly identical way to getAuthors
+	
 	if(localStorageAccess){
 		var localStorageName = '<b' + bookID.toString() + '>authorRoles';
 		var localItem = localStorage.getItem(localStorageName);
@@ -311,6 +344,8 @@ function getAuthorRoles(bookID, localStorageAccess=true){
 }
 
 function loadData(tag, ID, useCache=true){
+	//Returns all the data fields for a given book or author using Promise.all
+	
 	promiseData = []
 	if(tag == 'b'){
 		promiseData.push(loadVariable(tag, ID, 'title', useCache, true));
