@@ -368,44 +368,58 @@ function loadData(tag, ID, useCache=true){
 }
 
 function loadInfoBox(tag, ID, modifiedURL='.'){
+	//Loads an info box for either authors or pieces of text
+	
+	//Loads the info address for ID
 	loadInfoAddress(tag, ID)
 	.then(function(res){
+		//Loads all data needed
 		promisedInfo = loadData(tag, ID);
 		promisedInfo.then(async function(values) {
+			//Book implementation
 			if(tag == 'b'){
 				var titleClean = values[0];
 				var languageClean = values[1];
 				var size = values[2];
+				//Converts donations from Wei to ETH
 				var donationsETH = web3.utils.fromWei(values[4].toString(), "ether");
 				var authorRolesIDArray = values[5];
+				//Calculates the storage cost size
 				var gweiStorageCost = calculateStorageCost(size, web3.utils.toWei("4", "gwei"));
 				var uploaded = values[7];
 				
-				if(currentFilters.get('blockchain') && uploaded){
+				//Checks filters
+				if((currentFilters.get('blockchain') && uploaded) || (currentFilters.get('server') && !uploaded)){
+					//Clears the book section if it needs to be cleared
 					if(clearBooksSection){
 						booksList.innerHTML = '';
 						clearBooksSection = false;
 					}
 					
-					//Title
+					//Sets the title HTML
 					var newHTML = '<p class="title">';
+					//Adds a link to the book page if you're not on it
 					if(getPageName() != 'book.html'){
 						newHTML += '<a href="' + modifiedURL + '/book.html?bookID=' + ID.toString() + '">';
 					}
 					newHTML += '<b>' + titleClean + '</b>';
+					//Finished the link tag
 					if(getPageName() != 'book.html'){
 						newHTML += '</a>';
 					}
 					newHTML += '</p> ';
-
+					
+					//Checks if there are authors, if so, adds them to the page
 					if(authorRolesIDArray != 'None'){
 						var authorNameArray = values[3];
+						//Splits the custom ID array
 						var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
-
 						newHTML += '<p class="author">';
 						var lastRole = -1;
+						//Loops through each author and adds them to the page
 						for (var k = 0; k<authorNameArray.length; k++){
 							var currentRoleID = authorRolesIDArray[k];
+							//Adds info about roles whenever the role changes
 							if(currentRoleID != lastRole){
 								if (k!=0){
 									newHTML += ', ';
@@ -434,16 +448,17 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 					//Language Info
 					newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
 
-					//View text
+					//Link to text page
 					newHTML += '<p class="textLink"><a href="' + modifiedURL + '/text.html?bookID=' + ID.toString() + '">View the text</a></p>';
 
+					//If the text is uploaded, informs the user
 					if(uploaded){
 						newHTML += '<p>This text has been uploaded to the blockchain. Donations may still be made in the name of the text.</p>';
-
 						//Donation stats
 						newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
 
 					}
+					//If not, checks the3 current donation stats
 					else{
 						newHTML += '<p>This text is <b>not</b> yet uploaded to the blockchain.</p>';
 
@@ -469,116 +484,21 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 
 					//Other donate
 					newHTML += '<p><a href="../donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
-
+					
+					///Sets the HTML
 					infoItem = document.getElementsByName(ID.toString())[0];
 					infoItem.innerHTML = newHTML;
 					infoItem.className = infoItem.className + ' loaded';
 
-					storeInfo(tag, ID, 'basicInfo', true);
-				}
-				else if (currentFilters.get('server') && !uploaded){
-					if(clearBooksSection){
-						booksList.innerHTML = '';
-						clearBooksSection = false;
-					}
-					
-					//Title
-					var newHTML = '<p class="title">';
-					if(getPageName() != 'book.html'){
-						newHTML += '<a href="' + modifiedURL + '/book.html?bookID=' + ID.toString() + '">';
-					}
-					newHTML += '<b>' + titleClean + '</b>';
-					if(getPageName() != 'book.html'){
-						newHTML += '</a>';
-					}
-					newHTML += '</p> ';
-
-					if(authorRolesIDArray != 'None'){
-						var authorNameArray = values[3];
-						var authorIDArray =  values[6].slice(2).match(/.{1,4}/g);
-
-						newHTML += '<p class="author">';
-						var lastRole = -1;
-						for (var k = 0; k<authorNameArray.length; k++){
-							var currentRoleID = authorRolesIDArray[k];
-							if(currentRoleID != lastRole){
-								if (k!=0){
-									newHTML += ', ';
-								}
-								if(currentRoleID == 0){
-									newHTML += 'Authored by: ';
-								}
-								else if (currentRoleID == 1){
-									newHTML += 'Translated by: ';
-								}
-								else if (currentRoleID == 2){
-									newHTML += 'Edited by: ';
-								}
-								else if (currentRoleID == 3){
-									newHTML += 'Illustrated by: ';
-								}
-								lastRole = currentRoleID;
-							}
-							else if(k!=0){
-								newHTML += ' & ';
-							}
-							newHTML += '<a href="' + modifiedURL + '/author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + decodeURIComponent(escape(authorNameArray[k])) + '</a>';
-						}
-						newHTML += '</p>';
-					}
-					//Language Info
-					newHTML += '<p class="lang">Language: ' + languageClean + '</p>';
-
-					//View text
-					newHTML += '<p class="textLink"><a href="' + modifiedURL + '/text.html?bookID=' + ID.toString() + '">View the text</a></p>';
-
-					if(uploaded){
-						newHTML += '<p>This text has been uploaded to the blockchain. Donations may still be made in the name of the text.</p>';
-
-						//Donation stats
-						newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
-
-					}
-					else{
-						newHTML += '<p>This text is <b>not</b> yet uploaded to the blockchain.</p>';
-
-						if(donationsETH > web3.utils.fromWei(gweiStorageCost.toString(), "ether")){
-							newHTML += '<p>Enough donations have been recieved to upload the text to the blockchain!<br>It will be available shortly. Donations may still be made in the name of the text.</p>'
-
-							newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved</p>';
-						}
-						else{
-							//Donation meter
-							newHTML += '<meter value="' + donationsETH + '" min="0" max="' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + '"></meter>';
-
-							//Donation stats
-							newHTML += '<p class="recieved">' + donationsETH + ' Ξ Recieved / ≈' + web3.utils.fromWei(gweiStorageCost.toString(), "ether") + ' Ξ Needed</p>';
-						}
-					}
-
-					//Donation slider
-					newHTML += '<div class="splitSlider" style="display: flex;"><p class="blankFlex1"></p><p class="left" id="bookSplit' + ID + '">Book: 70%</p><input type="range" min="0" max="100" value="30" class="slider" id="slider' + ID +'" onchange="updateSplitValues(this.value, ' + ID + ');"><p class="right" id="foundationSplit' + ID + '">Foundation: 30%</p><p class="blankFlex1"></p></div>';
-
-					//ETH donate
-					newHTML += '<p><a href="javascript:donate(' + ID + ');">Donate with Ξ</a></p>';
-
-					//Other donate
-					newHTML += '<p><a href="../donate.html?ID=' + ID.toString() + '">Donate with BTC, LTC, or USD</a></p>';
-
-					infoItem = document.getElementsByName(ID.toString())[0];
-					infoItem.innerHTML = newHTML;
-					infoItem.className = infoItem.className + ' loaded';
-					
-					if(pageBooks[currentPage].length == maxEntries){
-						displayNextButton(true);
-					}
-					
+					//Stores that the info has been succesfully saved locally
 					storeInfo(tag, ID, 'basicInfo', true);
 				}
 				else {
+					//Removes an entry if it is filtered out
 					removeEntry(ID);
 				}
 			}
+			//Author implementation
 			else if(tag =='a'){
 				var name = values[0];
 				var alias = values[1];
@@ -587,9 +507,11 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 				
 				//Name
 				var newHTML = '<p class="authorName">';
+				//If the page is not the author's page, adds links to the authors page
 				if(getPageName() != 'author.html'){
 					newHTML += '<a href="./author.html?authorID=' + ID.toString() + '">';
 				}
+				//This decodeURIComponent(escape()) thing effectively works to display proper encoding
 				newHTML += '<b>' + decodeURIComponent(escape(name)) + '</b>';
 				if(getPageName() != 'author.html'){
 					newHTML += '</a>';
@@ -625,12 +547,14 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 					}
 					newHTML += '<p class="alias">Alias(es): ' + aliases + '</p>';
 				}
-
+				
+				//Adds the new HTML to the page
 				infoItem = document.getElementsByName(ID.toString())[0];
 				infoItem.innerHTML = newHTML;
 				storeInfo(tag, ID, 'basicInfo', true);
 			}
 		}).catch(function(error){
+			//Error catch, removes entry if they do not exist or can not be loaded, logs the error otherwise.
 			if(error.toString() != "Error: Couldn't decode bytes from ABI: 0x"){
 				console.log(error);
 			}
@@ -641,6 +565,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 	});
 }
 
+//Updates the split values when the slider is moved
 function updateSplitValues(newValue, bookID){
 	document.getElementById('foundationSplit'+bookID).innerHTML = "Foundation: " + newValue + "%";
 	document.getElementById('bookSplit'+bookID).innerHTML = "Book: " + (100-newValue) + "%";
