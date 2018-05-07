@@ -62,19 +62,19 @@ Darkest
 /* Font size stuff */
 
 h1 {
-	font-size: 2em;
+	font-size: 3vw;
 }
 
 h2{
-	font-size: 1.7em;
+	font-size: 2.5vw;
 }
 
 p {
-	font-size: 1.2em;
+	font-size: 1.85vw;
 }
 
 .navbar {
-	font-size: 1.2em;
+	font-size: 2vw;
 }
 
 /* Displays next page stuff on a line */
