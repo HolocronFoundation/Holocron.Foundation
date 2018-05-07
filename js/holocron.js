@@ -1167,10 +1167,42 @@ function goToPage(page){
 	}
 }
 
+var unchecked = null;
+
 function setStorageFilter(){
-	currentFilters.set('blockchain', document.getElementById('uploaded').checked);
-	currentFilters.set('server', document.getElementById('notUploaded').checked);
-	reloadPage();
+	var reset = false;
+	if(unchecked == null){
+		if(!document.getElementById('uploaded').checked){
+			unchecked = 'uploaded';
+		}
+		else if(!document.getElementById('notUploaded').checked){
+			unchecked = 'notUploaded';
+		}
+		reset = true;
+	}
+	else if (unchecked == 'uploaded'){
+		if(!document.getElementById('notUploaded').checked){
+			document.getElementById('notUploaded').checked = true;
+		}
+		else if(document.getElementById('uploaded').checked){
+			unchecked = null;
+			reset = true;
+		}
+	}
+	else if (unchecked == 'notUploaded'){
+		if(!document.getElementById('uploaded').checked){
+			document.getElementById('uploaded').checked = true;
+		}
+		else if(document.getElementById('notUploaded').checked){
+			unchecked = null;
+			reset = true;
+		}
+	}
+	if(reset){
+		currentFilters.set('blockchain', document.getElementById('uploaded').checked);
+		currentFilters.set('server', document.getElementById('notUploaded').checked);
+		reloadPage();
+	}
 }
 
 function reloadPage(){
