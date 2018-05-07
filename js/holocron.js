@@ -854,18 +854,24 @@ function populateRandomContent() {
 	}
 }
 
+//Loads books that are in the page array
 function loadBooksByPage(){
+	//Gets the book list
 	populateList = document.getElementById("booksList");
+	//Gets the entries on the current page
 	var pageArray = pageBooks[currentPage];
+	//Hides the next button if there are fewer entries on a page than there could be
 	if(pageArray.length < maxEntries){
 		displayNextButton(false);
 	}
+	//Loops through each entry in the current page
 	for (var i = 0; i < pageArray.length; i++){
 		populateList.innerHTML += '<li class="bookInfo" name="' + pageArray[i] + '"></li>';
 		loadInfoBox('b', pageArray[i]);
 	}
 }
 
+//Creates an array full of unique random numbers
 function genUniqueRandomNumberArray(arrayLength, max){
 	var arr = [];
 	while(arr.length < arrayLength){
@@ -877,23 +883,32 @@ function genUniqueRandomNumberArray(arrayLength, max){
 	return arr;
 }
 
+//Adds a random entry to the page
 function addRandomEntry(){
-	var randomNumber = Math.floor(Math.random()*maxIndex);
+	//generates a random number from 1 - maxIndex
+	var randomNumber = Math.floor(Math.random()*maxIndex + 1);
 	var i = 0;
 	while(i < pageBooks.length){
+		//Loops through each set of pagebooks until randomnumber it isn't present or it isn't in badID
 		if(pageBooks[i].indexOf(randomNumber) != -1 || badID.indexOf(randomNumber) != -1){
 			i = -1;
+			//Regenerates the random number
 			randomNumber = Math.floor(Math.random()*maxIndex);
+			//Breaks the loop if there are more badIDs than entries
 			if(badID.length >= maxIndex){
 				i = pageBooks.length + maxEntries;
 			}
 		}
 		i++;
 	}
+	//If i makes it through succesfully
 	if(i == pageBooks.length){
 		populateList = document.getElementById("booksList");
+		//Adds the random entry to the current page
 		pageBooks[currentPage].push(randomNumber);
+		//Adds the corresponding HTML
 		populateList.innerHTML += '<li class="bookInfo" name="' + randomNumber + '"></li>';
+		//Loads the corresponding infobox
 		loadInfoBox('b', randomNumber);
 	}
 	else if (pageBooks[currentPage].length == 0){
