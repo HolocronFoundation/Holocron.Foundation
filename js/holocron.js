@@ -72,8 +72,6 @@ function loadZipABI(){
 	return [{"name": "__init__", "outputs": [], "inputs": [{"type": "address", "name": "_listingAddress"}, {"type": "address", "name": "_modifierAddress"}], "constant": false, "payable": false, "type": "constructor"}, {"name": "setZipBytes", "outputs": [], "inputs": [{"type": "int128", "name": "_index"}, {"type": "bytes", "name": "newZip"}], "constant": false, "payable": false, "type": "function", "gas": 5187494}, {"name": "listingAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 513}, {"name": "modifierAddress", "outputs": [{"type": "address", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 543}, {"name": "zipBytes", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [{"type": "int128", "name": "arg0"}], "constant": true, "payable": false, "type": "function", "gas": 97105}, {"name": "zipBytesFinal", "outputs": [{"type": "bytes", "name": "out"}], "inputs": [], "constant": true, "payable": false, "type": "function", "gas": 28850}];
 }
 
-var authorABI = loadAuthorABI();
-
 var libraryAddress = '0x240Ffc557848b5a28bB2df8370B35e7a1B35797D';
 
 //This boolean is set to true when the user is injecting web3 (metamask or mist, etc.)
@@ -301,7 +299,7 @@ function getAuthors(bookID, localStorageAccess=true){
 				//Gets each authors name from the blockchain
 				for(var j = 0; j<authorIDArray.length; j++){
 					var addr = await libraryContract.methods.getAuthorAddress(parseInt(authorIDArray[j], 16)).call();
-					var authorContract = new web3.eth.Contract(authorABI, addr);
+					var authorContract = new web3.eth.Contract(loadAuthorABI(), addr);
 					var name = await authorContract.methods.author__name().call();
 					authorNameArray.push(hex2a(name));
 				}
@@ -571,7 +569,9 @@ function updateSplitValues(newValue, bookID){
 	document.getElementById('bookSplit'+bookID).innerHTML = "Book: " + (100-newValue) + "%";
 }
 
+//Loads the address that information is stored at.
 function loadInfoAddress(tag, ID, localStorageAccess=true){
+	//If there is local storage, checks there for the info
 	if(localStorageAccess){
 		localStorageName = '<' + tag + ID.toString() + '>infoAddress';
 		var localItem = localStorage.getItem(localStorageName);
@@ -579,6 +579,7 @@ function loadInfoAddress(tag, ID, localStorageAccess=true){
 			return Promise.resolve(parseLocalStorage(localItem));
 		}
 	}
+	//Getting a book
 	if(tag == 'b'){
 		return libraryContract.methods.getBookAddress(ID).call()
 		.then(function(res){
@@ -588,6 +589,7 @@ function loadInfoAddress(tag, ID, localStorageAccess=true){
 			return res;
 		});
 	}
+	//Getting an author
 	if(tag == 'a'){
 		return libraryContract.methods.getAuthorAddress(ID).call()
 		.then(function(res){
@@ -599,7 +601,9 @@ function loadInfoAddress(tag, ID, localStorageAccess=true){
 	}
 }
 
+//Loads a variable of a given type
 function loadVariable(typeLetter, ID, infoName, useCache=true, hexEncodedInContract=false){
+	//If the item can access local storage, first checks there.
 	if(useCache){
 		var localStorageName = '<' + typeLetter + ID.toString() + '>' + infoName;
 		var localItem = localStorage.getItem(localStorageName);
@@ -607,36 +611,39 @@ function loadVariable(typeLetter, ID, infoName, useCache=true, hexEncodedInContr
 			return Promise.resolve(parseLocalStorage(localItem));
 		}
 	}
+	//Otherwise, pulls from the info address
 	return loadInfoAddress(typeLetter, ID, useCache).then(function(res){
-		
+		//Creates a contract and a sdtring to be executed.
 		var currentContract;
 		var contractString;
 		
+		//Preps in the case of a book
 		if(typeLetter == 'b'){
 			currentContract = new web3.eth.Contract(loadBookABI(), res);
 			contractString = "return contract.methods.book__" + infoName + "().call().then(function(success){"
 		}
+		//Preps in the case of an author
 		else if(typeLetter == 'a'){
-			currentContract = new web3.eth.Contract(authorABI, res);
+			currentContract = new web3.eth.Contract(loadAuthorABI(), res);
 			contractString = "return contract.methods.author__" + infoName + "().call().then(function(success){"
 		}
-		
+		//Adds a line to decode from hex when needed
 		if(hexEncodedInContract){
 			contractString += "success = hex2a(success);"
 		}
-		
+		//Adds a line to store info if allowed
 		if(useCache){
 			contractString += "storeInfo('" + typeLetter + "', " + ID + ", '" + infoName + "', success);"
 		}
-		
+		//Adds the final returns and error catched
 		contractString += "return success;}).catch(function(error){if((error.toString() != \"Error: Couldn't decode bytes from ABI: 0x\") && (error.toString() != \"ReferenceError: name is not defined\") && (error.toString() != \"Error: Couldn't decode  from ABI: 0x\") && (error.toString() != \"Error: Couldn't decode bool from ABI: 0x\")){ console.log(error); } else{removeEntry(" + ID + ");}});";
-		
+		//Creates and then returns a function using the code generated above and the contract created above
 		var tempFunction = new Function("contract", contractString);
-		
 		return tempFunction(currentContract);
 	});
 }
 
+//Parses local storage for a given item
 function parseLocalStorage(localItem){
 	//Catching arrays
 	if(localItem.charAt(0) == '[' && localItem.charAt(localItem.length-1) == ']'){
@@ -653,8 +660,11 @@ function parseLocalStorage(localItem){
 	return localItem;
 }
 
+//Stores info based upon tags, name and the info itself
 function storeInfo(tag, ID, infoName, info){
+	//Generates the name to be stored - a custom tag is used at the start of each name
 	var storeName = '<' + tag + ID + '>' + infoName;
+	//If the info is an array, parses it based upon our custom representation of an array
 	if(Array.isArray(info)){
 		if(info.length == 0){
 			localStorage.setItem(storeName, 'None');
@@ -671,22 +681,31 @@ function storeInfo(tag, ID, infoName, info){
 			localStorage.setItem(storeName, storeArrStr);
 		}
 	}
+	//Otherwise simply stores it
 	else{
 		localStorage.setItem(storeName, info);
 	}
 }
 
+//Removes an entry with ID from the page
 function removeEntry(ID){
+	//Checks if the page actually exists
 	if((typeof(document) !== "undefined") && (document != null)){
+		//Finds the index of the book
 		index = pageBooks[currentPage].indexOf(ID);
+		//Adds the ID to bad IDs
 		badID.push(ID);
+		//Pushes to skipcache if it isn't there
 		if(!skipCache.includes(ID)){
 			skipCache.push(ID);
 		}
+		//If it is in pagebooks, it is spliced out
 		if(index > -1){
-				pageBooks[currentPage].splice(index, 1);
+			pageBooks[currentPage].splice(index, 1);
 		}
+		//Searches the page to check for the entry
 		entry = document.getElementsByName(ID.toString())[0];
+		//If the entry exists, it is removed
 		if(entry != undefined){
 			entry.remove()
 			if(currentPage != null && currentPageType == 'r'){
@@ -696,36 +715,48 @@ function removeEntry(ID){
 	}
 }
 
+//Designed to recieve donations
 function donate(bookID, invalidNumber=false, defaultSplit=false){
-	//need bookID, foundationSplitNumerator, foundationSplitDenominator, donationvalue
+	//Sets up the donation value string
 	var donationValueString;
+	//If the user previously entered an invalid amound, tells them that.
 	if(invalidNumber){
 		donationValueString = prompt("You entered an invalid number. Please enter the size of your donation, in ETH:", "0");
 	}
+	//Otherwise puts a simple request for the value
 	else{
 		donationValueString = prompt("Please enter the size of your donation, in ETH:", "0");
 	}
+	//Turns the string to a float
 	var donationValue = parseFloat(donationValueString);
+	//I think this catches hitting cancel?
 	if (donationValueString == null){
 	}
+	//Reprompts the user if the value isn't a number or if it's less than 0
 	else if(isNaN(donationValue) || donationValue <= 0){
 		donate(bookID, true);
 	}
+	//Otherwise completes the donation
 	else {
 		var foundationSplitNumerator;
 		var foundationSplitDenominator = 100;
+		//The default split is 30%, but the user may specify otherwise
 		if(!defaultSplit){
+			//Pulls a customn split from the slider
 			foundationSplitNumerator = document.getElementById('slider'+bookID).value;
 		}
 		else{
 			foundationSplitNumerator = 30;
 		}
+		//Gets the accounts to send a donation. accounts[0] generally contains the main user account
 		web3.eth.getAccounts(function(error, accounts) {
 			if(!error){
+				//Sends the donation!
 				libraryContract.methods.donate(bookID, foundationSplitNumerator, foundationSplitDenominator).send({
 					from: accounts[0],
 					value: web3.utils.toWei(donationValueString)
 				}).on('transactionHash', function(hash){
+					//Returns the tx hash to the user.
 					alert('Your donation has sent! The transaction hash is: ' + hash);
 				}).catch(function(fuck){
 					if(fuck == 'Error: No "from" address specified in neither the given options, nor the default options.'){
@@ -747,42 +778,57 @@ function donate(bookID, invalidNumber=false, defaultSplit=false){
 	}
 }
 
+//Converts hex to ascii when needed
 function hex2a(hex) {
+	//removes the 0x at the start if needed
 	if(hex.indexOf('0x')==0){
 		hex = hex.substring(2);
 	}
-    var str = '';
-    for (var i = 0; i < hex.length; i += 2) {
+	//Turns it to a string 2 hex numerals at a time
+	var str = '';
+	for (var i = 0; i < hex.length; i += 2) {
 		str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
 	}
-    return str.trim();
+	return str.trim();
 }
 
+//Calculates a storage cost based upon size and gas price
 function calculateStorageCost(size, gasPrice) {
 	//size in bytes, gasPrice in wei
 	return 625*size*gasPrice;
 }
 
+//Starts a search
 function searchBooks(){
+	//Empties the books array
 	pageBooks = [[]];
+	//Sets the page to 0 and resets the page numbers
 	currentPage = 0;
 	resetPageNumber()
-	
+	//Sets the page type to s for search
 	currentPageType = 's';
+	//Resets the booksList
 	booksList = document.getElementById("booksList");
 	booksList.innerHTML = '';
+	//Pulls the value from the search bar then executs a search
 	searchValue = document.getElementById("searchBar").value.toLowerCase();
 	searchLocalStorage(searchValue, booksList);
 }
 
+//Pulls an authors books by ID
 async function loadAuthorBooks(ID){
+	//Empties the books array
 	pageBooks = [[]];
+	//Sets the page to 0
 	currentPage = 0;
+	//Sets the page type to a for author
 	currentPageType = 'a';
+	//Pulls the authors name then searches via name
 	booksList = document.getElementById("booksList");
 	searchLocalStorage((await loadVariable('a', ID, 'name', true, true)).toLowerCase(), booksList);
 }
 
+//Populates a page with random content
 function populateRandomContent() {
 	for(var i = 0; i < maxEntries; i++){
 		addRandomEntry()
