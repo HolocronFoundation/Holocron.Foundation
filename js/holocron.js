@@ -152,7 +152,7 @@ async function loadTextPage(bookID) {
 	
 	document.title = 'Holocron.Foundation ♢ ' + bookName;
 	
-	var holocronInfoText = 'Welcome to the <a href="./">holocron.foundation library</a>. You are reading <a href="./book.html?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
+	var holocronInfoText = 'Welcome to the <a href="./">holocron.foundation library</a>. You are reading <a href="./?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
 	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '</p>';
 	
@@ -162,7 +162,7 @@ async function loadTextPage(bookID) {
 		holocronInfoText += ' This text has been uploaded to the Ethereum Blockchain. You are viewing the copy stored there. Enjoy!';
 	}
 	else {
-		holocronInfoText += ' This text has <b>NOT</b> been uploaded to the Ethereum Blockchain. You are viewing a copy stored on our server. If you would like to contribute Ethereum <a href="#" onclick="donate(' + bookID + ', false, true)">click here</a> to immeadiately send a donation with our default fee, or head to <a href="./book.html?bookID=' + bookID + '">this books page</a> to change it. If you would like to give Bitcoin, Litecoin, or USD please see our <a href="../donate.html">donations page</a>.';
+		holocronInfoText += ' This text has <b>NOT</b> been uploaded to the Ethereum Blockchain. You are viewing a copy stored on our server. If you would like to contribute Ethereum <a href="#" onclick="donate(' + bookID + ', false, true)">click here</a> to immeadiately send a donation with our default fee, or head to <a href="./?bookID=' + bookID + '">this books page</a> to change it. If you would like to give Bitcoin, Litecoin, or USD please see our <a href="../donate.html">donations page</a>.';
 	}
 	
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '<p>';
@@ -319,7 +319,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 					//Title
 					var newHTML = '<p class="title">';
 					if(getPageName() != 'book.html'){
-						newHTML += '<a href="' + modifiedURL + '/book.html?bookID=' + ID.toString() + '">';
+						newHTML += '<a href="' + modifiedURL + '/?bookID=' + ID.toString() + '">';
 					}
 					newHTML += '<b>' + titleClean + '</b>';
 					if(getPageName() != 'book.html'){
@@ -356,7 +356,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 							else if(k!=0){
 								newHTML += ' & ';
 							}
-							newHTML += '<a href="' + modifiedURL + '/author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + decodeURIComponent(escape(authorNameArray[k])) + '</a>';
+							newHTML += '<a href="' + modifiedURL + '/?authorID=' + parseInt(authorIDArray[k], 16) + '">' + decodeURIComponent(escape(authorNameArray[k])) + '</a>';
 						}
 						newHTML += '</p>';
 					}
@@ -414,7 +414,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 					//Title
 					var newHTML = '<p class="title">';
 					if(getPageName() != 'book.html'){
-						newHTML += '<a href="' + modifiedURL + '/book.html?bookID=' + ID.toString() + '">';
+						newHTML += '<a href="' + modifiedURL + '/?bookID=' + ID.toString() + '">';
 					}
 					newHTML += '<b>' + titleClean + '</b>';
 					if(getPageName() != 'book.html'){
@@ -451,7 +451,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 							else if(k!=0){
 								newHTML += ' & ';
 							}
-							newHTML += '<a href="' + modifiedURL + '/author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + decodeURIComponent(escape(authorNameArray[k])) + '</a>';
+							newHTML += '<a href="' + modifiedURL + '/?authorID=' + parseInt(authorIDArray[k], 16) + '">' + decodeURIComponent(escape(authorNameArray[k])) + '</a>';
 						}
 						newHTML += '</p>';
 					}
@@ -517,7 +517,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 				//Name
 				var newHTML = '<p class="authorName">';
 				if(getPageName() != 'author.html'){
-					newHTML += '<a href="./author.html?authorID=' + ID.toString() + '">';
+					newHTML += '<a href="./?authorID=' + ID.toString() + '">';
 				}
 				newHTML += '<b>' + decodeURIComponent(escape(name)) + '</b>';
 				if(getPageName() != 'author.html'){
@@ -768,15 +768,29 @@ function calculateStorageCost(size, gasPrice) {
 }
 
 function searchBooks(){
+	
+	window.location.href = window.location.origin + window.location.pathname + '?search=' + document.getElementById("searchBar").value.toLowerCase();
+
+}
+
+function startSearch(searchString){
 	pageBooks = [[]];
 	currentPage = 0;
-	resetPageNumber()
+	resetPageNumber();
+	
+	clearItems();
 	
 	currentPageType = 's';
 	booksList = document.getElementById("booksList");
 	booksList.innerHTML = '';
-	searchValue = document.getElementById("searchBar").value.toLowerCase();
-	searchLocalStorage(searchValue, booksList);
+	searchLocalStorage(searchString, booksList);
+}
+
+function clearItems(){
+	authorInfo = document.getElementById("fullAuthorInfo");
+	if (authorInfo != null){
+		authorInfo.remove();
+	}
 }
 
 async function loadAuthorBooks(ID){
