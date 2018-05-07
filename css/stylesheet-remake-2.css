@@ -1,4 +1,4 @@
-#@charset "utf-8";
+@charset "utf-8";
 /* CSS Document */
 
 /* Holocron Blue Color Codes!
@@ -57,6 +57,24 @@ Darkest
 
 #fullAuthorInfo {
 	border-bottom: 5px groove burlywood;
+}
+
+/* Font size stuff */
+
+h1 {
+	font-size: 2em;
+}
+
+h2{
+	font-size: 1.7em;
+}
+
+p {
+	font-size: 1.2em;
+}
+
+.navbar {
+	font-size: 1.2em;
 }
 
 /* Displays next page stuff on a line */
