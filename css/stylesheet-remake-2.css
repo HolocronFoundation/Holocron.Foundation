@@ -62,19 +62,19 @@ Darkest
 /* Font size stuff */
 
 h1 {
-	font-size: 3vmax;
+	font-size: 2.199em;
 }
 
 h2{
-	font-size: 2.5vmax;
+	font-size: 1.555em;
 }
 
 p {
-	font-size: 1.85vmax;
+	font-size: 1.1em;
 }
 
 .navbar {
-	font-size: 2vmax;
+	font-size: 1.32em;
 }
 
 /* Displays next page stuff on a line */
@@ -306,7 +306,7 @@ li.navbar {
 li.navbar a {
     display: block;
     text-align: center;
-    padding: 14px 16px;
+    padding: 1.75vh;
     text-decoration: none;
 	color: white;
 }
