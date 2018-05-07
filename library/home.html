@@ -57,12 +57,15 @@
 	</section>
 </body>
 <script>
+	var authorID = getParameterByName('authorID');
+	var bookID = getParameterByName('bookID');
+	var search = getParameterByName('search');
+	if(search != null && search != ''){
+		document.getElementById("searchBar").placeholder = search;
+	}
 	function start(){
-		var authorID = getParameterByName('authorID');
 		if(authorID == null || authorID ==''){
-			var bookID = getParameterByName('bookID');
 			if(bookID == null || bookID ==''){
-				var search = getParameterByName('search');
 				if(search == null || search ==''){
 					if(currentPage == null){
 						currentPage = 0;
