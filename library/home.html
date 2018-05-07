@@ -57,14 +57,39 @@
 	</section>
 </body>
 <script>
+	var authorID = getParameterByName('authorID');
+	var bookID = getParameterByName('bookID');
+	var search = getParameterByName('search');
+	if(search != null && search != ''){
+		document.getElementById("searchBar").placeholder = search;
+	}
 	function start(){
-		if(currentPage == null){
-			currentPage = 0;
-			currentPageType = 'r';
-			populateRandomContent();
+		if(authorID == null || authorID ==''){
+			if(bookID == null || bookID ==''){
+				if(search == null || search ==''){
+					if(currentPage == null){
+						currentPage = 0;
+						currentPageType = 'r';
+						populateRandomContent();
+					}
+					else{
+						loadBooksByPage();
+					}
+				}
+				else{
+					startSearch(search);
+				}
+			}
+			else{
+				document.getElementById("content").innerHTML = '<div id="fullBookInfo" name="' + bookID + '"></div>';
+				loadInfoBox('b', bookID);
+			}
 		}
 		else{
-			loadBooksByPage();
+			document.getElementById("content").innerHTML = '<div id="fullAuthorInfo"></div>' + document.getElementById("content").innerHTML
+			document.getElementById("fullAuthorInfo").setAttribute("name", authorID);
+			loadInfoBox('a', authorID);
+			loadAuthorBooks(authorID);
 		}
 		cacheBooks(0);
 	}
