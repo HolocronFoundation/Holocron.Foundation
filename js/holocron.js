@@ -192,8 +192,10 @@ async function loadTextPage(bookID) {
 	//Updates the tile with bookID's name
 	document.title = 'Holocron.Foundation ♢ ' + bookName;
 	
-	//Starts initializing the HTML with dynamic information
-	var holocronInfoText = 'Welcome to the <a href="./">holocron.foundation library</a>. You are reading <a href="./book.html?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
+
+	var holocronInfoText = 'Welcome to the <a href="./">holocron.foundation library</a>. You are reading <a href="./?bookID=' + bookID + '">' + bookName + '</a>. To the best of our knowledge, this text is Public Domain within the United States, so feel free to use the text however you would like.';
+	
+
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '</p>';
 	
 	//Checks if the book is on the blockchain, then informs the user of that.
@@ -202,7 +204,7 @@ async function loadTextPage(bookID) {
 		holocronInfoText += ' This text has been uploaded to the Ethereum Blockchain. You are viewing the copy stored there. Enjoy!';
 	}
 	else {
-		holocronInfoText += ' This text has <b>NOT</b> been uploaded to the Ethereum Blockchain. You are viewing a copy stored on our server. If you would like to contribute Ethereum <a href="#" onclick="donate(' + bookID + ', false, true)">click here</a> to immeadiately send a donation with our default fee, or head to <a href="./book.html?bookID=' + bookID + '">this books page</a> to change it. If you would like to give Bitcoin, Litecoin, or USD please see our <a href="../donate.html">donations page</a>.';
+		holocronInfoText += ' This text has <b>NOT</b> been uploaded to the Ethereum Blockchain. You are viewing a copy stored on our server. If you would like to contribute Ethereum <a href="#" onclick="donate(' + bookID + ', false, true)">click here</a> to immeadiately send a donation with our default fee, or head to <a href="./?bookID=' + bookID + '">this books page</a> to change it. If you would like to give Bitcoin, Litecoin, or USD please see our <a href="../donate.html">donations page</a>.';
 	}
 	document.getElementById('Holocron Info').innerHTML = '<p>' + holocronInfoText + '<p>';
 
@@ -398,7 +400,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 					var newHTML = '<p class="title">';
 					//Adds a link to the book page if you're not on it
 					if(getPageName() != 'book.html'){
-						newHTML += '<a href="' + modifiedURL + '/book.html?bookID=' + ID.toString() + '">';
+						newHTML += '<a href="' + modifiedURL + '/?bookID=' + ID.toString() + '">';
 					}
 					newHTML += '<b>' + titleClean + '</b>';
 					//Finished the link tag
@@ -406,6 +408,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 						newHTML += '</a>';
 					}
 					newHTML += '</p> ';
+
 					
 					//Checks if there are authors, if so, adds them to the page
 					if(authorRolesIDArray != 'None'){
@@ -439,7 +442,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 							else if(k!=0){
 								newHTML += ' & ';
 							}
-							newHTML += '<a href="' + modifiedURL + '/author.html?authorID=' + parseInt(authorIDArray[k], 16) + '">' + decodeURIComponent(escape(authorNameArray[k])) + '</a>';
+							newHTML += '<a href="' + modifiedURL + '/?authorID=' + parseInt(authorIDArray[k], 16) + '">' + decodeURIComponent(escape(authorNameArray[k])) + '</a>';
 						}
 						newHTML += '</p>';
 					}
@@ -507,7 +510,7 @@ function loadInfoBox(tag, ID, modifiedURL='.'){
 				var newHTML = '<p class="authorName">';
 				//If the page is not the author's page, adds links to the authors page
 				if(getPageName() != 'author.html'){
-					newHTML += '<a href="./author.html?authorID=' + ID.toString() + '">';
+					newHTML += '<a href="./?authorID=' + ID.toString() + '">';
 				}
 				//This decodeURIComponent(escape()) thing effectively works to display proper encoding
 				newHTML += '<b>' + decodeURIComponent(escape(name)) + '</b>';
@@ -800,19 +803,35 @@ function calculateStorageCost(size, gasPrice) {
 
 //Starts a search
 function searchBooks(){
+	
+	window.location.href = window.location.origin + window.location.pathname + '?search=' + document.getElementById("searchBar").value.toLowerCase();
+
+}
+
+function startSearch(searchString){
 	//Empties the books array
 	pageBooks = [[]];
 	//Sets the page to 0 and resets the page numbers
 	currentPage = 0;
-	resetPageNumber()
+
+	resetPageNumber();
+	
+	clearItems();
+
 	//Sets the page type to s for search
 	currentPageType = 's';
 	//Resets the booksList
 	booksList = document.getElementById("booksList");
 	booksList.innerHTML = '';
-	//Pulls the value from the search bar then executs a search
-	searchValue = document.getElementById("searchBar").value.toLowerCase();
-	searchLocalStorage(searchValue, booksList);
+
+	searchLocalStorage(searchString, booksList);
+}
+
+function clearItems(){
+	authorInfo = document.getElementById("fullAuthorInfo");
+	if (authorInfo != null){
+		authorInfo.remove();
+	}
 }
 
 //Pulls an authors books by ID
