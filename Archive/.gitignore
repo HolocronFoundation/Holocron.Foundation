@@ -1,0 +1,19 @@
+# https://git-scm.com/docs/gitignore
+# https://help.github.com/articles/ignoring-files
+# Example.gitignore files : https://github.com/github/gitignore
+_notes/
+/bower_components/
+/node_modules/
+py/vyperFilesGenerate/*
+py/vyperAuthorFilesGenerated/*
+*.csv
+
+/py/vyperFilesGenerated/*
+/py/vyperAuthorFilesGenerated/*
+*.zip
+/zipsvyper/*
+*.jsb
+py/jszip.min.js
+py/jszip/jszip.min.v.py
+*.byte
+*.json
