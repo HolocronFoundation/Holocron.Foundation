@@ -17,3 +17,4 @@ py/jszip.min.js
 py/jszip/jszip.min.v.py
 *.byte
 *.json
+~private/
